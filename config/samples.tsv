@@ -1,3 +1,3 @@
 sampleName	path_to_R1_fastq	path_to_R2_fastq
-Sample1	<path to sample1 R1 fastq>	<path to sample1 R2 fastq>
-Sample2	<path to sample2 R1 fastq>	<path to sample2 R2 fastq>
+PC3_1	/data/CCBR/rawdata/ccbr1005/Flowcell_HMYTNBGX9/Sample_PC3_1/PC3_1_S1_R1_001.fastq.gz	/data/CCBR/rawdata/ccbr1005/Flowcell_HMYTNBGX9/Sample_PC3_1/PC3_1_S1_R2_001.fastq.gz
+PC3_2	/data/CCBR/rawdata/ccbr1005/Flowcell_HMYTNBGX9/Sample_PC3_2/PC3_2_S2_R1_001.fastq.gz	/data/CCBR/rawdata/ccbr1005/Flowcell_HMYTNBGX9/Sample_PC3_2/PC3_2_S2_R2_001.fastq.gz
