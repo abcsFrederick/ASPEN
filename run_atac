@@ -10,7 +10,7 @@
 # DISCLAIMER: This wrapper only works on BIOWULF
 
 PYTHON_VERSION="python/3.7"
-SNAKEMAKE_VERSION="snakemake/5.24.1"
+SNAKEMAKE_VERSION="snakemake"
 
 set -eo pipefail
 module purge
@@ -18,8 +18,8 @@ module purge
 SCRIPTNAME="$0"
 SCRIPTBASENAME=$(readlink -f $(basename $0))
 
-# set extra singularity bindings
-EXTRA_SINGULARITY_BINDS="-B /data/CCBR_Pipeliner/:/data/CCBR_Pipeliner/"
+# set extra singularity bindings comma separated
+EXTRA_SINGULARITY_BINDS="/lscratch"
 
 function get_git_commitid_tag() {
 # This function gets the latest git commit id and tag
@@ -46,7 +46,7 @@ function usage() {
 
     cat << EOF
 ${SCRIPTBASENAME}
---> run <Your Pipeline Short Name>
+--> run CCBR ATACseq pipeline
 
 USAGE:
   bash ${SCRIPTNAME} -m/--runmode=<RUNMODE> -w/--workdir=<WORKDIR>
@@ -122,13 +122,27 @@ function reconfig(){
 
 }
 
+function set_singularity_binds(){
+# this functions tries find what folders to bind
+# biowulf specific
+  echo "$PIPELINE_HOME" > ${WORKDIR}/tmp1
+  echo "$WORKDIR" >> ${WORKDIR}/tmp1
+  grep -o '\/.*' <(cat ${WORKDIR}/config.yaml ${WORKDIR}/samples.tsv)|tr '\t' '\n'|grep -v ' \|\/\/'|sort|uniq >> ${WORKDIR}/tmp1
+  grep gpfs ${WORKDIR}/tmp1|awk -F'/' -v OFS='/' '{print $1,$2,$3,$4,$5}' |sort|uniq > ${WORKDIR}/tmp2
+  grep -v gpfs ${WORKDIR}/tmp1|awk -F'/' -v OFS='/' '{print $1,$2,$3}'|sort|uniq > ${WORKDIR}/tmp3
+  while read a;do readlink -f $a;done < ${WORKDIR}/tmp3 > ${WORKDIR}/tmp4
+  binds=$(cat ${WORKDIR}/tmp2 ${WORKDIR}/tmp3 ${WORKDIR}/tmp4|sort|uniq |tr '\n' ',')
+  rm -f ${WORKDIR}/tmp?
+  binds=$(echo $binds|awk '{print substr($1,1,length($1)-1)}')
+  SINGULARITY_BINDS="-B $EXTRA_SINGULARITY_BINDS,$binds"
+}
+
 function runcheck(){
 # Check "job-essential" files and load required modules
 
   check_essential_files
   module load $PYTHON_VERSION
   module load $SNAKEMAKE_VERSION
-  SINGULARITY_BINDS="$EXTRA_SINGULARITY_BINDS -B ${PIPELINE_HOME}:${PIPELINE_HOME} -B ${WORKDIR}:${WORKDIR}"
 
 }
 
@@ -150,6 +164,7 @@ function runlocal() {
 # If the pipeline is fired up on an interactive node (with sinteractive), this function runs the pipeline
 
   runcheck
+  set_singularity_binds
   if [ "$SLURM_JOB_ID" == "" ];then err "runlocal can only be done on an interactive node"; fi
   module load singularity
   run "local"
@@ -159,6 +174,7 @@ function runslurm() {
 # Submit the execution of the pipeline to the biowulf job scheduler (slurm)
 
   runcheck
+  set_singularity_binds
   run "slurm"
 }
 
@@ -249,7 +265,7 @@ snakemake -s $SNAKEFILE \
 --latency-wait 120 \
 --configfile ${WORKDIR}/config.yaml \
 --cluster-config ${PIPELINE_HOME}/resources/cluster.json \
---cluster "sbatch --gres {cluster.gres} --cpus-per-task {cluster.threads} -p {cluster.partition} -t {cluster.time} --mem {cluster.mem} --job-name {cluster.name} --output {cluster.output} --error {cluster.error}" \
+--cluster "sbatch --gres {cluster.gres} --cpus-per-task {cluster.threads} -p {cluster.partition} -t {cluster.time} --mem {cluster.mem} --job-name {cluster.name} --output {cluster.output} --error {cluster.error}  --qos {cluster.qos}" \
 -j 500 \
 --rerun-incomplete \
 --keep-going \
@@ -263,7 +279,7 @@ if [ "\$?" -eq "0" ];then
   --configfile ${WORKDIR}/config.yaml 
 fi
 
-bash <(curl https://raw.githubusercontent.com/CCBR/Tools/master/Biowulf/gather_cluster_stats.sh 2>/dev/null) ${WORKDIR}/snakemake.log > ${WORKDIR}/snakemake.log.HPC_summary.txt
+bash <(curl https://raw.githubusercontent.com/CCBR/Tools/master/Biowulf/gather_cluster_stats_biowulf.sh 2>/dev/null) ${WORKDIR}/snakemake.log > ${WORKDIR}/snakemake.log.HPC_summary.txt
 
 EOF
 
@@ -277,7 +293,7 @@ snakemake $1 -s $SNAKEFILE \
 --printshellcmds \
 --latency-wait 120 \
 --configfile ${WORKDIR}/config.yaml \
---cluster-config ${PIPELINE_HOME}/config/cluster.json \
+--cluster-config ${PIPELINE_HOME}/resources/cluster.json \
 --cluster "sbatch --gres {cluster.gres} --cpus-per-task {cluster.threads} -p {cluster.partition} -t {cluster.time} --mem {cluster.mem} --job-name {cluster.name} --output {cluster.output} --error {cluster.error}" \
 -j 500 \
 --rerun-incomplete \
@@ -297,6 +313,11 @@ function reset() {
   rm -rf $WORKDIR
   echo "Re-Initializing $WORKDIR"
   init
+}
+
+function printbinds(){
+  set_singularity_binds
+  echo $SINGULARITY_BINDS
 }
 
 
@@ -332,6 +353,7 @@ function main(){
     dry) dryrun && exit 0;;                      # hidden option
     local) runlocal && exit 0;;                  # hidden option
     reconfig) reconfig && exit 0;;               # hidden option for debugging
+    printbinds) printbinds && exit 0;;           # hidden option
     *) err "Unknown RUNMODE \"$RUNMODE\"";;
   esac
 }
