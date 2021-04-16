@@ -1,0 +1,11 @@
+from os.path import join
+
+include: join("rules/init.smk")
+include: join("rules/align.smk")
+
+localrules: all
+
+rule all:
+    input:
+        expand(join(WORKDIR,"tmp","trim","{sample}.R1.trim.fastq.gz"),sample=SAMPLES),
+        expand(join(WORKDIR,"tmp","noBL","{sample}.R1.noBL.fastq.gz"),sample=SAMPLES),
