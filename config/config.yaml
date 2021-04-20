@@ -13,10 +13,12 @@ resourcesdir: "PIPELINE_HOME/resources"
 #
 samples: "WORKDIR/samples.tsv"
 genome: "hg38"
+multimapping: 4
 #
 #
 #
 hg38:
   indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/hg38_basic/indexes"
 # master container
-masterdocker: "docker://nciccbr/ccbr_atacseq:v0.1.29"
+# masterdocker: "docker://nciccbr/ccbr_atacseq:v0.1.29"
+masterdocker: "docker://nciccbr/ccbr_atacseq:v0.1"
