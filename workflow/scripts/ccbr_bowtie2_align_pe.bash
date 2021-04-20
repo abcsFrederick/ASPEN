@@ -1,7 +1,7 @@
 #!/bin/bash
 
-. /opt2/conda/etc/profile.d/conda.sh
-conda activate python3
+# . /opt2/conda/etc/profile.d/conda.sh
+# conda activate python3
 
 set -e -x -o pipefail
 ARGPARSE_DESCRIPTION="Adapter trimmed (and blacklist filtered) fastqs are aligned to genome using bowtie2, multimappers are properly assigned, deduplicated using picard, filtered based on mapq, bams converted to tagAlign files."      # this is optional
@@ -76,7 +76,7 @@ rm -rf ${samplename}.dup.bam ${samplename}.tmp5.bam
 samtools index ${samplename}.filt.bam
 samtools flagstat ${samplename}.filt.bam > ${samplename}.filt.bam.flagstat
 
-java -Xmx240G -jar ${SCRIPTSFOLDER}/picardcloud.jar MarkDuplicates \
+java -Xmx240G -jar /opt2/picardcloud.jar MarkDuplicates \
 INPUT=${samplename}.filt.bam \
 OUTPUT=${samplename}.dupmark.bam \
 METRICS_FILE=${samplename}.dupmetric \
@@ -93,7 +93,7 @@ if [ $KEEPFILES == "False" ];then rm -rf ${samplename}.dupmark.bam;fi
 
 samtools index ${samplename}.dedup.tmp.bam
 
-. /opt2/conda/etc/profile.d/conda.sh
+# . /opt2/conda/etc/profile.d/conda.sh
 python ${SCRIPTSFOLDER}/ccbr_bam_filter_by_mapq.py -i ${samplename}.dedup.tmp.bam -o ${samplename}.dedup.bam -q 6
 rm -rf ${samplename}.dedup.tmp.bam
 
@@ -111,4 +111,4 @@ echo "$nreads"|awk '{printf("%d\tMapped reads\n",$1)}' >> ${samplename}.nreads.t
 nreads=`grep -m1 total ${samplename}.dedup.bam.flagstat|awk '{print $1}'`
 echo "$nreads"|awk '{printf("%d\tAfter deduplication\n",$1)}' >> ${samplename}.nreads.txt
 
-conda deactivate
+# conda deactivate

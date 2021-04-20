@@ -1,7 +1,7 @@
 #!/bin/bash
 
-. /opt2/conda/etc/profile.d/conda.sh
-conda activate python3
+# . /opt2/conda/etc/profile.d/conda.sh
+# conda activate python3
 
 set -e -x -o pipefail
 ARGPARSE_DESCRIPTION="Trim PE reads using cutadapt"      # this is optional
@@ -13,6 +13,7 @@ parser.add_argument('--samplename',required=True, help='samplename')
 parser.add_argument('--threads',required=True, help='number of threads')
 parser.add_argument('--outfastq1',required=True, help='output R1 fastq.gz file')
 parser.add_argument('--outfastq2',required=True, help='output R2 fastq.gz file')
+# parser.add_argument('--sampleinfo',required=True, help='nreads file')
 EOF
 
 infastq1=$INFASTQ1
@@ -36,8 +37,8 @@ cutadapt \
 -p $outfastq2 \
 $infastq1 $infastq2
 
-nreads=`zcat $infastq1|wc -l`
-nreadstrim=`zcat $outfastq1|wc -l`
-echo "$nreads $nreadstrim"|awk '{printf("%d\tInput Nreads\n%d\tAfter trimming\n",$1/2,$2/2)}' > ${samplename}.nreads.txt
+# nreads=`zcat $infastq1|wc -l`
+# nreadstrim=`zcat $outfastq1|wc -l`
+# echo "$nreads $nreadstrim"|awk '{printf("%d\tInput Nreads\n%d\tAfter trimming\n",$1/2,$2/2)}' > ${SAMPLEINFO}
 
-conda deactivate
+# conda deactivate
