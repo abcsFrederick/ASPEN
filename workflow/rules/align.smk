@@ -4,76 +4,78 @@ def get_fastqs(wildcards):
     d["R2"]=SAMPLESDF["R2"][wildcards.sample]
     return d
 
-rule trim_align_dedup:
-    input:
-        unpack(get_fastqs)
-    output:
-        ta=join(WORKDIR,"tagAlign","{sample}.tagAlign.gz"),
-        fastqcraw1=join(WORKDIR,"QC","fastqc","{sample}.R1_fastqc.zip"),
-        fastqcraw2=join(WORKDIR,"QC","fastqc","{sample}.R2_fastqc.zip"),
-        fastqc1=join(WORKDIR,"QC","fastqc","{sample}.R1.noBL_fastqc.zip"),
-        fastqc2=join(WORKDIR,"QC","fastqc","{sample}.R2.noBL_fastqc.zip"),
-        nreads=join(WORKDIR,"QC","{sample}.nreads.txt"),
-        nrf=join(WORKDIR,"QC","preseq","{sample}.nrf"),
-        dedupbam=join(WORKDIR,"bam","{sample}.dedup.bam"),
-        qsortedbam=join(WORKDIR,"bam","{sample}.qsorted.bam"),
-        picardout=join(WORKDIR,"QC","{sample}.dupmetric"),
-        genomefile=join(WORKDIR,"bam","{sample}.genome"),
-        trimfq1=join(WORKDIR,"trim","{sample}.R1.trim.fastq.gz"),
-        trimfq2=join(WORKDIR,"trim","{sample}.R2.trim.fastq.gz")
-    params:
-        genome=GENOME,
-        indexdir=INDEXDIR,
-        workdir=WORKDIR,
-        scriptsdir=SCRIPTSDIR,
-        qcdir=join(WORKDIR,"QC"),
-        sample="{sample}",
-        script="ccbr_atac_trim_align_pe.bash"
-    container: config["masterdocker"]
-    threads: 56
-    shell:"""
-ls {params.scriptsdir}/{params.script}
-cd /lscratch/$SLURM_JOBID && bash {params.scriptsdir}/{params.script} \
---infastq1 {input.R1} \
---infastq2 {input.R2} \
---threads {threads} \
---genome {params.genome} \
---scriptsfolder {params.scriptsdir} \
---keepfiles True
+localrules: align_stats
 
-ls -larth
+# rule trim_align_dedup:
+#     input:
+#         unpack(get_fastqs)
+#     output:
+#         ta=join(WORKDIR,"tagAlign","{sample}.tagAlign.gz"),
+#         fastqcraw1=join(WORKDIR,"QC","fastqc","{sample}.R1_fastqc.zip"),
+#         fastqcraw2=join(WORKDIR,"QC","fastqc","{sample}.R2_fastqc.zip"),
+#         fastqc1=join(WORKDIR,"QC","fastqc","{sample}.R1.noBL_fastqc.zip"),
+#         fastqc2=join(WORKDIR,"QC","fastqc","{sample}.R2.noBL_fastqc.zip"),
+#         nreads=join(WORKDIR,"QC","{sample}.nreads.txt"),
+#         nrf=join(WORKDIR,"QC","preseq","{sample}.nrf"),
+#         dedupbam=join(WORKDIR,"bam","{sample}.dedup.bam"),
+#         qsortedbam=join(WORKDIR,"bam","{sample}.qsorted.bam"),
+#         picardout=join(WORKDIR,"QC","{sample}.dupmetric"),
+#         genomefile=join(WORKDIR,"bam","{sample}.genome"),
+#         trimfq1=join(WORKDIR,"trim","{sample}.R1.trim.fastq.gz"),
+#         trimfq2=join(WORKDIR,"trim","{sample}.R2.trim.fastq.gz")
+#     params:
+#         genome=GENOME,
+#         indexdir=INDEXDIR,
+#         workdir=WORKDIR,
+#         scriptsdir=SCRIPTSDIR,
+#         qcdir=join(WORKDIR,"QC"),
+#         sample="{sample}",
+#         script="ccbr_atac_trim_align_pe.bash"
+#     container: config["masterdocker"]
+#     threads: 56
+#     shell:"""
+# ls {params.scriptsdir}/{params.script}
+# cd /lscratch/$SLURM_JOBID && bash {params.scriptsdir}/{params.script} \
+# --infastq1 {input.R1} \
+# --infastq2 {input.R2} \
+# --threads {threads} \
+# --genome {params.genome} \
+# --scriptsfolder {params.scriptsdir} \
+# --keepfiles True
 
-rsync -az --progress {params.sample}.dedup.bam {params.workdir}/bam/
-rsync -az --progress {params.sample}.genome {params.workdir}/bam/
-rsync -az --progress {params.sample}.dedup.bam.bai {params.workdir}/bam/
-rsync -az --progress {params.sample}.qsorted.bam {params.workdir}/bam/
+# ls -larth
 
-rsync -az --progress {params.sample}.tagAlign.gz {params.workdir}/tagAlign/
+# rsync -az --progress {params.sample}.dedup.bam {params.workdir}/bam/
+# rsync -az --progress {params.sample}.genome {params.workdir}/bam/
+# rsync -az --progress {params.sample}.dedup.bam.bai {params.workdir}/bam/
+# rsync -az --progress {params.sample}.qsorted.bam {params.workdir}/bam/
 
-rsync -az --progress {params.sample}.bowtie2.bam.flagstat {params.qcdir}/
-rsync -az --progress {params.sample}.bowtie2.log {params.qcdir}/
-rsync -az --progress {params.sample}.dedup.bam.flagstat {params.qcdir}/
-rsync -az --progress {params.sample}.dupmetric {params.qcdir}/
-rsync -az --progress {params.sample}.filt.bam.flagstat {params.qcdir}/
-rsync -az --progress {params.sample}.nreads.txt {params.qcdir}/
+# rsync -az --progress {params.sample}.tagAlign.gz {params.workdir}/tagAlign/
 
-rsync -az --progress {params.sample}.nrf {params.qcdir}/preseq/
-rsync -az --progress {params.sample}.preseq {params.qcdir}/preseq/
-rsync -az --progress {params.sample}.preseq.log {params.qcdir}/preseq/
+# rsync -az --progress {params.sample}.bowtie2.bam.flagstat {params.qcdir}/
+# rsync -az --progress {params.sample}.bowtie2.log {params.qcdir}/
+# rsync -az --progress {params.sample}.dedup.bam.flagstat {params.qcdir}/
+# rsync -az --progress {params.sample}.dupmetric {params.qcdir}/
+# rsync -az --progress {params.sample}.filt.bam.flagstat {params.qcdir}/
+# rsync -az --progress {params.sample}.nreads.txt {params.qcdir}/
 
-rsync -az --progress {params.sample}.R1.noBL_fastqc.html {params.qcdir}/fastqc/
-rsync -az --progress {params.sample}.R2.noBL_fastqc.html {params.qcdir}/fastqc/
-rsync -az --progress {params.sample}.R1.noBL_fastqc.zip {params.qcdir}/fastqc/
-rsync -az --progress {params.sample}.R2.noBL_fastqc.zip {params.qcdir}/fastqc/
-rsync -az --progress {params.sample}.R1_fastqc.html {params.qcdir}/fastqc/
-rsync -az --progress {params.sample}.R2_fastqc.html {params.qcdir}/fastqc/
-rsync -az --progress {params.sample}.R1_fastqc.zip {params.qcdir}/fastqc/
-rsync -az --progress {params.sample}.R2_fastqc.zip {params.qcdir}/fastqc/
+# rsync -az --progress {params.sample}.nrf {params.qcdir}/preseq/
+# rsync -az --progress {params.sample}.preseq {params.qcdir}/preseq/
+# rsync -az --progress {params.sample}.preseq.log {params.qcdir}/preseq/
 
-rsync -az --progress {params.sample}.R1.trim.fastq.gz {params.workdir}/trim/
-rsync -az --progress {params.sample}.R2.trim.fastq.gz {params.workdir}/trim/
+# rsync -az --progress {params.sample}.R1.noBL_fastqc.html {params.qcdir}/fastqc/
+# rsync -az --progress {params.sample}.R2.noBL_fastqc.html {params.qcdir}/fastqc/
+# rsync -az --progress {params.sample}.R1.noBL_fastqc.zip {params.qcdir}/fastqc/
+# rsync -az --progress {params.sample}.R2.noBL_fastqc.zip {params.qcdir}/fastqc/
+# rsync -az --progress {params.sample}.R1_fastqc.html {params.qcdir}/fastqc/
+# rsync -az --progress {params.sample}.R2_fastqc.html {params.qcdir}/fastqc/
+# rsync -az --progress {params.sample}.R1_fastqc.zip {params.qcdir}/fastqc/
+# rsync -az --progress {params.sample}.R2_fastqc.zip {params.qcdir}/fastqc/
 
-"""
+# rsync -az --progress {params.sample}.R1.trim.fastq.gz {params.workdir}/trim/
+# rsync -az --progress {params.sample}.R2.trim.fastq.gz {params.workdir}/trim/
+
+# """
 
 
 rule trim:
@@ -82,7 +84,7 @@ rule trim:
         unpack(get_fastqs)
     output:
         R1=join(WORKDIR,"tmp","trim","{sample}.R1.trim.fastq.gz"),
-        R2=join(WORKDIR,"tmp","trim","{sample}.R2.trim.fastq.gz")
+        R2=join(WORKDIR,"tmp","trim","{sample}.R2.trim.fastq.gz"),
     params:
         sample="{sample}",
         scriptsdir=SCRIPTSDIR,
@@ -90,7 +92,7 @@ rule trim:
     container: config["masterdocker"]    
     threads: getthreads("trim")
     shell:"""
-cd /lscratch
+cd /lscratch/${{SLURM_JOBID}}
 bash {params.scriptsdir}/{params.script} \
 --infastq1 {input.R1} \
 --infastq2 {input.R2} \
@@ -104,23 +106,76 @@ rule remove_BL:
     # group: "TAD"
     input:
         R1=rules.trim.output.R1,
-        R2=rules.trim.output.R2
+        R2=rules.trim.output.R2,
     output:
-        R1=join(WORKDIR,"tmp","noBL","{sample}.R1.noBL.fastq.gz"),
-        R2=join(WORKDIR,"tmp","noBL","{sample}.R2.noBL.fastq.gz")
+        R1=join(WORKDIR,"tmp","trim","{sample}.R1.noBL.fastq.gz"),
+        R2=join(WORKDIR,"tmp","trim","{sample}.R2.noBL.fastq.gz"),
     params:
         sample="{sample}",
         scriptsdir=SCRIPTSDIR,
+        genome=GENOME,
         script="ccbr_remove_blacklisted_reads_pe.bash"
     container: config["masterdocker"]    
     threads: getthreads("remove_BL")
     shell:"""
-cd /lscratch
+cd /lscratch/${{SLURM_JOBID}}
 bash {params.scriptsdir}/{params.script} \
 --infastq1 {input.R1} \
 --infastq2 {input.R2} \
 --samplename {params.sample} \
+--genome {params.genome} \
 --threads {threads} \
 --outfastq1 {output.R1} \
 --outfastq2 {output.R2}
 """
+
+rule align:
+    input:
+        R1=rules.remove_BL.output.R1,
+        R2=rules.remove_BL.output.R2,
+    output:
+        R1=join(WORKDIR,"tmp","trim","{sample}.R1.noBL.fastq.gz"),
+# rsync -az --progress {params.sample}.bowtie2.bam.flagstat {params.qcdir}/
+# rsync -az --progress {params.sample}.bowtie2.log {params.qcdir}/
+# rsync -az --progress {params.sample}.dedup.bam.flagstat {params.qcdir}/
+# rsync -az --progress {params.sample}.dupmetric {params.qcdir}/
+# rsync -az --progress {params.sample}.filt.bam.flagstat {params.qcdir}/
+    params:
+        sample="{sample}",
+        scriptsdir=SCRIPTSDIR,
+        genome=GENOME,
+        script="ccbr_bowtie2_align_pe.bash",
+        multimapping=config["multimapping"]
+    container: config["masterdocker"]    
+    threads: getthreads("align")
+    shell:"""
+cd /lscratch/${{SLURM_JOBID}}
+bash {params.scriptsdir}/{params.script} \
+--infastq1 {input.R1} \
+--infastq2 {input.R2} \
+--samplename {params.sample} \
+--genomename {params.genome} \
+--threads {threads} \
+--outfastq1 {output.R1} \
+--outfastq2 {output.R2} \
+--multimapping {params.multimapping} \
+--scriptsfolder {params.scriptsdir}
+"""
+
+rule align_stats:
+    input:
+        unpack(get_fastqs),
+        trimR1=rules.trim.output.R1,
+        noBLR1=rules.remove_BL.output.R1
+    output:
+        nreads=join(WORKDIR,"QC","{sample}.nreads.txt"),
+    params:
+        sample="{sample}",
+    shell:"""
+nreads=`zcat {input.R1}|wc -l`
+nreadstrim=`zcat {input.trimR1}|wc -l`
+echo "$nreads $nreadstrim"|awk '{{printf("%d\\tInput Nreads\\n%d\\tAfter trimming\\n",$1/2,$2/2)}}' > {output.nreads}
+nreads=`zcat {input.noBLR1}|wc -l`
+echo "$nreads"|awk '{{printf("%d\\tAfter removing mito-ribo reads\\n",$1/2)}}' >> {output.nreads}
+"""
+
