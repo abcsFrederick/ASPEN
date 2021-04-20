@@ -1,10 +1,6 @@
 #!/bin/bash
 
 set -e -x -o pipefail
-. /opt2/conda/etc/profile.d/conda.sh
-conda activate python3
-export LC_ALL=C.UTF-8
-export LANG=C.UTF-8
 
 ARGPARSE_DESCRIPTION="use preseq to find duplication levels and calculate NRF/PBC1/PBC2"      # this is optional
 source /opt2/argparse.bash || exit 1
@@ -32,5 +28,3 @@ EOF
 if [ ! -f $PRESEQ ];then
 	echo "Preseq Failed!" > $PRESEQ
 fi
-
-conda deactivate

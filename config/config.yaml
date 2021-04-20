@@ -21,4 +21,5 @@ hg38:
   indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/hg38_basic/indexes"
 # master container
 # masterdocker: "docker://nciccbr/ccbr_atacseq:v0.1.29"
-masterdocker: "docker://nciccbr/ccbr_atacseq:v0.1"
+masterdocker: "docker://nciccbr/ccbr_atacseq:v1.1"
+fastqcdocker: "docker://nciccbr/ccbr_fastqc_0.11.9:v1.1"

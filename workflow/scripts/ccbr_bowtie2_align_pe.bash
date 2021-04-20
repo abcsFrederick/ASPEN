@@ -11,6 +11,7 @@ parser.add_argument('--infastq1',required=True, help='input R1 fastq.gz file')
 parser.add_argument('--infastq2',required=True, help='input R2 fastq.gz file')
 parser.add_argument('--samplename',required=True, help='samplename')
 parser.add_argument('--threads',required=True, help='number of threads')
+parser.add_argument('--mem',required=True, help='mem in G for java')
 parser.add_argument('--genomename',required=True, help='hg19/hg38/mm9/mm10')
 parser.add_argument('--indexdir',required=True, help='dir where the bowtie2 index resides')
 parser.add_argument('--multimapping',required=False, default=4, help='multimapping threshold')
@@ -76,7 +77,7 @@ rm -rf ${samplename}.dup.bam ${samplename}.tmp5.bam
 samtools index ${samplename}.filt.bam
 samtools flagstat ${samplename}.filt.bam > ${samplename}.filt.bam.flagstat
 
-java -Xmx240G -jar /opt2/picardcloud.jar MarkDuplicates \
+java -Xmx${MEM} -jar /opt2/picardcloud.jar MarkDuplicates \
 INPUT=${samplename}.filt.bam \
 OUTPUT=${samplename}.dupmark.bam \
 METRICS_FILE=${samplename}.dupmetric \
@@ -106,9 +107,6 @@ awk 'BEGIN{OFS="\t"}{$4="N";$5="1000";print $0}'| \
 awk -F $'\t' 'BEGIN {OFS = FS}{ if ($6 == "+") {$2 = $2 + 4} else if ($6 == "-") {$3 = $3 - 5} print $0}' | \
 gzip -c > ${samplename}.tagAlign.gz
 
-nreads=`grep -m1 total ${samplename}.filt.bam.flagstat|awk '{print $1}'`
-echo "$nreads"|awk '{printf("%d\tMapped reads\n",$1)}' >> ${samplename}.nreads.txt
-nreads=`grep -m1 total ${samplename}.dedup.bam.flagstat|awk '{print $1}'`
-echo "$nreads"|awk '{printf("%d\tAfter deduplication\n",$1)}' >> ${samplename}.nreads.txt
+
 
 # conda deactivate

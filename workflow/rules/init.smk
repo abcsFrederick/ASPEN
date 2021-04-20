@@ -77,6 +77,8 @@ with open(config["clusterjson"]) as json_file:
     CLUSTER = json.load(json_file)
 
 getthreads=lambda rname:int(CLUSTER[rname]["threads"]) if rname in CLUSTER else int(CLUSTER["__default__"]["threads"])
+getmemg=lambda rname:CLUSTER[rname]["mem"] if rname in CLUSTER else CLUSTER["__default__"]["mem"]
+getmemG=lambda rname:getmemg(rname).replace("g","G")
 
 GENOME=config["genome"]
 INDEXDIR=config[GENOME]["indexdir"]

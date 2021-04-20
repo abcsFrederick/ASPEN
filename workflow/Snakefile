@@ -7,6 +7,25 @@ localrules: all
 
 rule all:
     input:
+        #trim
         expand(join(WORKDIR,"tmp","trim","{sample}.R1.trim.fastq.gz"),sample=SAMPLES),
+        #removeBL
         expand(join(WORKDIR,"tmp","trim","{sample}.R1.noBL.fastq.gz"),sample=SAMPLES),
+        #align
+        expand(join(WORKDIR,"tagAlign","{sample}.tagAlign.gz"),sample=SAMPLES),
+        expand(join(WORKDIR,"QC","{sample}.bowtie2.bam.flagstat"),sample=SAMPLES),
+        expand(join(WORKDIR,"QC","{sample}.dedup.bam.flagstat"),sample=SAMPLES),
+        expand(join(WORKDIR,"QC","{sample}.filt.bam.flagstat"),sample=SAMPLES),
+        expand(join(WORKDIR,"QC","{sample}.dupmetric"),sample=SAMPLES),
+        expand(join(WORKDIR,"QC","preseq","{sample}.nrf"),sample=SAMPLES),
+        #nreads stats
         expand(join(WORKDIR,"QC","{sample}.nreads.txt"),sample=SAMPLES),
+        #fastqc
+        expand(join(WORKDIR,"QC","fastqc","{sample}.R1_fastqc.zip"), sample=SAMPLES),
+        expand(join(WORKDIR,"QC","fastqc","{sample}.R2_fastqc.zip"), sample=SAMPLES),
+        expand(join(WORKDIR,"QC","fastqc","{sample}.R1.noBL_fastqc.zip"), sample=SAMPLES),
+        expand(join(WORKDIR,"QC","fastqc","{sample}.R2.noBL_fastqc.zip"), sample=SAMPLES),    
+
+
+
+
