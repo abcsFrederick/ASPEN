@@ -13,7 +13,7 @@ rule trim:
         unpack(get_fastqs)
     output:
         R1=join(RESULTSDIR,"tmp","trim","{sample}.R1.trim.fastq.gz"),
-        R2=join(RESULTSDIR,"results","tmp","trim","{sample}.R2.trim.fastq.gz"),
+        R2=join(RESULTSDIR,"tmp","trim","{sample}.R2.trim.fastq.gz"),
     params:
         sample="{sample}",
         scriptsdir=SCRIPTSDIR,
