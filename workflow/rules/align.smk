@@ -6,85 +6,14 @@ def get_fastqs(wildcards):
 
 localrules: align_stats
 
-# rule trim_align_dedup:
-#     input:
-#         unpack(get_fastqs)
-#     output:
-#         ta=join(WORKDIR,"tagAlign","{sample}.tagAlign.gz"),
-#         fastqcraw1=join(WORKDIR,"QC","fastqc","{sample}.R1_fastqc.zip"),
-#         fastqcraw2=join(WORKDIR,"QC","fastqc","{sample}.R2_fastqc.zip"),
-#         fastqc1=join(WORKDIR,"QC","fastqc","{sample}.R1.noBL_fastqc.zip"),
-#         fastqc2=join(WORKDIR,"QC","fastqc","{sample}.R2.noBL_fastqc.zip"),
-#         nreads=join(WORKDIR,"QC","{sample}.nreads.txt"),
-#         nrf=join(WORKDIR,"QC","preseq","{sample}.nrf"),
-#         dedupbam=join(WORKDIR,"bam","{sample}.dedup.bam"),
-#         qsortedbam=join(WORKDIR,"bam","{sample}.qsorted.bam"),
-#         picardout=join(WORKDIR,"QC","{sample}.dupmetric"),
-#         genomefile=join(WORKDIR,"bam","{sample}.genome"),
-#         trimfq1=join(WORKDIR,"trim","{sample}.R1.trim.fastq.gz"),
-#         trimfq2=join(WORKDIR,"trim","{sample}.R2.trim.fastq.gz")
-#     params:
-#         genome=GENOME,
-#         indexdir=INDEXDIR,
-#         workdir=WORKDIR,
-#         scriptsdir=SCRIPTSDIR,
-#         qcdir=join(WORKDIR,"QC"),
-#         sample="{sample}",
-#         script="ccbr_atac_trim_align_pe.bash"
-#     container: config["masterdocker"]
-#     threads: 56
-#     shell:"""
-# ls {params.scriptsdir}/{params.script}
-# cd /lscratch/$SLURM_JOB_ID && bash {params.scriptsdir}/{params.script} \
-# --infastq1 {input.R1} \
-# --infastq2 {input.R2} \
-# --threads {threads} \
-# --genome {params.genome} \
-# --scriptsfolder {params.scriptsdir} \
-# --keepfiles True
-
-# ls -larth
-
-# rsync -az --progress {params.sample}.dedup.bam {params.workdir}/bam/
-# rsync -az --progress {params.sample}.genome {params.workdir}/bam/
-# rsync -az --progress {params.sample}.dedup.bam.bai {params.workdir}/bam/
-# rsync -az --progress {params.sample}.qsorted.bam {params.workdir}/bam/
-
-# rsync -az --progress {params.sample}.tagAlign.gz {params.workdir}/tagAlign/
-
-# rsync -az --progress {params.sample}.bowtie2.bam.flagstat {params.qcdir}/
-# rsync -az --progress {params.sample}.bowtie2.log {params.qcdir}/
-# rsync -az --progress {params.sample}.dedup.bam.flagstat {params.qcdir}/
-# rsync -az --progress {params.sample}.dupmetric {params.qcdir}/
-# rsync -az --progress {params.sample}.filt.bam.flagstat {params.qcdir}/
-# rsync -az --progress {params.sample}.nreads.txt {params.qcdir}/
-
-# rsync -az --progress {params.sample}.nrf {params.qcdir}/preseq/
-# rsync -az --progress {params.sample}.preseq {params.qcdir}/preseq/
-# rsync -az --progress {params.sample}.preseq.log {params.qcdir}/preseq/
-
-# rsync -az --progress {params.sample}.R1.noBL_fastqc.html {params.qcdir}/fastqc/
-# rsync -az --progress {params.sample}.R2.noBL_fastqc.html {params.qcdir}/fastqc/
-# rsync -az --progress {params.sample}.R1.noBL_fastqc.zip {params.qcdir}/fastqc/
-# rsync -az --progress {params.sample}.R2.noBL_fastqc.zip {params.qcdir}/fastqc/
-# rsync -az --progress {params.sample}.R1_fastqc.html {params.qcdir}/fastqc/
-# rsync -az --progress {params.sample}.R2_fastqc.html {params.qcdir}/fastqc/
-# rsync -az --progress {params.sample}.R1_fastqc.zip {params.qcdir}/fastqc/
-# rsync -az --progress {params.sample}.R2_fastqc.zip {params.qcdir}/fastqc/
-
-# rsync -az --progress {params.sample}.R1.trim.fastq.gz {params.workdir}/trim/
-# rsync -az --progress {params.sample}.R2.trim.fastq.gz {params.workdir}/trim/
-
-# """
-
 
 rule trim:
     # group: "TAD"
     input:
         unpack(get_fastqs)
     output:
-        R1=join(WORKDIR,"tmp","trim","{sample}.R1.trim.fastq.gz"),
-        R2=join(WORKDIR,"tmp","trim","{sample}.R2.trim.fastq.gz"),
+        R1=join(RESULTSDIR,"tmp","trim","{sample}.R1.trim.fastq.gz"),
+        R2=join(RESULTSDIR,"results","tmp","trim","{sample}.R2.trim.fastq.gz"),
     params:
         sample="{sample}",
         scriptsdir=SCRIPTSDIR,
@@ -108,8 +37,8 @@ rule remove_BL:
         R1=rules.trim.output.R1,
         R2=rules.trim.output.R2,
     output:
-        R1=join(WORKDIR,"tmp","trim","{sample}.R1.noBL.fastq.gz"),
-        R2=join(WORKDIR,"tmp","trim","{sample}.R2.noBL.fastq.gz"),
+        R1=join(RESULTSDIR,"tmp","trim","{sample}.R1.noBL.fastq.gz"),
+        R2=join(RESULTSDIR,"tmp","trim","{sample}.R2.noBL.fastq.gz"),
     params:
         sample="{sample}",
         scriptsdir=SCRIPTSDIR,
@@ -134,16 +63,16 @@ rule align:
         R1=rules.remove_BL.output.R1,
         R2=rules.remove_BL.output.R2,
     output:
-        tagAlign=join(WORKDIR,"tagAlign","{sample}.tagAlign.gz"),
-        fs1=join(WORKDIR,"QC","{sample}.bowtie2.bam.flagstat"),
-        fs2=join(WORKDIR,"QC","{sample}.dedup.bam.flagstat"),
-        fs3=join(WORKDIR,"QC","{sample}.filt.bam.flagstat"),
-        dupmetric=join(WORKDIR,"QC","{sample}.dupmetric"),
-        nrf=join(WORKDIR,"QC","preseq","{sample}.nrf"),
+        tagAlign=join(RESULTSDIR,"tagAlign","{sample}.tagAlign.gz"),
+        fs1=join(RESULTSDIR,"QC","{sample}.bowtie2.bam.flagstat"),
+        fs2=join(RESULTSDIR,"QC","{sample}.dedup.bam.flagstat"),
+        fs3=join(RESULTSDIR,"QC","{sample}.filt.bam.flagstat"),
+        dupmetric=join(RESULTSDIR,"QC","{sample}.dupmetric"),
+        nrf=join(RESULTSDIR,"QC","preseq","{sample}.nrf"),
     params:
         sample="{sample}",
-        workdir=WORKDIR,
-        qcdir=join(WORKDIR,"QC"),
+        workdir=RESULTSDIR,
+        qcdir=join(RESULTSDIR,"QC"),
         indexdir=INDEXDIR,
         scriptsdir=SCRIPTSDIR,
         genome=GENOME,
@@ -186,7 +115,7 @@ rule align_stats:
         fs1=rules.align.output.fs3,
         fs2=rules.align.output.fs2
     output:
-        nreads=join(WORKDIR,"QC","{sample}.nreads.txt"),
+        nreads=join(RESULTSDIR,"QC","{sample}.nreads.txt"),
     params:
         sample="{sample}",
     shell:"""
@@ -208,14 +137,14 @@ rule fastqc:
         expand(rules.remove_BL.output.R1,sample=SAMPLES),
         expand(rules.remove_BL.output.R2,sample=SAMPLES),
     output:
-        expand(join(WORKDIR,"QC","fastqc","{sample}.R1_fastqc.zip"), sample=SAMPLES),
-        expand(join(WORKDIR,"QC","fastqc","{sample}.R2_fastqc.zip"), sample=SAMPLES),
-        expand(join(WORKDIR,"QC","fastqc","{sample}.R1.noBL_fastqc.zip"), sample=SAMPLES),
-        expand(join(WORKDIR,"QC","fastqc","{sample}.R2.noBL_fastqc.zip"), sample=SAMPLES),
+        expand(join(RESULTSDIR,"QC","fastqc","{sample}.R1_fastqc.zip"), sample=SAMPLES),
+        expand(join(RESULTSDIR,"QC","fastqc","{sample}.R2_fastqc.zip"), sample=SAMPLES),
+        expand(join(RESULTSDIR,"QC","fastqc","{sample}.R1.noBL_fastqc.zip"), sample=SAMPLES),
+        expand(join(RESULTSDIR,"QC","fastqc","{sample}.R2.noBL_fastqc.zip"), sample=SAMPLES),
     params:
-        outdir=join(WORKDIR,"QC","fastqc"),
+        outdir=join(RESULTSDIR,"QC","fastqc"),
     threads: getthreads("fastqc")
-    container: config["fastqcdocker"]
+    container: config["masterdocker"]
     shell: """
     fastqc {input} -t {threads} -o {params.outdir};
     """      
