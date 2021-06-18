@@ -33,6 +33,7 @@ MEMORYG="100G"
 
 #resouce absolute path
 WORKDIR=config['workdir']
+RESULTSDIR=join(WORKDIR,"results")
 SCRIPTSDIR=config['scriptsdir']
 RESOURCESDIR=config['resourcesdir']
 if not os.path.exists(join(WORKDIR,"fastqs")):
