@@ -129,22 +129,3 @@ echo "$nreads"|awk '{{printf("%d\\tMapped reads\\n",$1)}}' >> {output.nreads}
 nreads=`grep -m1 total {input.fs2}|awk '{{print $1}}'`
 echo "$nreads"|awk '{{printf("%d\\tAfter deduplication\\n",$1)}}' >> {output.nreads}
 """
-
-rule fastqc:
-    input:
-        expand(join(WORKDIR,"fastqs","{sample}.R1.fastq.gz"),sample=SAMPLES),
-        expand(join(WORKDIR,"fastqs","{sample}.R2.fastq.gz"),sample=SAMPLES),
-        expand(rules.remove_BL.output.R1,sample=SAMPLES),
-        expand(rules.remove_BL.output.R2,sample=SAMPLES),
-    output:
-        expand(join(RESULTSDIR,"QC","fastqc","{sample}.R1_fastqc.zip"), sample=SAMPLES),
-        expand(join(RESULTSDIR,"QC","fastqc","{sample}.R2_fastqc.zip"), sample=SAMPLES),
-        expand(join(RESULTSDIR,"QC","fastqc","{sample}.R1.noBL_fastqc.zip"), sample=SAMPLES),
-        expand(join(RESULTSDIR,"QC","fastqc","{sample}.R2.noBL_fastqc.zip"), sample=SAMPLES),
-    params:
-        outdir=join(RESULTSDIR,"QC","fastqc"),
-    threads: getthreads("fastqc")
-    container: config["masterdocker"]
-    shell: """
-    fastqc {input} -t {threads} -o {params.outdir};
-    """      
