@@ -2,6 +2,7 @@ from os.path import join
 
 include: join("rules/init.smk")
 include: join("rules/align.smk")
+include: join("rules/qc.smk")
 
 localrules: all
 
