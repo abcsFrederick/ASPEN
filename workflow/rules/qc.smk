@@ -29,20 +29,20 @@ rule atac_tss:
     params:
         sample="{sample}",
         workdir=RESULTSDIR,
-        qcdir=join(QCDIR),
+        qcdir=QCDIR,
         indexdir=INDEXDIR,
         scriptsdir=SCRIPTSDIR,
         tssdir=join(RESOURCESDIR,"db"),
         genome=GENOME,
         script="ccbr_tagAlign2TSS.bash",
-    container: config["masterdocker"]    
-    threads: getthreads("align")
+    container: config["masterdocker"]
+    threads: getthreads("atac_tss")    
     shell:"""
 if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then cd /lscratch/${{SLURM_JOB_ID}};else cd /dev/shm;fi
 tagAlign=$(basename {input.tagalign})
 outfn=$(basename {output.tss})
 
-rsync -az --progress --remove-source-files {input.tagalign} $tagAlign
+rsync -az --progress --verbose {input.tagalign} $tagAlign
 
 bash {params.scriptsdir}/{params.script} \
 --tagaligngz $tagAlign \
@@ -52,5 +52,24 @@ bash {params.scriptsdir}/{params.script} \
 --scriptsfolder {params.scriptsdir} \
 --resourcesfolder {params.tssdir}
 
-rsync -az --progress --remove-source-files $outfn {output.tss} && rm -f *
+rsync -az --progress --verbose $outfn {output.tss} && rm -f *
+"""
+
+rule atac_fld:
+    input:
+        dedupbam=rules.align.output.dedupbam
+    output:
+        fld=join(QCDIR,"fld","{sample}.fld.txt")
+    params:
+        sample="{sample}",
+        scriptsdir=SCRIPTSDIR,
+        script="ccbr_atac_bam2FLD.py",
+    container: config["masterdocker"]    
+    shell:"""
+set -e -x -o pipefail
+python {params.scriptsdir}/ccbr_atac_bam2FLD.py -i {input.dedupbam} -o {output.fld}
+# bash {params.scriptsdir}/{params.script} \
+# --dedupbam {input.dedupbam} \
+# --fldout {output.fld} \
+# --scriptsfolder {params.scriptsdir}
 """
