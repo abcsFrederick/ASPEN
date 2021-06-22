@@ -1,3 +1,5 @@
-sampleName	path_to_R1_fastq	path_to_R2_fastq
-PC3_1	/data/CCBR/rawdata/ccbr1005/Flowcell_HMYTNBGX9/Sample_PC3_1/PC3_1_S1_R1_001.fastq.gz	/data/CCBR/rawdata/ccbr1005/Flowcell_HMYTNBGX9/Sample_PC3_1/PC3_1_S1_R2_001.fastq.gz
-PC3_2	/data/CCBR/rawdata/ccbr1005/Flowcell_HMYTNBGX9/Sample_PC3_2/PC3_2_S2_R1_001.fastq.gz	/data/CCBR/rawdata/ccbr1005/Flowcell_HMYTNBGX9/Sample_PC3_2/PC3_2_S2_R2_001.fastq.gz
+sampleName	groupName	path_to_R1_fastq	path_to_R2_fastq
+D4_Meso_iCre_Dox_1	D4_Meso_iCre_Dox	/data/CCBR/rawdata/ccbr872/ccbr872_atacseq/fastq/D4_Meso_iCre_Dox_1.subset.R1.fastq.paired.fq.gz	/data/CCBR/rawdata/ccbr872/ccbr872_atacseq/fastq/D4_Meso_iCre_Dox_1.subset.R2.fastq.paired.fq.gz
+D4_Meso_iCre_Dox_2	D4_Meso_iCre_Dox	/data/CCBR/rawdata/ccbr872/ccbr872_atacseq/fastq/D4_Meso_iCre_Dox_2.subset.R1.fastq.paired.fq.gz	/data/CCBR/rawdata/ccbr872/ccbr872_atacseq/fastq/D4_Meso_iCre_Dox_2.subset.R2.fastq.paired.fq.gz
+iCre_D0_1	iCre_D0	/data/CCBR/rawdata/ccbr872/ccbr872_atacseq/fastq/iCre_D0_1.subset.R1.fastq.paired.fq.gz	/data/CCBR/rawdata/ccbr872/ccbr872_atacseq/fastq/iCre_D0_1.subset.R2.fastq.paired.fq.gz
+iCre_D0_2	iCre_D0	/data/CCBR/rawdata/ccbr872/ccbr872_atacseq/fastq/iCre_D0_2.subset.R1.fastq.paired.fq.gz	/data/CCBR/rawdata/ccbr872/ccbr872_atacseq/fastq/iCre_D0_2.subset.R2.fastq.paired.fq.gz

@@ -1,11 +1,9 @@
 from os.path import join
-
 include: join("rules/init.smk")
 include: join("rules/align.smk")
 include: join("rules/qc.smk")
-
+include: join("rules/peakcall.smk")
 localrules: all
-
 rule all:
     input:
         #trim
@@ -25,7 +23,13 @@ rule all:
         expand(join(RESULTSDIR,"QC","fastqc","{sample}.R1_fastqc.zip"), sample=SAMPLES),
         expand(join(RESULTSDIR,"QC","fastqc","{sample}.R2_fastqc.zip"), sample=SAMPLES),
         expand(join(RESULTSDIR,"QC","fastqc","{sample}.R1.noBL_fastqc.zip"), sample=SAMPLES),
-        expand(join(RESULTSDIR,"QC","fastqc","{sample}.R2.noBL_fastqc.zip"), sample=SAMPLES),    
+        expand(join(RESULTSDIR,"QC","fastqc","{sample}.R2.noBL_fastqc.zip"), sample=SAMPLES), 
+        #tss
+        expand(join(RESULTSDIR,"QC","tss","{sample}.tss.txt"),sample=SAMPLES),
+        #macs2 peaks
+        expand(join(RESULTSDIR,"peaks","macs2","{grp}.consensus.macs2.peakfiles"),grp=GROUPS),
+        expand(join(RESULTSDIR,"peaks","macs2","{grp}.replicate.macs2.peakfiles"),grp=GROUPS),
+        expand(join(RESULTSDIR,"peaks","macs2","{grp}.macs2.tn5nicksbedfiles"),grp=GROUPS)
 
 
 

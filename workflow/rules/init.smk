@@ -67,6 +67,18 @@ for sample in SAMPLES:
 	else:
 		SAMPLESDF.loc[[sample],"PEorSE"]="SE"
 
+GROUPS=list(SAMPLESDF.groupName.unique())
+GROUP2SAMPLES=dict()
+for g in GROUPS:
+	GROUP2SAMPLES[g]=list(SAMPLESDF[SAMPLESDF['groupName']==g].index)
+
+# print(SAMPLESDF.columns)
+# print(SAMPLESDF.groupName)
+# print(GROUPS[0])
+# print(SAMPLESDF[SAMPLESDF['groupName']==GROUPS[0]].index)
+# print(GROUP2SAMPLES)
+# exit()
+
 ## Load tools from YAML file
 check_readaccess(config["tools"])
 with open(config["tools"]) as f:
@@ -83,3 +95,7 @@ getmemG=lambda rname:getmemg(rname).replace("g","G")
 
 GENOME=config["genome"]
 INDEXDIR=config[GENOME]["indexdir"]
+GENOMEFILE=join(INDEXDIR,GENOME+".genome") # genome file is required by macs2 peak calling
+check_readaccess(GENOMEFILE)
+
+print("Done reading init!")
