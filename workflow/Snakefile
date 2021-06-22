@@ -12,25 +12,31 @@ rule all:
         expand(join(RESULTSDIR,"tmp","trim","{sample}.R1.noBL.fastq.gz"),sample=SAMPLES),
         #align
         expand(join(RESULTSDIR,"tagAlign","{sample}.tagAlign.gz"),sample=SAMPLES),
-        expand(join(RESULTSDIR,"QC","{sample}.bowtie2.bam.flagstat"),sample=SAMPLES),
-        expand(join(RESULTSDIR,"QC","{sample}.dedup.bam.flagstat"),sample=SAMPLES),
-        expand(join(RESULTSDIR,"QC","{sample}.filt.bam.flagstat"),sample=SAMPLES),
-        expand(join(RESULTSDIR,"QC","{sample}.dupmetric"),sample=SAMPLES),
-        expand(join(RESULTSDIR,"QC","preseq","{sample}.nrf"),sample=SAMPLES),
-        #nreads stats
-        expand(join(RESULTSDIR,"QC","{sample}.nreads.txt"),sample=SAMPLES),
-        #fastqc
-        expand(join(RESULTSDIR,"QC","fastqc","{sample}.R1_fastqc.zip"), sample=SAMPLES),
-        expand(join(RESULTSDIR,"QC","fastqc","{sample}.R2_fastqc.zip"), sample=SAMPLES),
-        expand(join(RESULTSDIR,"QC","fastqc","{sample}.R1.noBL_fastqc.zip"), sample=SAMPLES),
-        expand(join(RESULTSDIR,"QC","fastqc","{sample}.R2.noBL_fastqc.zip"), sample=SAMPLES), 
-        #tss
-        expand(join(RESULTSDIR,"QC","tss","{sample}.tss.txt"),sample=SAMPLES),
-        #macs2 peaks
-        expand(join(RESULTSDIR,"peaks","macs2","{grp}.consensus.macs2.peakfiles"),grp=GROUPS),
-        expand(join(RESULTSDIR,"peaks","macs2","{grp}.replicate.macs2.peakfiles"),grp=GROUPS),
-        expand(join(RESULTSDIR,"peaks","macs2","{grp}.macs2.tn5nicksbedfiles"),grp=GROUPS)
-
+        expand(join(RESULTSDIR,"qsortedBam","{sample}.qsorted.bam"),sample=SAMPLES),
+        expand(join(QCDIR,"{sample}.bowtie2.bam.flagstat"),sample=SAMPLES),
+        expand(join(QCDIR,"{sample}.dedup.bam.flagstat"),sample=SAMPLES),
+        expand(join(QCDIR,"{sample}.filt.bam.flagstat"),sample=SAMPLES),
+        expand(join(QCDIR,"{sample}.dupmetric"),sample=SAMPLES),
+        expand(join(QCDIR,"preseq","{sample}.nrf"),sample=SAMPLES),
+        # #nreads stats
+        expand(join(QCDIR,"{sample}.nreads.txt"),sample=SAMPLES),
+        # #fastqc
+        expand(join(QCDIR,"fastqc","{sample}.R1_fastqc.zip"), sample=SAMPLES),
+        expand(join(QCDIR,"fastqc","{sample}.R2_fastqc.zip"), sample=SAMPLES),
+        expand(join(QCDIR,"fastqc","{sample}.R1.noBL_fastqc.zip"), sample=SAMPLES),
+        expand(join(QCDIR,"fastqc","{sample}.R2.noBL_fastqc.zip"), sample=SAMPLES), 
+        # #tss
+        expand(join(QCDIR,"tss","{sample}.tss.txt"),sample=SAMPLES),
+        # #fld
+        expand(join(QCDIR,"fld","{sample}.fld.txt"),sample=SAMPLES),
+        # #macs2 peaks
+        # expand(join(RESULTSDIR,"peaks","macs2","{grp}.consensus.macs2.peakfiles"),grp=GROUPS),
+        # expand(join(RESULTSDIR,"peaks","macs2","{grp}.replicate.macs2.peakfiles"),grp=GROUPS),
+        # expand(join(RESULTSDIR,"peaks","macs2","{grp}.macs2.tn5nicksbedfiles"),grp=GROUPS),
+        # #genrich peaks
+        # expand(join(RESULTSDIR,"peaks","genrich","{grp}.consensus.genrich.peakfiles"),grp=GROUPS),
+        # expand(join(RESULTSDIR,"peaks","genrich","{grp}.replicate.genrich.peakfiles"),grp=GROUPS),
+        # expand(join(RESULTSDIR,"peaks","genrich","{grp}.genrich.tn5nicksbedfiles"),grp=GROUPS)
 
 
 
