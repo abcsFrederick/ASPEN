@@ -18,8 +18,18 @@ multimapping: 4
 #
 #
 hg38:
-indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/hg38_basic/indexes"
+  indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/hg38_basic/indexes"
+macs2:
+  extsize: 200
+  shiftsize: 100
+genrich:
+  s: 5
+  m: 6
+  q: 1
+  l: 200
+  g: 200
 # master container
 # masterdocker: "docker://nciccbr/ccbr_atacseq:v0.1.29"
 masterdocker: "docker://nciccbr/ccbr_atacseq:v1.3.1"
 fastqcdocker: "docker://nciccbr/ccbr_fastqc_0.11.9:v1.1"
+
