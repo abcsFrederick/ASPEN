@@ -64,6 +64,8 @@ rule align:
         R2=rules.remove_BL.output.R2,
     output:
         tagAlign=join(RESULTSDIR,"tagAlign","{sample}.tagAlign.gz"),
+        dedupbam=join(RESULTSDIR,"tmp","dedup","{sample}.dedup.bam"),
+        qsortedBam=join(RESULTSDIR,"qsortedBam","{sample}.qsorted.bam"),
         fs1=join(RESULTSDIR,"QC","{sample}.bowtie2.bam.flagstat"),
         fs2=join(RESULTSDIR,"QC","{sample}.dedup.bam.flagstat"),
         fs3=join(RESULTSDIR,"QC","{sample}.filt.bam.flagstat"),
@@ -79,7 +81,7 @@ rule align:
         script="ccbr_bowtie2_align_pe.bash",
         multimapping=config["multimapping"],
         mem=getmemG("align")
-    container: config["masterdocker"]    
+    container: config["masterdocker"]
     threads: getthreads("align")
     shell:"""
 if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then cd /lscratch/${{SLURM_JOB_ID}};else cd /dev/shm;fi
@@ -94,17 +96,20 @@ bash {params.scriptsdir}/{params.script} \
 --multimapping {params.multimapping} \
 --scriptsfolder {params.scriptsdir}
 
-rsync -az --progress {params.sample}.tagAlign.gz {params.workdir}/tagAlign/
+rsync -az --progress --verbose --remove-source-files {params.sample}.tagAlign.gz {output.tagAlign}
+rsync -az --progress --verbose --remove-source-files {params.sample}.qsorted.bam {output.qsortedBam}
 
-rsync -az --progress {params.sample}.bowtie2.bam.flagstat {params.qcdir}/
-rsync -az --progress {params.sample}.bowtie2.log {params.qcdir}/
-rsync -az --progress {params.sample}.dedup.bam.flagstat {params.qcdir}/
-rsync -az --progress {params.sample}.dupmetric {params.qcdir}/
-rsync -az --progress {params.sample}.filt.bam.flagstat {params.qcdir}/
 
-rsync -az --progress {params.sample}.nrf {params.qcdir}/preseq/
-rsync -az --progress {params.sample}.preseq {params.qcdir}/preseq/
-rsync -az --progress {params.sample}.preseq.log {params.qcdir}/preseq/
+rsync -az --progress --verbose --remove-source-files {params.sample}.bowtie2.bam.flagstat {params.qcdir}/
+rsync -az --progress --verbose --remove-source-files {params.sample}.bowtie2.log {params.qcdir}/
+rsync -az --progress --verbose --remove-source-files {params.sample}.dedup.bam {output.dedupbam}
+rsync -az --progress --verbose --remove-source-files {params.sample}.dedup.bam.flagstat {params.qcdir}/
+rsync -az --progress --verbose --remove-source-files {params.sample}.dupmetric {params.qcdir}/
+rsync -az --progress --verbose --remove-source-files {params.sample}.filt.bam.flagstat {params.qcdir}/
+
+rsync -az --progress --verbose --remove-source-files {params.sample}.nrf {params.qcdir}/preseq/
+rsync -az --progress --verbose --remove-source-files {params.sample}.preseq {params.qcdir}/preseq/
+rsync -az --progress --verbose --remove-source-files {params.sample}.preseq.log {params.qcdir}/preseq/
 """
 
 rule align_stats:
