@@ -66,7 +66,6 @@ rule atac_fld:
         script="ccbr_atac_bam2FLD.py",
     container: config["masterdocker"]    
     shell:"""
-set -e -x -o pipefail
 python {params.scriptsdir}/ccbr_atac_bam2FLD.py -i {input.dedupbam} -o {output.fld}
 # bash {params.scriptsdir}/{params.script} \
 # --dedupbam {input.dedupbam} \
