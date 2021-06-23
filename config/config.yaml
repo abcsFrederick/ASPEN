@@ -11,7 +11,7 @@ resourcesdir: "PIPELINE_HOME/resources"
 # tab delimited samples file ... should have the following 3 columns
 # sampleName	path_to_R1_fastq	path_to_R2_fastq
 #
-samples: "WORKDIR/samples.tsv"
+samplemanifest: "WORKDIR/samples.tsv"
 genome: "hg38"
 multimapping: 4
 #
