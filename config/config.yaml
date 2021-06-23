@@ -26,10 +26,11 @@ genrich:
   s: 5
   m: 6
   q: 1
-  l: 200
-  g: 200
+  l: 100
+  g: 100
+  d: 100
 # master container
 # masterdocker: "docker://nciccbr/ccbr_atacseq:v0.1.29"
-masterdocker: "docker://nciccbr/ccbr_atacseq:v1.3.1"
+masterdocker: "docker://nciccbr/ccbr_atacseq:v1.4.2"
 fastqcdocker: "docker://nciccbr/ccbr_fastqc_0.11.9:v1.1"
 

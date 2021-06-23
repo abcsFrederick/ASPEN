@@ -1,11 +1,17 @@
+#########################################################
+# IMPORT PYTHON LIBRARIES HERE
+#########################################################
 import sys
 import os
 import pandas as pd
 import yaml
 # import glob
 # import shutil
+#########################################################
 
-# define file related functions
+#########################################################
+# FILE-ACTION FUNCTIONS 
+#########################################################
 def check_existence(filename):
   if not os.path.exists(filename):
     exit("File: %s does not exists!"%(filename))
@@ -24,14 +30,18 @@ def get_file_size(filename):
 	filename=filename.strip()
 	if check_readaccess(filename):
 		return os.stat(filename).st_size
+#########################################################
 
+#########################################################
+# DEFINE CONFIG FILE AND READ IT
+#########################################################
 CONFIGFILE = str(workflow.overwrite_configfiles[0])
 
-## set memory limit 
-## used for sambamba sort, etc
+# set memory limit 
+# used for sambamba sort, etc
 MEMORYG="100G"
 
-#resouce absolute path
+# read in various dirs from config file
 WORKDIR=config['workdir']
 RESULTSDIR=join(WORKDIR,"results")
 SCRIPTSDIR=config['scriptsdir']
@@ -42,7 +52,15 @@ if not os.path.exists(join(WORKDIR,"results")):
 	os.mkdir(join(WORKDIR,"results"))
 for f in ["samplemanifest", "tools"]:
 	check_readaccess(config[f])
+#########################################################
 
+
+#########################################################
+# CREATE SAMPLE DATAFRAME
+#########################################################
+# each line in the samplemanifest is a replicate
+# multiple replicates belong to a sample
+# currently only 1,2,3 or 4 replicates per sample is supported
 REPLICATESDF = pd.read_csv(config["samplemanifest"],sep="\t",header=0,index_col="replicateName")
 REPLICATES = list(REPLICATESDF.index)
 REPLICATESDF["R1"]=join(RESOURCESDIR,"dummy")
@@ -65,6 +83,10 @@ for replicate in REPLICATES:
 			os.symlink(R2file,R2filenewname)
 		REPLICATESDF.loc[[replicate],"R2"]=R2filenewname
 	else:
+# only PE samples are supported by the ATACseq pipeline at the moment
+		print("Only Paired-end samples are supported by this pipeline!")
+		print(config["samplemanifest"]+" is missing second fastq file for "+replicate)
+		exit()
 		REPLICATESDF.loc[[replicate],"PEorSE"]="SE"
 
 SAMPLES=list(REPLICATESDF.sampleName.unique())
@@ -79,23 +101,42 @@ for g in SAMPLES:
 # print(SAMPLE2REPLICATES)
 # exit()
 
+#########################################################
+# READ IN TOOLS REQUIRED BY PIPELINE
+# THESE INCLUDE LIST OF BIOWULF MODULES (AND THEIR VERSIONS)
+# MAY BE EMPTY IF ALL TOOLS ARE DOCKERIZED
+#########################################################
+
 ## Load tools from YAML file
 check_readaccess(config["tools"])
 with open(config["tools"]) as f:
 	TOOLS = yaml.safe_load(f)
+#########################################################
+
+
+#########################################################
+# READ CLUSTER PER-RULE REQUIREMENTS
+#########################################################
 
 ## Load cluster.json
 check_readaccess(config["clusterjson"])
 with open(config["clusterjson"]) as json_file:
     CLUSTER = json.load(json_file)
-
+## Create lambda functions to allow a way to insert read-in values
+## as rule directives
 getthreads=lambda rname:int(CLUSTER[rname]["threads"]) if rname in CLUSTER else int(CLUSTER["__default__"]["threads"])
 getmemg=lambda rname:CLUSTER[rname]["mem"] if rname in CLUSTER else CLUSTER["__default__"]["mem"]
 getmemG=lambda rname:getmemg(rname).replace("g","G")
+#########################################################
+
+#########################################################
+# SET OTHER PIPELINE GLOBAL VARIABLES
+#########################################################
 
 GENOME=config["genome"]
 INDEXDIR=config[GENOME]["indexdir"]
 GENOMEFILE=join(INDEXDIR,GENOME+".genome") # genome file is required by macs2 peak calling
 check_readaccess(GENOMEFILE)
-
 QCDIR=join(RESULTSDIR,"QC")
+
+#########################################################

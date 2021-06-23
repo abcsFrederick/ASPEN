@@ -3,6 +3,26 @@ set -e -x -o pipefail
 
 callGenrichPeaks(){
 BAM=$1
+PEAKFILE=$2
+EXCLUDELIST=$3
+READSBEDFILE=$4
+
+Genrich -t $BAM \
+ -o $PEAKFILE \
+ -j \
+ -r \
+ -v \
+ -e $EXCLUDELIST \
+ -s $GENRICH_S \
+ -m $GENRICH_M \
+ -b $READSBEDFILE \
+ -q $GENRICH_Q \
+ -l $GENRICH_L \
+ -g $GENRICH_G
+}
+
+callGenrichPeaksProcessReadsBed(){
+BAM=$1
 REPNAME=$2 
 PEAKFILE=$3
 GENOME=$4
@@ -14,13 +34,7 @@ READSBWFILE=${REPNAME}.bw
 NICKSBEDFILE=${REPNAME}.tn5nicks.bed
 NICKSBAMFILE=${REPNAME}.tn5nicks.bam 
 #Genrich -t $BAM -o $PEAKFILE -j -r -e $EXCLUDELIST -v -s 5 -m 6 -b $READSBEDFILE -q 1 -l 200 -g 200
-Genrich -t $BAM -o $PEAKFILE -j -r -e $EXCLUDELIST -v \
- -s $GENRICH_S \
- -m $GENRICH_M \
- -b $READSBEDFILE \
- -q $GENRICH_Q \
- -l $GENRICH_L \
- -g $GENRICH_G
+callGenrichPeaksProcessReadsBed $BAM $PEAKFILE $EXCLUDELIST $READSBEDFILE 
 processReadsBed $READSBEDFILE $READSBWFILE $GENOME $GENOMEFILE $NICKSBEDFILE $NICKSBAMFILE
 }
 
@@ -45,10 +59,11 @@ sf=$(awk -F"\t" -v size=$effectiveSize '{sum=sum+$3-$2}END{print sum/size}' $BED
 genomeCoverageBed -bg -i $BED -g $GENOMEFILE |awk -F"\t" -v OFS="\t" -v sf=$sf '{print $1,$2,$3,$4/sf}' > ${BED}.bg
 bedGraphToBigWig ${BED}.bg $GENOMEFILE $BW
 mv $BW ${OUTDIR}/bigwig/
-
-awk -F"\t" -v OFS="\t" '{if ($3-$2==100) {print $1,$2+50,$2+51} }' $BED > $NICKSBED
-awk -F"\t" -v OFS="\t" '{if ($3-$2!=100) {print $1,$2+50,$2+51} }' $BED >> $NICKSBED
-awk -F"\t" -v OFS="\t" '{if ($3-$2!=100) {print $1,$3-51,$3-50} }' $BED >> $NICKSBED
+d=$GENRICH_D
+e=$((d/2))
+awk -F"\t" -v OFS="\t" -v d=d -v e=e '{if ($3-$2==d) {print $1,$2+e,$2+e+1} }' $BED > $NICKSBED
+awk -F"\t" -v OFS="\t" -v d=d -v e=e '{if ($3-$2!=d) {print $1,$2+e,$2+e+1} }' $BED >> $NICKSBED
+awk -F"\t" -v OFS="\t" -v d=d -v e=e '{if ($3-$2!=d) {print $1,$3-e-1,$3-e} }' $BED >> $NICKSBED
 bedSort $NICKSBED $NICKSBED
 awk -F"\t" -v OFS="\t" '{print $1,$2,$3,$1":"$2"-"$3}' $NICKSBED > ${NICKSBED%.*}.tmp.bed
 bedToBam -i ${NICKSBED%.*}.tmp.bed -g $GENOMEFILE > $NICKSBAM
@@ -72,11 +87,12 @@ parser.add_argument('--genome',required=True,help="hg19/38 or mm9/10")
 parser.add_argument('--genomefile',required=True,help=".genome file")
 parser.add_argument('--samplename',required=True, help='samplename,i.e., all replicates belong to this sample')
 
+parser.add_argument('--genrich_d',required=False,default=100,help="Genrich -d parameter")
 parser.add_argument('--genrich_s',required=False,default=5,help="Genrich -s parameter")
 parser.add_argument('--genrich_m',required=False,default=6,help="Genrich -m parameter")
 parser.add_argument('--genrich_q',required=False,default=1,help="Genrich -q parameter")
-parser.add_argument('--genrich_l',required=False,default=200,help="Genrich -l parameter")
-parser.add_argument('--genrich_g',required=False,default=200,help="Genrich -g parameter")
+parser.add_argument('--genrich_l',required=False,default=100,help="Genrich -l parameter")
+parser.add_argument('--genrich_g',required=False,default=100,help="Genrich -g parameter")
 
 
 # parser.add_argument('--pooledpeakfile',required=False, help='output narrowPeak file for both replicates combined')
@@ -119,21 +135,21 @@ excludelist=$(samtools view -H $BAMREP1|grep ^@SQ|cut -f2|sed "s/SN://g"|awk "\$
 # echo $excludelist
 
 # replicate 1 peak calling
-callGenrichPeaks $BAMREP1 $REP1NAME $PEAKFILE1 $GENOME $GENOMEFILE "$excludelist"
+callGenrichPeaksProcessReadsBed $BAMREP1 $REP1NAME $PEAKFILE1 $GENOME $GENOMEFILE "$excludelist"
 # 
 # replicate 2 peak calling
 if [ "$nreplicates" -ge 2 ]; then
-callGenrichPeaks $BAMREP2 $REP2NAME $PEAKFILE2 $GENOME $GENOMEFILE "$excludelist"
+callGenrichPeaksProcessReadsBed $BAMREP2 $REP2NAME $PEAKFILE2 $GENOME $GENOMEFILE "$excludelist"
 fi
 # 
 # replicate 3 peak calling
 if [ "$nreplicates" -ge 3 ]; then
-callGenrichPeaks $BAMREP3 $REP3NAME $PEAKFILE3 $GENOME $GENOMEFILE "$excludelist"
+callGenrichPeaksProcessReadsBed $BAMREP3 $REP3NAME $PEAKFILE3 $GENOME $GENOMEFILE "$excludelist"
 fi
 # 
 # replicate 4 peak calling
 if [ "$nreplicates" -ge 4 ]; then
-callGenrichPeaks $BAMREP4 $REP4NAME $PEAKFILE4 $GENOME $GENOMEFILE "$excludelist"
+callGenrichPeaksProcessReadsBed $BAMREP4 $REP4NAME $PEAKFILE4 $GENOME $GENOMEFILE "$excludelist"
 fi
 
 
@@ -146,16 +162,15 @@ if [ "$nreplicates" -ge 2 ]; then
 	NICKSBAMFILE=${POOLEDPEAKFILE%.*}.tn5nicks.bam
 
 	if [ "$nreplicates" -eq "2" ];then
-	Genrich  -t $BAMREP1,$BAMREP2 -o $POOLEDPEAKFILE  -j -r -e $excludelist -v -s $GENRICH_S -m $GENRICH_M -b $READSBEDFILE -q $GENRICH_Q -l $GENRICH_L -g $GENRICH_G
+	callGenrichPeaks "$BAMREP1,$BAMREP2" $POOLEDPEAKFILE "$excludelist" $READSBEDFILE
 	python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --qfilter $QFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 --outbed $CONSENSUSBEDFILE
 	elif [ "$nreplicates" -eq "3" ];then
-	Genrich  -t $BAMREP1,$BAMREP2,$BAMREP3 -o $POOLEDPEAKFILE  -j -r -e $excludelist -v -s $GENRICH_S -m $GENRICH_M -b $READSBEDFILE -q $GENRICH_Q -l $GENRICH_L -g $GENRICH_G
+	callGenrichPeaks  "$BAMREP1,$BAMREP2,$BAMREP3" $POOLEDPEAKFILE  "$excludelist" $READSBEDFILE
 	python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --qfilter $QFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 $PEAKFILE3 --outbed $CONSENSUSBEDFILE
 	elif [ "$nreplicates" -eq "4" ];then
-	Genrich  -t $BAMREP1,$BAMREP2,$BAMREP3,$BAMREP4 -o $POOLEDPEAKFILE  -j -r -e $excludelist -v -s $GENRICH_S -m $GENRICH_M -b $READSBEDFILE -q $GENRICH_Q -l $GENRICH_L -g $GENRICH_G
+	callGenrichPeaks  "$BAMREP1,$BAMREP2,$BAMREP3,$BAMREP4" $POOLEDPEAKFILE  "$excludelist" $READSBEDFILE
 	python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --qfilter $QFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $PEAKFILE4 --outbed $CONSENSUSBEDFILE
 	fi
-
 
 	processReadsBed $READSBEDFILE $READSBWFILE $GENOME $GENOMEFILE $NICKSBEDFILE $NICKSBAMFILE
 fi

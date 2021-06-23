@@ -1,4 +1,9 @@
 rule fastqc:
+# """
+# Run FASTQC on:
+# * Raw fastqs
+# * Blacklist filtered trimmed fastqs
+# """
     input:
         expand(join(WORKDIR,"fastqs","{replicate}.R1.fastq.gz"),replicate=REPLICATES),
         expand(join(WORKDIR,"fastqs","{replicate}.R2.fastq.gz"),replicate=REPLICATES),
@@ -17,8 +22,15 @@ rule fastqc:
     fastqc {input} -t {threads} -o {params.outdir};
     """      
 
+#########################################################
 
 rule atac_tss:
+# """
+# * Creates read density profile near known TSS sites.
+# * hg38/hg19/mm10/mm9 are the genomes supported, ie., TSS information 
+# is deposited in the resources/db folder of the pipeline
+# * per-replicate "tss.txt" file is generated --> read by MultiQC later
+# """
     input:
         tagalign=join(RESULTSDIR,"tagAlign","{replicate}.tagAlign.gz")
     output:
@@ -52,7 +64,13 @@ bash {params.scriptsdir}/{params.script} \
 rsync -az --progress --verbose $outfn {output.tss} && rm -f *
 """
 
+#########################################################
+
 rule atac_fld:
+# """
+# Calculate the Fragment-Length-Distribution per replicate
+# Output: "fld.txt" file per-replicate --> used by MultiQC later
+# """
     input:
         dedupbam=rules.align.output.dedupbam
     output:
@@ -70,8 +88,21 @@ python {params.scriptsdir}/ccbr_atac_bam2FLD.py -i {input.dedupbam} -o {output.f
 # --scriptsfolder {params.scriptsdir}
 """
 
+#########################################################
 
 rule jaccard:
+# """
+# Use bedtools jaccard metric to quantify pair-wise score between
+# * replicate peaks using the same peak caller (macs2 or genrich)
+# * consensus peaks using the same peak caller (macs2 or genrich)
+# * replicates and consensus peaks using the same peak caller (macs2 or genrich)
+# * replicates only, consensus only and replicates+consensus peaks combined for both
+#   peak callers together
+# Output:
+# * "pairwise.txt" files with jaccard score for all possible pairs
+# * "jaccard.pca.html" --> calculate PCA using "pairwise.txt" file and plot using
+#   plotly to a HTML document
+# """
     input:
         expand(join(RESULTSDIR,"peaks","macs2","{sample}.consensus.macs2.peakfiles"),sample=SAMPLES),
         expand(join(RESULTSDIR,"peaks","macs2","{sample}.replicate.macs2.peakfiles"),sample=SAMPLES),
@@ -146,12 +177,11 @@ for m in "macs2" "genrich" "allmethods";do
         --inputfilelist ${{m}}.${{f}}.peakfiles \
         --pairwise ${{m}}.${{f}}.jaccard.pairwise.txt \
         --pcahtml ${{m}}.${{f}}.jaccard.pca.html \
-        --scriptsfolder {params.scriptsdir}"
+        --scriptsfolder {params.scriptsdir}
         rsync -az --progress --verbose --remove-source-files ${{m}}.${{f}}.jaccard.pairwise.txt {params.qcdir}/jaccard/
         rsync -az --progress --verbose --remove-source-files ${{m}}.${{f}}.jaccard.pca.html {params.qcdir}/jaccard/
     done
 done
-
-
-
 """
+
+#########################################################

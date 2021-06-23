@@ -1,13 +1,29 @@
+#########################################################
+# FUNCTION DEFINITIONS
+#########################################################
+
 def get_fastqs(wildcards):
+    """
+    Return a dictionary of input files for the trimming rule.
+    """
     d=dict()
     d["R1"]=REPLICATESDF["R1"][wildcards.replicate]
     d["R2"]=REPLICATESDF["R2"][wildcards.replicate]
     return d
 
+#########################################################
+
 localrules: align_stats
 
+#########################################################
 
 rule trim:
+# """
+# First step of TAD
+# Input: raw fastq files
+# Output: trimmed fastq files in "tmp" folder, so they can be
+# deleted if no longer required.
+# """
     # group: "TAD"
     input:
         unpack(get_fastqs)
@@ -31,7 +47,15 @@ bash {params.scriptsdir}/{params.script} \
 --outfastq2 {output.R2}
 """
 
+#########################################################
+
 rule remove_BL:
+# """
+# Second step of TAD
+# Input: trimmed fastq files
+# Output: not aligning to blacklisted regions, trimmed fastq files 
+# in "tmp" folder, so they can be deleted if no longer required.
+# """
     # group: "TAD"
     input:
         R1=rules.trim.output.R1,
@@ -58,7 +82,25 @@ bash {params.scriptsdir}/{params.script} \
 --outfastq2 {output.R2}
 """
 
+#########################################################
+
 rule align:
+# """
+# Third (final) step of TAD
+# Alignment is handled by bowtie
+# Filtering is based off of ENCODEs pipeline (atac_assign_multimappers.py is direclty pulled from ENCODE)
+# Input: not aligning to blacklisted regions, trimmed fastq files
+# Output: 
+#     1. aligned and filtered alignment files:
+#         * tagAlign --> for MACS2
+#         * dedup bam --> for TOBIAS
+#         * qsorted bam --> for Genrich
+#     2. QC files:
+#         * nrf --> non-redundant fraction using preseq
+#         * dupmetric --> to quantify duplication level using picard
+#         * flagstat files --> quatify surviving reads at each step
+# """
+    # group: "TAD"
     input:
         R1=rules.remove_BL.output.R1,
         R2=rules.remove_BL.output.R2,
@@ -114,7 +156,14 @@ rsync -az --progress --verbose --remove-source-files {params.replicate}.preseq {
 rsync -az --progress --verbose --remove-source-files {params.replicate}.preseq.log {params.qcdir}/preseq/
 """
 
+#########################################################
+
 rule align_stats:
+# """
+# Collect stats at each TAD step
+# Output: per-replicate nreads.txt file --> required by MultiQC for reporting.
+# """
+    # group: "TAD"
     input:
         unpack(get_fastqs),
         trimR1=rules.trim.output.R1,
@@ -136,3 +185,5 @@ echo "$nreads"|awk '{{printf("%d\\tMapped reads\\n",$1)}}' >> {output.nreads}
 nreads=`grep -m1 total {input.fs2}|awk '{{print $1}}'`
 echo "$nreads"|awk '{{printf("%d\\tAfter deduplication\\n",$1)}}' >> {output.nreads}
 """
+
+#########################################################

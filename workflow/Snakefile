@@ -19,9 +19,9 @@ rule all:
         expand(join(QCDIR,"{replicate}.filt.bam.flagstat"),replicate=REPLICATES),
         expand(join(QCDIR,"{replicate}.dupmetric"),replicate=REPLICATES),
         expand(join(QCDIR,"preseq","{replicate}.nrf"),replicate=REPLICATES),
-        # #nreads stats
+        #nreads stats
         expand(join(QCDIR,"{replicate}.nreads.txt"),replicate=REPLICATES),
-        # #fastqc
+        #fastqc
         expand(join(QCDIR,"fastqc","{replicate}.R1_fastqc.zip"), replicate=REPLICATES),
         expand(join(QCDIR,"fastqc","{replicate}.R2_fastqc.zip"), replicate=REPLICATES),
         expand(join(QCDIR,"fastqc","{replicate}.R1.noBL_fastqc.zip"), replicate=REPLICATES),
@@ -38,7 +38,7 @@ rule all:
         expand(join(RESULTSDIR,"peaks","genrich","{sample}.consensus.genrich.peakfiles"),sample=SAMPLES),
         expand(join(RESULTSDIR,"peaks","genrich","{sample}.replicate.genrich.peakfiles"),sample=SAMPLES),
         expand(join(RESULTSDIR,"peaks","genrich","{sample}.genrich.tn5nicksbedfiles"),sample=SAMPLES),
-        #jaccard files
+        #jaccard comparison of called peaks
         join(QCDIR,"jaccard","macs2.replicate.jaccard.pca.html"),
         join(QCDIR,"jaccard","macs2.consensus.jaccard.pca.html"),
         join(QCDIR,"jaccard","macs2.consensus_replicate.jaccard.pca.html"),
