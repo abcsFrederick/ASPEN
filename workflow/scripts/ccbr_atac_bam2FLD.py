@@ -54,7 +54,20 @@ for i in range(min(fraglens),max(fraglens)+1,1):
     if c != 0:
         o.write("%d\t%.6f\n"%(i,c*1000.0/s))
 
-peaks=find_peaks_cwt(freqs.values(),numpy.array([25]))
+# peaks=find_peaks_cwt(freqs.values(),numpy.array([25]))
+# freq.values() may contain a string of zeros which can lead to the following error:
+# Traceback (most recent call last):
+#   File "/gpfs/gsfs11/users/kopardevn/GitRepos/CCBR_ATACseq/workflow/scripts/ccbr_atac_bam2FLD.py", line 60, in <module>
+#     peaks=find_peaks_cwt(freqs.values(),numpy.array([25]))
+#   File "/usr/local/Anaconda/envs/py3.7/lib/python3.7/site-packages/scipy/signal/_peak_finding.py", line 1291, in find_peaks_cwt
+#     cwt_dat = cwt(vector, wavelet, widths, window_size=window_size)
+#   File "/usr/local/Anaconda/envs/py3.7/lib/python3.7/site-packages/scipy/signal/wavelets.py", line 480, in cwt
+#     output[ind] = convolve(data, wavelet_data, mode='same')
+#   File "/usr/local/Anaconda/envs/py3.7/lib/python3.7/site-packages/scipy/signal/signaltools.py", line 1259, in convolve
+#     raise ValueError("volume and kernel should have the same "
+# ValueError: volume and kernel should have the same dimensionality
+# Here is a solution:
+peaks=find_peaks_cwt(list(map(lambda x:x+1,freqs.values())),numpy.array([25]))
 
 nfr_peak=is_peak_in_range(peaks,20,90)
 mono_nuc_peak=is_peak_in_range(peaks,120,250)
