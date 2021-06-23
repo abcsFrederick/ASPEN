@@ -1,17 +1,14 @@
-QCDIR=join(RESULTSDIR,"QC")
-
-
 rule fastqc:
     input:
-        expand(join(WORKDIR,"fastqs","{sample}.R1.fastq.gz"),sample=SAMPLES),
-        expand(join(WORKDIR,"fastqs","{sample}.R2.fastq.gz"),sample=SAMPLES),
-        expand(rules.remove_BL.output.R1,sample=SAMPLES),
-        expand(rules.remove_BL.output.R2,sample=SAMPLES),
+        expand(join(WORKDIR,"fastqs","{replicate}.R1.fastq.gz"),replicate=REPLICATES),
+        expand(join(WORKDIR,"fastqs","{replicate}.R2.fastq.gz"),replicate=REPLICATES),
+        expand(rules.remove_BL.output.R1,replicate=REPLICATES),
+        expand(rules.remove_BL.output.R2,replicate=REPLICATES),
     output:
-        expand(join(QCDIR,"fastqc","{sample}.R1_fastqc.zip"), sample=SAMPLES),
-        expand(join(QCDIR,"fastqc","{sample}.R2_fastqc.zip"), sample=SAMPLES),
-        expand(join(QCDIR,"fastqc","{sample}.R1.noBL_fastqc.zip"), sample=SAMPLES),
-        expand(join(QCDIR,"fastqc","{sample}.R2.noBL_fastqc.zip"), sample=SAMPLES),
+        expand(join(QCDIR,"fastqc","{replicate}.R1_fastqc.zip"), replicate=REPLICATES),
+        expand(join(QCDIR,"fastqc","{replicate}.R2_fastqc.zip"), replicate=REPLICATES),
+        expand(join(QCDIR,"fastqc","{replicate}.R1.noBL_fastqc.zip"), replicate=REPLICATES),
+        expand(join(QCDIR,"fastqc","{replicate}.R2.noBL_fastqc.zip"), replicate=REPLICATES),
     params:
         outdir=join(QCDIR,"fastqc"),
     threads: getthreads("fastqc")
@@ -23,11 +20,11 @@ rule fastqc:
 
 rule atac_tss:
     input:
-        tagalign=join(RESULTSDIR,"tagAlign","{sample}.tagAlign.gz")
+        tagalign=join(RESULTSDIR,"tagAlign","{replicate}.tagAlign.gz")
     output:
-        tss=join(QCDIR,"tss","{sample}.tss.txt")
+        tss=join(QCDIR,"tss","{replicate}.tss.txt")
     params:
-        sample="{sample}",
+        replicate="{replicate}",
         workdir=RESULTSDIR,
         qcdir=QCDIR,
         indexdir=INDEXDIR,
@@ -59,9 +56,9 @@ rule atac_fld:
     input:
         dedupbam=rules.align.output.dedupbam
     output:
-        fld=join(QCDIR,"fld","{sample}.fld.txt")
+        fld=join(QCDIR,"fld","{replicate}.fld.txt")
     params:
-        sample="{sample}",
+        replicate="{replicate}",
         scriptsdir=SCRIPTSDIR,
         script="ccbr_atac_bam2FLD.py",
     container: config["masterdocker"]    
@@ -71,4 +68,90 @@ python {params.scriptsdir}/ccbr_atac_bam2FLD.py -i {input.dedupbam} -o {output.f
 # --dedupbam {input.dedupbam} \
 # --fldout {output.fld} \
 # --scriptsfolder {params.scriptsdir}
+"""
+
+
+rule jaccard:
+    input:
+        expand(join(RESULTSDIR,"peaks","macs2","{sample}.consensus.macs2.peakfiles"),sample=SAMPLES),
+        expand(join(RESULTSDIR,"peaks","macs2","{sample}.replicate.macs2.peakfiles"),sample=SAMPLES),
+        expand(join(RESULTSDIR,"peaks","genrich","{sample}.consensus.genrich.peakfiles"),sample=SAMPLES),
+        expand(join(RESULTSDIR,"peaks","genrich","{sample}.replicate.genrich.peakfiles"),sample=SAMPLES),
+    output:
+        macs2_per_replicate_jaccardpca=join(QCDIR,"jaccard","macs2.replicate.jaccard.pca.html"),
+        macs2_per_sample_jaccardpca=join(QCDIR,"jaccard","macs2.consensus.jaccard.pca.html"),
+        macs2_per_consensus_replicate_jaccardpca=join(QCDIR,"jaccard","macs2.consensus_replicate.jaccard.pca.html"),
+        genrich_per_replicate_jaccardpca=join(QCDIR,"jaccard","genrich.replicate.jaccard.pca.html"),
+        genrich_per_sample_jaccardpca=join(QCDIR,"jaccard","genrich.consensus.jaccard.pca.html"),
+        genrich_per_consensus_replicate_jaccardpca=join(QCDIR,"jaccard","genrich.consensus_replicate.jaccard.pca.html"),
+        allmethods_per_replicate_jaccardpca=join(QCDIR,"jaccard","allmethods.replicate.jaccard.pca.html"),
+        allmethods_per_sample_jaccardpca=join(QCDIR,"jaccard","allmethods.consensus.jaccard.pca.html"),
+        allmethods_per_consensus_replicate_jaccardpca=join(QCDIR,"jaccard","allmethods.consensus_replicate.jaccard.pca.html")
+    params:
+        workdir=RESULTSDIR,
+        qcdir=QCDIR,
+        indexdir=INDEXDIR,
+        scriptsdir=SCRIPTSDIR,
+        genome=GENOME,
+        script="ccbr_jaccard_pca.bash",
+    container: config["masterdocker"]
+    threads: getthreads("jaccard")
+    shell:"""
+set -e -x -o pipefail
+if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then TMPDIR="/lscratch/${{SLURM_JOB_ID}}";else cd TMPDIR="/dev/shm";fi
+for f in {input};do
+    rsync -Laz --progress $f $TMPDIR/
+    while read replicateName sampleName file;do
+        rsync -Laz --progress $file $TMPDIR/
+    done < $f
+done
+cd $TMPDIR
+
+for f in $(ls *narrowPeak);do
+    bedSort $f $f
+done
+
+min_peaks=1000
+
+awk -F"/" -v OFS="" "{{print \$1,\$NF}}" *consensus.macs2.peakfiles > macs2.consensus.peakfiles.tmp
+awk -F"/" -v OFS="" "{{print \$1,\$NF}}" *replicate.macs2.peakfiles > macs2.replicate.peakfiles.tmp
+while read x y a;do w=$(wc -l $a|awk "{{print \$1}}"); if [ "$w" -gt "$min_peaks" ]; then echo -ne "$x\t$y\t$a\n" ;fi;done < macs2.replicate.peakfiles.tmp > macs2.replicate.peakfiles
+while read x y a;do w=$(wc -l $a|awk "{{print \$1}}"); if [ "$w" -gt "$min_peaks" ]; then echo -ne "$x\t$y\t$a\n" ;fi;done < macs2.consensus.peakfiles.tmp > macs2.consensus.peakfiles
+cat macs2.consensus.peakfiles macs2.replicate.peakfiles > macs2.consensus_replicate.peakfiles
+awk -F"/" -v OFS="" "{{print \$1,\$NF}}" *consensus.genrich.peakfiles > genrich.consensus.peakfiles.tmp
+awk -F"/" -v OFS="" "{{print \$1,\$NF}}" *replicate.genrich.peakfiles > genrich.replicate.peakfiles.tmp
+while read x y a;do w=$(wc -l $a|awk "{{print \$1}}"); if [ "$w" -gt "$min_peaks" ]; then echo -ne "$x\t$y\t$a\n" ;fi;done < genrich.replicate.peakfiles.tmp > genrich.replicate.peakfiles
+while read x y a;do w=$(wc -l $a|awk "{{print \$1}}"); if [ "$w" -gt "$min_peaks" ]; then echo -ne "$x\t$y\t$a\n" ;fi;done < genrich.consensus.peakfiles.tmp > genrich.consensus.peakfiles
+cat genrich.consensus.peakfiles genrich.replicate.peakfiles > genrich.consensus_replicate.peakfiles
+
+for m in "macs2" "genrich";do
+    while read replicateName sampleName file;do
+        echo -ne "${{replicateName}}_${{m}}\t${{sampleName}}_${{m}}\t${{file}}\n"
+    done < ${{m}}.replicate.peakfiles
+done > allmethods.replicate.peakfiles
+for m in "macs2" "genrich";do
+    while read replicateName sampleName file;do
+        echo -ne "${{replicateName}}_${{m}}\t${{sampleName}}_${{m}}\t${{file}}\n"
+    done < ${{m}}.consensus.peakfiles
+done > allmethods.consensus.peakfiles
+for m in "macs2" "genrich";do
+    while read replicateName sampleName file;do
+        echo -ne "${{replicateName}}_${{m}}\t${{sampleName}}_${{m}}\t${{file}}\n"
+    done < ${{m}}.consensus_replicate.peakfiles
+done > allmethods.consensus_replicate.peakfiles
+
+for m in "macs2" "genrich" "allmethods";do
+    for f in "consensus" "replicate" "consensus_replicate";do
+        bash  {params.scriptsdir}/{params.script} \
+        --inputfilelist ${{m}}.${{f}}.peakfiles \
+        --pairwise ${{m}}.${{f}}.jaccard.pairwise.txt \
+        --pcahtml ${{m}}.${{f}}.jaccard.pca.html \
+        --scriptsfolder {params.scriptsdir}"
+        rsync -az --progress --verbose --remove-source-files ${{m}}.${{f}}.jaccard.pairwise.txt {params.qcdir}/jaccard/
+        rsync -az --progress --verbose --remove-source-files ${{m}}.${{f}}.jaccard.pca.html {params.qcdir}/jaccard/
+    done
+done
+
+
+
 """

@@ -1,20 +1,20 @@
-def get_sample_tagAlignFiles_for_group(wildcards):
-    samples=GROUP2SAMPLES[wildcards.grp]
+def get_replicate_tagAlignFiles_for_sample(wildcards):
+    replicates=SAMPLE2REPLICATES[wildcards.sample]
     d=dict()
-    for i,s in enumerate(samples):
+    for i,s in enumerate(replicates):
         d["tagAlign"+str(i+1)]=join(RESULTSDIR,"tagAlign",s+".tagAlign.gz")
     return d
 
-def get_sample_qsortedBamFiles_for_group(wildcards):
-    samples=GROUP2SAMPLES[wildcards.grp]
+def get_replicate_qsortedBamFiles_for_sample(wildcards):
+    replicates=SAMPLE2REPLICATES[wildcards.sample]
     d=dict()
-    for i,s in enumerate(samples):
+    for i,s in enumerate(replicates):
         d["qsortedBam"+str(i+1)]=join(RESULTSDIR,"qsortedBam",s+".qsorted.bam")
     return d
 
 rule atac_macs_peakcalling:
     input:
-        unpack(get_sample_tagAlignFiles_for_group)
+        unpack(get_replicate_tagAlignFiles_for_sample)
     params:
         genome=GENOME,
         genomefile=GENOMEFILE,
@@ -22,13 +22,13 @@ rule atac_macs_peakcalling:
         scriptsdir=SCRIPTSDIR,
         qcdir=QCDIR,
         script="ccbr_atac_macs2_peak_calling.bash",
-        grp="{grp}",
+        sample="{sample}",
         macs2_extsize=config["macs2"]["extsize"],
         macs2_shiftsize=config["macs2"]["shiftsize"]
     output:
-        consensusPeakFileList=join(RESULTSDIR,"peaks","macs2","{grp}.consensus.macs2.peakfiles"),
-        replicatePeakFileList=join(RESULTSDIR,"peaks","macs2","{grp}.replicate.macs2.peakfiles"),
-        tn5nicksFileList=join(RESULTSDIR,"peaks","macs2","{grp}.macs2.tn5nicksbedfiles")
+        consensusPeakFileList=join(RESULTSDIR,"peaks","macs2","{sample}.consensus.macs2.peakfiles"),
+        replicatePeakFileList=join(RESULTSDIR,"peaks","macs2","{sample}.replicate.macs2.peakfiles"),
+        tn5nicksFileList=join(RESULTSDIR,"peaks","macs2","{sample}.macs2.tn5nicksbedfiles")
     container: config["masterdocker"]    
     threads: getthreads("trim")
     shell:"""
@@ -49,7 +49,7 @@ bash {params.scriptsdir}/{params.script} \
     --tagalignfiles {input} \
     --genome {params.genome} \
     --genomefile {params.genomefile} \
-    --samplename {params.grp} \
+    --samplename {params.sample} \
     --scriptsfolder {params.scriptsdir} \
     --outdir {params.outdir} \
     --extsize {params.macs2_extsize} \
@@ -69,17 +69,17 @@ if [ -f {output.replicatePeakFileList} ];then rm -f {output.replicatePeakFileLis
 for f in {input}
 do
     repname=`basename $f|awk -F".tagAlign" '{{print $1}}'`
-    echo -ne "${{repname}}\t{params.grp}\t{params.outdir}/tn5nicks/${{repname}}.macs2.tn5nicks.bam\n" >> {output.tn5nicksFileList}
-    echo -ne "${{repname}}\t{params.grp}\t{params.outdir}/${{repname}}.macs2.narrowPeak\n" >> {output.replicatePeakFileList}
+    echo -ne "${{repname}}\t{params.sample}\t{params.outdir}/tn5nicks/${{repname}}.macs2.tn5nicks.bam\n" >> {output.tn5nicksFileList}
+    echo -ne "${{repname}}\t{params.sample}\t{params.outdir}/${{repname}}.macs2.narrowPeak\n" >> {output.replicatePeakFileList}
 done
-echo -ne "{params.grp}\t{params.grp}\t{params.outdir}/{params.grp}.macs2.consensus.bed\n" > {output.consensusPeakFileList}
+echo -ne "{params.sample}\t{params.sample}\t{params.outdir}/{params.sample}.macs2.consensus.bed\n" > {output.consensusPeakFileList}
 
 """
 
 
 rule atac_genrich_peakcalling:
     input:
-        unpack(get_sample_qsortedBamFiles_for_group)
+        unpack(get_replicate_qsortedBamFiles_for_sample)
     params:
         genome=GENOME,
         genomefile=GENOMEFILE,
@@ -87,16 +87,16 @@ rule atac_genrich_peakcalling:
         scriptsdir=SCRIPTSDIR,
         qcdir=QCDIR,
         script="ccbr_atac_genrich_peak_calling.bash",
-        grp="{grp}",
+        sample="{sample}",
         genrich_s=config["genrich"]["s"],
         genrich_m=config["genrich"]["m"],
         genrich_q=config["genrich"]["q"],
         genrich_l=config["genrich"]["l"],
         genrich_g=config["genrich"]["g"],
     output:
-        consensusPeakFileList=join(RESULTSDIR,"peaks","genrich","{grp}.consensus.genrich.peakfiles"),
-        replicatePeakFileList=join(RESULTSDIR,"peaks","genrich","{grp}.replicate.genrich.peakfiles"),
-        tn5nicksFileList=join(RESULTSDIR,"peaks","genrich","{grp}.genrich.tn5nicksbedfiles")
+        consensusPeakFileList=join(RESULTSDIR,"peaks","genrich","{sample}.consensus.genrich.peakfiles"),
+        replicatePeakFileList=join(RESULTSDIR,"peaks","genrich","{sample}.replicate.genrich.peakfiles"),
+        tn5nicksFileList=join(RESULTSDIR,"peaks","genrich","{sample}.genrich.tn5nicksbedfiles")
     container: config["masterdocker"]    
     threads: getthreads("trim")
     shell:"""
@@ -117,7 +117,7 @@ bash {params.scriptsdir}/{params.script} \
     --bamfiles {input} \
     --genome {params.genome} \
     --genomefile {params.genomefile} \
-    --samplename {params.grp} \
+    --samplename {params.sample} \
     --scriptsfolder {params.scriptsdir} \
     --genrich_s {params.genrich_s} \
     --genrich_m {params.genrich_m} \
@@ -139,9 +139,9 @@ if [ -f {output.replicatePeakFileList} ];then rm -f {output.replicatePeakFileLis
 for f in {input}
 do
     repname=`basename $f|awk -F".bam" '{{print $1}}'`
-    echo -ne "${{repname}}\t{params.grp}\t{params.outdir}/tn5nicks/${{repname}}.genrich.tn5nicks.bam\n" >> {output.tn5nicksFileList}
-    echo -ne "${{repname}}\t{params.grp}\t{params.outdir}/${{repname}}.genrich.narrowPeak\n" >> {output.replicatePeakFileList}
+    echo -ne "${{repname}}\t{params.sample}\t{params.outdir}/tn5nicks/${{repname}}.genrich.tn5nicks.bam\n" >> {output.tn5nicksFileList}
+    echo -ne "${{repname}}\t{params.sample}\t{params.outdir}/${{repname}}.genrich.narrowPeak\n" >> {output.replicatePeakFileList}
 done
-echo -ne "{params.grp}\t{params.grp}\t{params.outdir}/{params.grp}.genrich.consensus.bed\n" > {output.consensusPeakFileList}
+echo -ne "{params.sample}\t{params.sample}\t{params.outdir}/{params.sample}.genrich.consensus.bed\n" > {output.consensusPeakFileList}
 
 """
