@@ -4,3 +4,4 @@
 !.gitattributes
 site/
 tmp_test/
+.snakemake/log/2021-06-21T143619.629098.snakemake.log
