@@ -27,7 +27,7 @@ rule fastqc:
 rule atac_tss:
 # """
 # * Creates read density profile near known TSS sites.
-# * hg38/hg19/mm10/mm9 are the genomes supported, ie., TSS information 
+# * hg38/hg19/mm10 are the genomes supported, ie., TSS information 
 # is deposited in the resources/db folder of the pipeline
 # * per-replicate "tss.txt" file is generated --> read by MultiQC later
 # """
@@ -40,10 +40,10 @@ rule atac_tss:
         workdir=RESULTSDIR,
         qcdir=QCDIR,
         indexdir=INDEXDIR,
-        scriptsdir=SCRIPTSDIR,
-        tssdir=join(RESOURCESDIR,"db"),
+        tssbed=config[GENOME]["tssBed"],
         genome=GENOME,
-        script="ccbr_tagAlign2TSS.bash",
+        scriptsdir=SCRIPTSDIR,
+        script="ccbr_atac_tagAlign2TSS.bash",
     container: config["masterdocker"]
     threads: getthreads("atac_tss")    
     shell:"""
@@ -58,8 +58,7 @@ bash {params.scriptsdir}/{params.script} \
 --genome {params.genome} \
 --tsstxt $outfn \
 --ncpus {threads} \
---scriptsfolder {params.scriptsdir} \
---resourcesfolder {params.tssdir}
+--tsstargz {params.tssbed}
 
 rsync -az --progress --verbose $outfn {output.tss} && rm -f *
 """

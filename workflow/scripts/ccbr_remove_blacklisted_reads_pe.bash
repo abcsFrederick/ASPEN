@@ -5,7 +5,7 @@ source /opt2/argparse.bash || exit 1
 argparse "$@" <<EOF || exit 1
 parser.add_argument('--infastq1',required=True, help='input R1 fastq.gz file')
 parser.add_argument('--infastq2',required=True, help='input R2 fastq.gz file')
-parser.add_argument('--genome',required=True, help='hg38/hg19/mm10')
+parser.add_argument('--blindexdir',required=True, help='location of BL index (index prefix is <genome>_blacklist')
 parser.add_argument('--samplename',required=True, help='samplename')
 parser.add_argument('--threads',required=True, help='number of threads')
 parser.add_argument('--outfastq1',required=True, help='output R1 fastq.gz file')
@@ -24,7 +24,7 @@ outfastq2_nogz=`echo $outfastq2|sed "s/.gz//g"`
 
 
 
-bwa mem -t $ncpus /opt2/${GENOME}_blacklist $infastq1 $infastq2 > ${samplename}.notAlignedToBlacklist.sam
+bwa mem -t $ncpus $BLINDEXDIR $infastq1 $infastq2 > ${samplename}.notAlignedToBlacklist.sam
 
 samtools view -@ $ncpus -f12 -bS -o ${samplename}.notAlignedToBlacklist.bam ${samplename}.notAlignedToBlacklist.sam
 

@@ -49,6 +49,30 @@ bash {params.scriptsdir}/{params.script} \
 
 #########################################################
 
+rule create_BL_index:
+# """
+# Create bwa index from blacklist fasta file
+# """
+    # group: "TAD"
+    input:
+        fa=config[GENOME]['blacklistFa']
+    output:
+        sa=join(RESULTSDIR,"tmp","BL",GENOME+"_blacklist.sa")
+    params:
+        # bldir=join(RESULTSDIR,"tmp","BL"),
+        genome=GENOME,
+    container: config["masterdocker"]    
+    threads: getthreads("create_BL_index")
+    shell:"""
+blindexdir=$(dirname {output.sa})
+sabasename=$(basename {output.sa})
+indexprefix=${{sabasename%.*}}
+cd $blindexdir
+bwa index -p $indexprefix {input.fa}
+"""
+
+#########################################################
+
 rule remove_BL:
 # """
 # Second step of TAD
@@ -60,23 +84,25 @@ rule remove_BL:
     input:
         R1=rules.trim.output.R1,
         R2=rules.trim.output.R2,
+        sa=rules.create_BL_index.output.sa
     output:
         R1=join(RESULTSDIR,"tmp","trim","{replicate}.R1.noBL.fastq.gz"),
         R2=join(RESULTSDIR,"tmp","trim","{replicate}.R2.noBL.fastq.gz"),
     params:
         replicate="{replicate}",
         scriptsdir=SCRIPTSDIR,
-        genome=GENOME,
         script="ccbr_remove_blacklisted_reads_pe.bash"
     container: config["masterdocker"]    
     threads: getthreads("remove_BL")
     shell:"""
 if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then cd /lscratch/${{SLURM_JOB_ID}};else cd /dev/shm;fi
+sa={input.sa}
+blindex=${{sa%.*}}
 bash {params.scriptsdir}/{params.script} \
 --infastq1 {input.R1} \
 --infastq2 {input.R2} \
 --samplename {params.replicate} \
---genome {params.genome} \
+--blindexdir $blindex \
 --threads {threads} \
 --outfastq1 {output.R1} \
 --outfastq2 {output.R2}

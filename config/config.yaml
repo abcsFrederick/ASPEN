@@ -12,13 +12,23 @@ resourcesdir: "PIPELINE_HOME/resources"
 # sampleName	path_to_R1_fastq	path_to_R2_fastq
 #
 samplemanifest: "WORKDIR/samples.tsv"
-genome: "hg38"
+genome: "mm10"
 multimapping: 4
 #
 #
 #
 hg38:
   indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/hg38_basic/indexes"
+  blacklistFa: "PIPELINE_HOME/resources/blacklistFa/hg38.blacklist.fa.gz"
+  tssBed: "PIPELINE_HOME/resources/tssBed/hg38_tssbeds.tar.gz"
+hg19:
+  indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/hg19_basic/indexes"
+  blacklistFa: "PIPELINE_HOME/resources/blacklistFa/hg19.blacklist.fa.gz"
+  tssBed: "PIPELINE_HOME/resources/tssBed/hg19_tssbeds.tar.gz"
+mm10:
+  indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/mm10_basic/indexes"
+  blacklistFa: "PIPELINE_HOME/resources/blacklistFa/mm10.blacklist.fa.gz"
+  tssBed: "PIPELINE_HOME/resources/tssBed/mm10_tssbeds.tar.gz"
 macs2:
   extsize: 200
   shiftsize: 100
