@@ -40,7 +40,7 @@ rule atac_tss:
         workdir=RESULTSDIR,
         qcdir=QCDIR,
         indexdir=INDEXDIR,
-        tssbed=config[GENOME]["tssBed"],
+        tssbed=TSSBED,
         genome=GENOME,
         scriptsdir=SCRIPTSDIR,
         script="ccbr_atac_tagAlign2TSS.bash",
@@ -80,11 +80,7 @@ rule atac_fld:
         script="ccbr_atac_bam2FLD.py",
     container: config["masterdocker"]    
     shell:"""
-python {params.scriptsdir}/ccbr_atac_bam2FLD.py -i {input.dedupbam} -o {output.fld}
-# bash {params.scriptsdir}/{params.script} \
-# --dedupbam {input.dedupbam} \
-# --fldout {output.fld} \
-# --scriptsfolder {params.scriptsdir}
+python {params.scriptsdir}/{params.script} -i {input.dedupbam} -o {output.fld}
 """
 
 #########################################################

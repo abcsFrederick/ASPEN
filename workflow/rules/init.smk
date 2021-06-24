@@ -63,6 +63,14 @@ for f in ["samplemanifest", "tools"]:
 # currently only 1,2,3 or 4 replicates per sample is supported
 REPLICATESDF = pd.read_csv(config["samplemanifest"],sep="\t",header=0,index_col="replicateName")
 REPLICATES = list(REPLICATESDF.index)
+SAMPLES = list(REPLICATESDF.sampleName.unique())
+
+print("#"*100)
+print("Checking Sample Manifest...")
+print("\tTotal Replicates in manifest : "+str(len(REPLICATES)))
+print("\tTotal Samples in manifest : "+str(len(SAMPLES)))
+print("Checking read access to raw fastqs...")
+
 REPLICATESDF["R1"]=join(RESOURCESDIR,"dummy")
 REPLICATESDF["R2"]=join(RESOURCESDIR,"dummy")
 REPLICATESDF["PEorSE"]="PE"
@@ -89,7 +97,9 @@ for replicate in REPLICATES:
 		exit()
 		REPLICATESDF.loc[[replicate],"PEorSE"]="SE"
 
-SAMPLES=list(REPLICATESDF.sampleName.unique())
+print("Read access to all raw fastqs is confirmed!")
+print("#"*100)
+
 SAMPLE2REPLICATES=dict()
 for g in SAMPLES:
 	SAMPLE2REPLICATES[g]=list(REPLICATESDF[REPLICATESDF['sampleName']==g].index)
@@ -133,10 +143,44 @@ getmemG=lambda rname:getmemg(rname).replace("g","G")
 # SET OTHER PIPELINE GLOBAL VARIABLES
 #########################################################
 
+print("Pipeline Parameters:")
+print("#"*100)
+print("Working dir :",WORKDIR)
+print("Results dir :",RESULTSDIR)
+print("Scripts dir :",SCRIPTSDIR)
+print("Resources dir :",RESOURCESDIR)
+
 GENOME=config["genome"]
 INDEXDIR=config[GENOME]["indexdir"]
+print("Bowtie index dir:",INDEXDIR)
+
 GENOMEFILE=join(INDEXDIR,GENOME+".genome") # genome file is required by macs2 peak calling
 check_readaccess(GENOMEFILE)
+print("Genome :",GENOME)
+print(".genome :",GENOMEFILE)
+
+GENOMEFA=join(INDEXDIR,GENOME+".fa") # genome file is required by motif enrichment rule
+check_readaccess(GENOMEFA)
+print("Genome fasta:",GENOMEFA)
+
+BLACKLISTFA=config[GENOME]['blacklistFa']
+check_readaccess(BLACKLISTFA)
+print("Blacklist fasta:",BLACKLISTFA)
+
 QCDIR=join(RESULTSDIR,"QC")
+
+TSSBED=config[GENOME]["tssBed"]
+check_readaccess(TSSBED)
+print("TSS BEDs :",TSSBED)
+
+HOMERMOTIF=config[GENOME]["homermotif"]
+check_readaccess(HOMERMOTIF)
+print("HOMER motifs :",HOMERMOTIF)
+
+MEMEMOTIF=config[GENOME]["mememotif"]
+check_readaccess(MEMEMOTIF)
+print("MEME motifs :",MEMEMOTIF)
+
+print("#"*100)
 
 #########################################################

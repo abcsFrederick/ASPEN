@@ -55,7 +55,7 @@ rule create_BL_index:
 # """
     # group: "TAD"
     input:
-        fa=config[GENOME]['blacklistFa']
+        fa=BLACKLISTFA,
     output:
         sa=join(RESULTSDIR,"tmp","BL",GENOME+"_blacklist.sa")
     params:

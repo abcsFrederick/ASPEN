@@ -93,6 +93,7 @@ parser.add_argument('--genrich_m',required=False,default=6,help="Genrich -m para
 parser.add_argument('--genrich_q',required=False,default=1,help="Genrich -q parameter")
 parser.add_argument('--genrich_l',required=False,default=100,help="Genrich -l parameter")
 parser.add_argument('--genrich_g',required=False,default=100,help="Genrich -g parameter")
+parser.add_argument('--runchipseeker',required=False,default="False",help="run chipseeker")
 
 
 # parser.add_argument('--pooledpeakfile',required=False, help='output narrowPeak file for both replicates combined')
@@ -112,21 +113,21 @@ POOLEDPEAKFILE="${SAMPLENAME}.genrich.pooled.narrowPeak"
 
 nreplicates=${#BAMFILES[@]}
 BAMREP1=${BAMFILES[0]}
-REP1NAME=`echo $(basename $BAMREP1)|awk -F".bam" '{print $1}'`
+REP1NAME=`echo $(basename $BAMREP1)|awk -F".qsorted.bam" '{print $1}'`
 PEAKFILE1="${REP1NAME}.genrich.narrowPeak"
 if [ "$nreplicates" -ge 2 ]; then
 	BAMREP2=${BAMFILES[1]}
-	REP2NAME=`echo $(basename $BAMREP2)|awk -F".bam" '{print $1}'`
+	REP2NAME=`echo $(basename $BAMREP2)|awk -F".qsorted.bam" '{print $1}'`
 	PEAKFILE2="${REP2NAME}.genrich.narrowPeak"
 fi	
 if [ "$nreplicates" -ge 3 ]; then
 	BAMREP3=${BAMFILES[2]}
-	REP3NAME=`echo $(basename $BAMREP3)|awk -F".bam" '{print $1}'`
+	REP3NAME=`echo $(basename $BAMREP3)|awk -F".qsorted.bam" '{print $1}'`
 	PEAKFILE2="${REP2NAME}.genrich.narrowPeak"
 fi	
 if [ "$nreplicates" -ge 4 ]; then
 	BAMREP4=${BAMFILES[3]}
-	REP4NAME=`echo $(basename $BAMREP4)|awk -F".bam" '{print $1}'`
+	REP4NAME=`echo $(basename $BAMREP4)|awk -F".qsorted.bam" '{print $1}'`
 	PEAKFILE4="${REP4NAME}.genrich.narrowPeak"
 fi	
 
@@ -183,7 +184,7 @@ if [ "$nreplicates" -eq 1 ];then
 	cut -f1-3 $PEAKFILE1 > $CONSENSUSBEDFILE
 fi
 
-# if [ $CONSENSUSBEDFILE ];then
+if [ "$RUNCHIPSEEKER" == "True" ];then
 	f="$CONSENSUSBEDFILE"
 	npeaks_consensus=$(wc -l $f|awk '{print $1}')
 	if [ "$npeaks_consensus" -gt "0" ];then
@@ -195,7 +196,7 @@ fi
 		touch ${f}.annotation_summary
 		touch ${f}.annotation_distribution
 	fi
-# fi
+fi
 
 
 files="$PEAKFILE1"
@@ -209,25 +210,27 @@ if [ $FILTERPEAKS == "True" ];then
   for f in $files;do
 	filteredpeakfile=$(echo $f|sed "s/.narrowPeak/.qfilter.narrowPeak/g")
 	awk -F"\t" -v q=$qvalue "{if (\$9>q){print}}" $f > $filteredpeakfile
-	npeaks=$(wc -l $f|awk '{print $1}')
-	if [ "$npeaks" -gt "0" ];then
-		Rscript ${SCRIPTSFOLDER}/ccbr_annotate_peaks.R -n $f -a ${f}.annotated -g $GENOME -l ${f}.genelist -f ${f}.annotation_summary
-		cut -f1,2 ${f}.annotation_summary > ${f}.annotation_distribution
-	else
-		touch ${f}.annotated
-		touch ${f}.genelist
-		touch ${f}.annotation_summary
-		touch ${f}.annotation_distribution
+	if [ "$RUNCHIPSEEKER" == "True" ];then
+		npeaks=$(wc -l $f|awk '{print $1}')
+		if [ "$npeaks" -gt "0" ];then
+			Rscript ${SCRIPTSFOLDER}/ccbr_annotate_peaks.R -n $f -a ${f}.annotated -g $GENOME -l ${f}.genelist -f ${f}.annotation_summary
+			cut -f1,2 ${f}.annotation_summary > ${f}.annotation_distribution
+		else
+			touch ${f}.annotated
+			touch ${f}.genelist
+			touch ${f}.annotation_summary
+			touch ${f}.annotation_distribution
+		fi
+		npeaks_filtered=$(wc -l $filteredpeakfile|awk '{print $1}')
+		if [ "$npeaks_filtered" -gt "0" ];then
+			Rscript ${SCRIPTSFOLDER}/ccbr_annotate_peaks.R -n $filteredpeakfile -a ${filteredpeakfile}.annotated -g $GENOME -l ${filteredpeakfile}.genelist -f ${filteredpeakfile}.annotation_summary
+			cut -f1,2 ${filteredpeakfile}.annotation_summary > ${filteredpeakfile}.annotation_distribution
+		else
+			touch ${filteredpeakfile}.annotated
+			touch ${filteredpeakfile}.genelist
+			touch ${filteredpeakfile}.annotation_summary
+			touch ${filteredpeakfile}.annotation_distribution
+		fi
 	fi
-	npeaks_filtered=$(wc -l $filteredpeakfile|awk '{print $1}')
-	if [ "$npeaks_filtered" -gt "0" ];then
-		Rscript ${SCRIPTSFOLDER}/ccbr_annotate_peaks.R -n $filteredpeakfile -a ${filteredpeakfile}.annotated -g $GENOME -l ${filteredpeakfile}.genelist -f ${filteredpeakfile}.annotation_summary
-		cut -f1,2 ${filteredpeakfile}.annotation_summary > ${filteredpeakfile}.annotation_distribution
-	else
-		touch ${filteredpeakfile}.annotated
-		touch ${filteredpeakfile}.genelist
-		touch ${filteredpeakfile}.annotation_summary
-		touch ${filteredpeakfile}.annotation_distribution
-	fi		
   done
 fi

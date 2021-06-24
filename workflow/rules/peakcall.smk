@@ -28,6 +28,27 @@ def get_replicate_qsortedBamFiles_for_sample(wildcards):
     return d
 
 #########################################################
+
+def get_peakfiles_for_motif_enrichment(wildcards):
+    """
+    make a list of narrowPeak files for replicates and consensus.bed files for samples
+    """
+    replicates=SAMPLE2REPLICATES[wildcards.sample]
+    d=dict()
+    count=0
+    for peakcaller in [ "macs2", "genrich" ]:
+    # for peakcaller in wildcards.peakcaller:
+        for replicate in replicates:
+            narrowPeak=join(RESULTSDIR,"peaks",peakcaller,replicate+"."+peakcaller+".qfilter.narrowPeak")
+            count+=1
+            d[str(count)]=narrowPeak
+        consensusBed=join(RESULTSDIR,"peaks",peakcaller,wildcards.sample+"."+peakcaller+".consensus.bed")
+        count+=1
+        d[str(count)]=consensusBed
+    return d
+
+
+#########################################################
 #########################################################
 
 rule atac_macs_peakcalling:
@@ -53,13 +74,14 @@ rule atac_macs_peakcalling:
         script="ccbr_atac_macs2_peak_calling.bash",
         sample="{sample}",
         macs2_extsize=config["macs2"]["extsize"],
-        macs2_shiftsize=config["macs2"]["shiftsize"]
+        macs2_shiftsize=config["macs2"]["shiftsize"],
+        macs2_annotatePeaks=config["macs2"]["annotatePeaks"]
     output:
         consensusPeakFileList=join(RESULTSDIR,"peaks","macs2","{sample}.consensus.macs2.peakfiles"),
         replicatePeakFileList=join(RESULTSDIR,"peaks","macs2","{sample}.replicate.macs2.peakfiles"),
         tn5nicksFileList=join(RESULTSDIR,"peaks","macs2","{sample}.macs2.tn5nicksbedfiles")
     container: config["masterdocker"]    
-    threads: getthreads("trim")
+    threads: getthreads("atac_genrich_peakcalling")
     shell:"""
 set -e -x -o pipefail
 nreplicates=0
@@ -82,15 +104,17 @@ bash {params.scriptsdir}/{params.script} \
     --scriptsfolder {params.scriptsdir} \
     --outdir {params.outdir} \
     --extsize {params.macs2_extsize} \
-    --shiftsize {params.macs2_shiftsize}
+    --shiftsize {params.macs2_shiftsize} \
+    --runchipseeker {params.macs2_annotatePeaks}
 
-
+if [ "{params.macs2_annotatePeaks}" == "True" ];then
 for g in "annotated" "genelist" "annotation_summary" "annotation_distribution"
 do
     for f in `ls *.${{g}}`;do
         rsync -az --progress  --remove-source-files $f {params.qcdir}/peak_annotation/
     done
 done
+fi
 
 if [ -f {output.tn5nicksFileList} ];then rm -f {output.tn5nicksFileList};fi
 if [ -f {output.replicatePeakFileList} ];then rm -f {output.replicatePeakFileList};fi
@@ -135,12 +159,13 @@ rule atac_genrich_peakcalling:
         genrich_l=config["genrich"]["l"],
         genrich_g=config["genrich"]["g"],
         genrich_d=config["genrich"]["d"],
+        genrich_annotatePeaks=config["genrich"]["annotatePeaks"]
     output:
         consensusPeakFileList=join(RESULTSDIR,"peaks","genrich","{sample}.consensus.genrich.peakfiles"),
         replicatePeakFileList=join(RESULTSDIR,"peaks","genrich","{sample}.replicate.genrich.peakfiles"),
         tn5nicksFileList=join(RESULTSDIR,"peaks","genrich","{sample}.genrich.tn5nicksbedfiles")
     container: config["masterdocker"]    
-    threads: getthreads("trim")
+    threads: getthreads("atac_genrich_peakcalling")
     shell:"""
 set -e -x -o pipefail
 nreplicates=0
@@ -167,26 +192,71 @@ bash {params.scriptsdir}/{params.script} \
     --genrich_l {params.genrich_l} \
     --genrich_g {params.genrich_g} \
     --genrich_d {params.genrich_d} \
+    --runchipseeker {params.genrich_annotatePeaks} \
     --outdir {params.outdir}
 
+if [ "{params.genrich_annotatePeaks}" == "True" ];then
 for g in "annotated" "genelist" "annotation_summary" "annotation_distribution"
 do
     for f in `ls *.${{g}}`;do
         rsync -az --progress  --remove-source-files $f {params.qcdir}/peak_annotation/
     done
 done
+fi
 
 if [ -f {output.tn5nicksFileList} ];then rm -f {output.tn5nicksFileList};fi
 if [ -f {output.replicatePeakFileList} ];then rm -f {output.replicatePeakFileList};fi
 
 for f in {input}
 do
-    repname=`basename $f|awk -F".bam" '{{print $1}}'`
+    repname=`basename $f|awk -F".qsorted.bam" '{{print $1}}'`
     echo -ne "${{repname}}\t{params.sample}\t{params.outdir}/tn5nicks/${{repname}}.genrich.tn5nicks.bam\n" >> {output.tn5nicksFileList}
     echo -ne "${{repname}}\t{params.sample}\t{params.outdir}/${{repname}}.genrich.narrowPeak\n" >> {output.replicatePeakFileList}
 done
 echo -ne "{params.sample}\t{params.sample}\t{params.outdir}/{params.sample}.genrich.consensus.bed\n" > {output.consensusPeakFileList}
 
+"""
+
+rule motif_enrichment:
+# """
+# Calculate motif enrichment for replicate (narrowPeak) and sample (consensus.bed) files 
+# using HOMER and AME
+# """
+    input:
+        macs2_consensusPeakFileList=join(RESULTSDIR,"peaks","macs2","{sample}.consensus.macs2.peakfiles"),
+        macs2_replicatePeakFileList=join(RESULTSDIR,"peaks","macs2","{sample}.replicate.macs2.peakfiles"),
+        genrich_consensusPeakFileList=join(RESULTSDIR,"peaks","genrich","{sample}.consensus.genrich.peakfiles"),
+        genrich_replicatePeakFileList=join(RESULTSDIR,"peaks","genrich","{sample}.replicate.genrich.peakfiles"),
+    params:
+        genomefa=GENOMEFA,
+        scriptsdir=SCRIPTSDIR,
+        script="ccbr_atac_motif_enrichment.bash",
+        sample="{sample}",
+        homermotif=config[GENOME]["homermotif"],
+        mememotif=config[GENOME]["mememotif"]
+    output:
+        dummy=join(RESULTSDIR,"tmp","{sample}.motif_enrichment"),
+    container: config["masterdocker"]    
+    threads: getthreads("motif_enrichment")
+    shell:"""
+if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then tmpdir="/lscratch/${{SLURM_JOB_ID}}";else tmpdir="/dev/shm";fi
+ 
+for narrowPeak in `cat {input}|awk '{{print $NF}}'`;do
+    mkdir -p ${{narrowPeak}}_motif_enrichment
+    narrowPeak_bn=$(basename $narrowPeak)
+    ttmpdir="${{tmpdir}}/$narrowPeak_bn"
+    mkdir -p $ttmpdir
+    bash {params.scriptsdir}/{params.script} \
+        --narrowpeak $narrowPeak \
+        --genomefa {params.genomefa} \
+        --homermotif {params.homermotif} \
+        --mememotif {params.mememotif} \
+        --threads {threads} \
+        --outdir ${{narrowPeak}}_motif_enrichment \
+        --tmpdir $ttmpdir
+done
+
+touch {output.dummy}
 """
 
 #########################################################

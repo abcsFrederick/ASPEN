@@ -38,5 +38,10 @@
 		"mem": "120g",
 		"threads": "56",
 		"time": "12:00:00"
+	},
+	"motif_enrichment": {
+		"mem": "120g",
+		"threads": "56",
+		"time": "12:00:00"
 	}
 }

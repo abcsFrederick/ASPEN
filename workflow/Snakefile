@@ -47,7 +47,10 @@ rule all:
         join(QCDIR,"jaccard","genrich.consensus_replicate.jaccard.pca.html"),
         join(QCDIR,"jaccard","allmethods.replicate.jaccard.pca.html"),
         join(QCDIR,"jaccard","allmethods.consensus.jaccard.pca.html"),
-        join(QCDIR,"jaccard","allmethods.consensus_replicate.jaccard.pca.html")
+        join(QCDIR,"jaccard","allmethods.consensus_replicate.jaccard.pca.html"),
+        #motif enrichment
+        expand(join(RESULTSDIR,"tmp","{sample}.motif_enrichment"),sample=SAMPLES),
+
 
 
 

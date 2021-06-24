@@ -7,11 +7,12 @@ callPeaks(){
 	GENOME=$3
 	SHIFTSIZE=$4
 	EXTSIZE=$5
-	FILTERPEAKS=$6
-	QFILTER=$7
-	GENOMEFILE=$8
-	SCRIPTSFOLDER=$9
-	OUTDIR=${10}
+	RUNCHIPSEEKER=$6
+	FILTERPEAKS=$7
+	QFILTER=$8
+	GENOMEFILE=$9
+	SCRIPTSFOLDER=${10}
+	OUTDIR=${11}
 
 # call peaks
 	if [ $GENOME == "hg19" ]; then g="hs";fi
@@ -33,6 +34,7 @@ callPeaks(){
 	fi
 
 # annotate
+	if [ "$RUNCHIPSEEKER" == "True" ];then
 	for f in ${PREFIX}.narrowPeak ${PREFIX}.qfilter.narrowPeak;do
 		npeaks=$(wc -l $f|awk '{print $1}')
 		if [ "$npeaks" -gt "0" ];then
@@ -45,6 +47,7 @@ callPeaks(){
 			touch ${f}.annotation_distribution
 		fi
 	done
+	fi
 
 # save bigwig
 # MAY NEED TO BE NORMALIZED FOR GENOME SIZE ... DONT KNOW FOR SURE
@@ -113,7 +116,7 @@ parser.add_argument('--filterpeaks',required=False, default="True", help='filter
 parser.add_argument('--qfilter',required=False, default=0.693147, help='default qfiltering value is 0.693147 (-log10 of 0.5) for q=0.5')
 
 parser.add_argument('--scriptsfolder',required=True,  help='folder where the scripts are... probably <path to workflow>/scripts')
-
+parser.add_argument('--runchipseeker',required=True, default="False", help='annotate peaks with chipseeker')
 EOF
 
 cd $OUTDIR
@@ -138,21 +141,21 @@ fi
 
 
 # replicate 1 peak calling
-callPeaks $TAGALIGN1 ${REP1NAME}.macs2 $GENOME $SHIFTSIZE $EXTSIZE $FILTERPEAKS $QFILTER $GENOMEFILE $SCRIPTSFOLDER $OUTDIR
+callPeaks $TAGALIGN1 ${REP1NAME}.macs2 $GENOME $SHIFTSIZE $EXTSIZE $RUNCHIPSEEKER $FILTERPEAKS $QFILTER $GENOMEFILE $SCRIPTSFOLDER $OUTDIR
 # 
 # replicate 2 peak calling
 if [ "$nreplicates" -ge 2 ]; then
-callPeaks $TAGALIGN2 ${REP2NAME}.macs2 $GENOME $SHIFTSIZE $EXTSIZE $FILTERPEAKS $QFILTER $GENOMEFILE $SCRIPTSFOLDER $OUTDIR
+callPeaks $TAGALIGN2 ${REP2NAME}.macs2 $GENOME $SHIFTSIZE $EXTSIZE $RUNCHIPSEEKER $FILTERPEAKS $QFILTER $GENOMEFILE $SCRIPTSFOLDER $OUTDIR
 fi
 # 
 # replicate 3 peak calling
 if [ "$nreplicates" -ge 3 ]; then
-callPeaks $TAGALIGN3 ${REP3NAME}.macs2 $GENOME $SHIFTSIZE $EXTSIZE $FILTERPEAKS $QFILTER $GENOMEFILE $SCRIPTSFOLDER $OUTDIR
+callPeaks $TAGALIGN3 ${REP3NAME}.macs2 $GENOME $SHIFTSIZE $EXTSIZE $RUNCHIPSEEKER $FILTERPEAKS $QFILTER $GENOMEFILE $SCRIPTSFOLDER $OUTDIR
 fi
 # 
 # replicate 4 peak calling
 if [ "$nreplicates" -ge 4 ]; then
-callPeaks $TAGALIGN4 ${REP4NAME}.macs2 $GENOME $SHIFTSIZE $EXTSIZE $FILTERPEAKS $QFILTER $GENOMEFILE $SCRIPTSFOLDER $OUTDIR
+callPeaks $TAGALIGN4 ${REP4NAME}.macs2 $GENOME $SHIFTSIZE $EXTSIZE $RUNCHIPSEEKER $FILTERPEAKS $QFILTER $GENOMEFILE $SCRIPTSFOLDER $OUTDIR
 fi
 
 if [ "$nreplicates" -eq 1 ];then
@@ -182,7 +185,7 @@ fi
 if [ "$nreplicates" -ge 2 ];then
 bedSort ${pooled} ${pooled}
 pigz -f -p4 ${pooled}
-callPeaks ${pooled}.gz ${SAMPLENAME}.macs2.pooled $GENOME $SHIFTSIZE $EXTSIZE $FILTERPEAKS $QFILTER $GENOMEFILE $SCRIPTSFOLDER $OUTDIR
+callPeaks ${pooled}.gz ${SAMPLENAME}.macs2.pooled $GENOME $SHIFTSIZE $EXTSIZE $RUNCHIPSEEKER $FILTERPEAKS $QFILTER $GENOMEFILE $SCRIPTSFOLDER $OUTDIR
 fi
 
 # consensus peak calling
@@ -198,7 +201,7 @@ if [ "$nreplicates" -eq 4 ];then
 python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --qfilter $QFILTER --peakfiles ${REP1NAME}.macs2.narrowPeak ${REP2NAME}.macs2.narrowPeak ${REP3NAME}.macs2.narrowPeak ${REP4NAME}.macs2.narrowPeak --outbed $CONSENSUSBEDFILE
 fi
 
-# if [ "$nreplicates" -ge 2 ];then
+if [ "$RUNCHIPSEEKER" == "True" ];then
 	f="$CONSENSUSBEDFILE"
 	npeaks_consensus=$(wc -l $f|awk '{print $1}')
 	if [ "$npeaks_consensus" -gt "0" ];then
@@ -210,4 +213,4 @@ fi
 		touch ${f}.annotation_summary
 		touch ${f}.annotation_distribution
 	fi
-# fi
+fi
