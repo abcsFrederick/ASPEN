@@ -10,8 +10,7 @@ parser.add_argument('--tagaligngz',required=True, help='tagalign.gz file')
 parser.add_argument('--genome',required=True, help='genome file')
 parser.add_argument('--tsstxt',required=True, help='output TSS file')
 parser.add_argument('--ncpus',required=False, default=2, help='Number of CPUs')
-parser.add_argument('--scriptsfolder',required=True, help= 'folder where the scripts are... generally workflow/scripts')
-parser.add_argument('--resourcesfolder',required=True, help='folder tssbed tar gz files are .. generally resources/db')
+parser.add_argument('--tsstargz',required=True, help='tssbed tar gz')
 
 EOF
 
@@ -22,15 +21,21 @@ nicksbed=$(echo $TAGALIGNGZ|sed "s/.tagAlign.gz/.tn5nicks.bed/g")
 zcat $TAGALIGNGZ |awk -F"\t" -v OFS="\t" '{if ($6=="+") {print $1,$2,$2+1} else {print $1,$3,$3+1}}' > $nicksbed
 
 # untar tss bed and create do file for gnu parallel
-cp /${RESOURCESFOLDER}/${GENOME}_tssbeds.tar.gz .
-tar xzvf ${GENOME}_tssbeds.tar.gz
-for f in `ls E*.bed|grep -v tn5nicks`;do echo "bedmap --echo --count $f $nicksbed|awk -F\"\t\" '{if (\$6!=\"+|0\" && \$6!=\"-|0\"){print \$4,\$6}}'|sed \"s/ /|/g\"|awk -F\"|\" -v OFS=\"\t\" '{print \$3,\$5}' > ${f}.counts";done > do_bedmap
+cp $TSSTARGZ .
+tar xzvf $(basename $TSSTARGZ)
+tar tzf $TSSTARGZ > beds.lst
+while read f;do
+# for f in `ls *.bed|grep -v tn5nicks`;do 
+echo "bedmap --echo --count $f $nicksbed|awk -F\"\t\" '{if (\$6!=\"+|0\" && \$6!=\"-|0\"){print \$4,\$6}}'|sed \"s/ /|/g\"|awk -F\"|\" -v OFS=\"\t\" '{print \$3,\$5}' > ${f}.counts"
+done < beds.lst > do_bedmap
 head do_bedmap
 
 # run bedmap, get counts and calculate density from all counts
 # filter out TSS regions with <=20 nicks
 parallel -j $NCPUS < do_bedmap
-for f in $(ls E*bed.counts);do
+while read a;do
+f="${a}.counts"
+# for f in $(ls *bed.counts);do
 	c=$(awk -F"\t" '{sum=sum+$2}END{print sum}' $f)
 	if [ "$c" -gt "20" ];then
 		echo $f
