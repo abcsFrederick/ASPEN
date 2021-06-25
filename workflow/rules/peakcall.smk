@@ -75,7 +75,8 @@ rule atac_macs_peakcalling:
         sample="{sample}",
         macs2_extsize=config["macs2"]["extsize"],
         macs2_shiftsize=config["macs2"]["shiftsize"],
-        macs2_annotatePeaks=config["macs2"]["annotatePeaks"]
+        macs2_annotatePeaks=config["macs2"]["annotatePeaks"],
+        macs2_effectiveGenomeSize=config[GENOME]["effectiveGenomeSize"]
     output:
         consensusPeakFileList=join(RESULTSDIR,"peaks","macs2","{sample}.consensus.macs2.peakfiles"),
         replicatePeakFileList=join(RESULTSDIR,"peaks","macs2","{sample}.replicate.macs2.peakfiles"),
@@ -105,7 +106,8 @@ bash {params.scriptsdir}/{params.script} \
     --outdir {params.outdir} \
     --extsize {params.macs2_extsize} \
     --shiftsize {params.macs2_shiftsize} \
-    --runchipseeker {params.macs2_annotatePeaks}
+    --runchipseeker {params.macs2_annotatePeaks} \
+    --effectivegenomesize {params.macs2_effectiveGenomeSize}
 
 if [ "{params.macs2_annotatePeaks}" == "True" ];then
 for g in "annotated" "genelist" "annotation_summary" "annotation_distribution"
@@ -152,6 +154,7 @@ rule atac_genrich_peakcalling:
         scriptsdir=SCRIPTSDIR,
         qcdir=QCDIR,
         script="ccbr_atac_genrich_peak_calling.bash",
+        readsbedfolder=join(RESULTSDIR,"tmp","genrichReads"),
         sample="{sample}",
         genrich_s=config["genrich"]["s"],
         genrich_m=config["genrich"]["m"],
@@ -159,7 +162,8 @@ rule atac_genrich_peakcalling:
         genrich_l=config["genrich"]["l"],
         genrich_g=config["genrich"]["g"],
         genrich_d=config["genrich"]["d"],
-        genrich_annotatePeaks=config["genrich"]["annotatePeaks"]
+        genrich_annotatePeaks=config["genrich"]["annotatePeaks"],
+        genrich_effectiveGenomeSize=config[GENOME]["effectiveGenomeSize"]
     output:
         consensusPeakFileList=join(RESULTSDIR,"peaks","genrich","{sample}.consensus.genrich.peakfiles"),
         replicatePeakFileList=join(RESULTSDIR,"peaks","genrich","{sample}.replicate.genrich.peakfiles"),
@@ -179,6 +183,7 @@ cd {params.outdir}
 if [ ! -d {params.outdir}/bigwig ];then mkdir -p {params.outdir}/bigwig ;fi
 if [ ! -d {params.outdir}/tn5nicks ];then mkdir -p {params.outdir}/tn5nicks ;fi
 if [ ! -d {params.qcdir}/peak_annotation ];then mkdir -p {params.qcdir}/peak_annotation;fi
+if [ ! -d {params.readsbedfolder} ];then mkdir -p {params.readsbedfolder};fi
 
 bash {params.scriptsdir}/{params.script} \
     --bamfiles {input} \
@@ -193,7 +198,9 @@ bash {params.scriptsdir}/{params.script} \
     --genrich_g {params.genrich_g} \
     --genrich_d {params.genrich_d} \
     --runchipseeker {params.genrich_annotatePeaks} \
-    --outdir {params.outdir}
+    --outdir {params.outdir} \
+    --readsbedfolder {params.readsbedfolder} \
+    --effectivegenomesize {params.genrich_effectiveGenomeSize}
 
 if [ "{params.genrich_annotatePeaks}" == "True" ];then
 for g in "annotated" "genelist" "annotation_summary" "annotation_distribution"
