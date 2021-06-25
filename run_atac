@@ -167,7 +167,7 @@ function runlocal() {
   set_singularity_binds
   if [ "$SLURM_JOB_ID" == "" ];then err "runlocal can only be done on an interactive node"; fi
   module load singularity
-  run "local"
+  run "--dry-run" && echo "Dry-run was successful .... starting local execution" && run "local"
 }
 
 function runslurm() {
@@ -175,7 +175,7 @@ function runslurm() {
 
   runcheck
   set_singularity_binds
-  run "slurm"
+  run "--dry-run" && echo "Dry-run was successful .... submitting jobs to job-scheduler" && run "slurm"
 }
 
 function preruncleanup() {
