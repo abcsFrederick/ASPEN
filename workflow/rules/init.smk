@@ -9,6 +9,29 @@ import yaml
 # import shutil
 #########################################################
 
+print("#"*100)
+print("""
+  ____ ____ ____  ____  
+ / ___/ ___| __ )|  _ \ 
+| |  | |   |  _ \| |_) |
+| |__| |___| |_) |  _ < 
+ \____\____|____/|_| \_\ 
+
+    _  _____  _    ____                
+   / \|_   _|/ \  / ___|___  ___  __ _ 
+  / _ \ | | / _ \| |   / __|/ _ \/ _` |
+ / ___ \| |/ ___ \ |___\__ \  __/ (_| |
+/_/   \_\_/_/   \_\____|___/\___|\__, |
+                                    |_|
+ ____  _            _ _            
+|  _ \(_)_ __   ___| (_)_ __   ___ 
+| |_) | | '_ \ / _ \ | | '_ \ / _ \ 
+|  __/| | |_) |  __/ | | | | |  __/
+|_|   |_| .__/ \___|_|_|_| |_|\___|
+        |_|                        
+""")
+print("#"*100)
+
 #########################################################
 # FILE-ACTION FUNCTIONS 
 #########################################################
@@ -134,7 +157,7 @@ with open(config["clusterjson"]) as json_file:
     CLUSTER = json.load(json_file)
 ## Create lambda functions to allow a way to insert read-in values
 ## as rule directives
-getthreads=lambda rname:int(CLUSTER[rname]["threads"]) if rname in CLUSTER else int(CLUSTER["__default__"]["threads"])
+getthreads=lambda rname:int(CLUSTER[rname]["threads"]) if rname in CLUSTER and "threads" in CLUSTER[rname] else int(CLUSTER["__default__"]["threads"])
 getmemg=lambda rname:CLUSTER[rname]["mem"] if rname in CLUSTER else CLUSTER["__default__"]["mem"]
 getmemG=lambda rname:getmemg(rname).replace("g","G")
 #########################################################
