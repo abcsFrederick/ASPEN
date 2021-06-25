@@ -27,14 +27,14 @@ mkdir -p $outdirbasename
 homermotif=$HOMERMOTIF
 mememotiftar=$MEMEMOTIF
 
-cp $homermotif $workdir
-cp $mememotiftar $workdir
+cp $homermotif .
+cp $mememotiftar .
 tar xzvf $(basename $mememotiftar)
 
 if [ "$filetype" == "narrowPeak" ];then
 	sort -k9,9gr $NARROWPEAK|cut -f1-3 |awk -v n=$NTOP '{if (NR<=n) {print}}' > ${samplename}.input.bed
 else
-	cut -f1-3 $NARROWPEAK ${samplename}.input.bed
+	cut -f1-3 $NARROWPEAK > ${samplename}.input.bed
 fi
 bedSort ${samplename}.input.bed ${samplename}.input.bed
 
