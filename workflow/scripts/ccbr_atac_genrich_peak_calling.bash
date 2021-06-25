@@ -25,9 +25,7 @@ callGenrichPeaksProcessReadsBed(){
 BAM=$1
 REPNAME=$2 
 PEAKFILE=$3
-GENOME=$4
-GENOMEFILE=$5
-EXCLUDELIST=$6
+EXCLUDELIST=$4
 
 READSBEDFILE=${REPNAME}.reads.bed
 READSBWFILE=${REPNAME}.bw
@@ -35,25 +33,16 @@ NICKSBEDFILE=${REPNAME}.tn5nicks.bed
 NICKSBAMFILE=${REPNAME}.tn5nicks.bam 
 #Genrich -t $BAM -o $PEAKFILE -j -r -e $EXCLUDELIST -v -s 5 -m 6 -b $READSBEDFILE -q 1 -l 200 -g 200
 callGenrichPeaks $BAM $PEAKFILE $EXCLUDELIST $READSBEDFILE 
-processReadsBed $READSBEDFILE $READSBWFILE $GENOME $GENOMEFILE $NICKSBEDFILE $NICKSBAMFILE
+processReadsBed $READSBEDFILE $READSBWFILE $NICKSBEDFILE $NICKSBAMFILE
 }
 
 processReadsBed() {
 BED=$1
 BW=$2
-GENOME=$3
-GENOMEFILE=$4
-NICKSBED=$5
-NICKSBAM=$6
-if [ "$GENOME" == "hg19" ]; then
-effectiveSize=2700000000
-elif [ "$GENOME" == "hg38" ]; then
-effectiveSize=2700000000
-elif [ "$GENOME" == "mm9" ]; then
-effectiveSize=2400000000
-elif [ "$GENOME" == "mm10" ]; then
-effectiveSize=2400000000
-fi
+NICKSBED=$3
+NICKSBAM=$4
+effectivegenomesize=$EFFECTIVEGENOMESIZE
+
 bedSort $BED $BED
 sf=$(awk -F"\t" -v size=$effectiveSize '{sum=sum+$3-$2}END{print sum/size}' $BED)
 genomeCoverageBed -bg -i $BED -g $GENOMEFILE |awk -F"\t" -v OFS="\t" -v sf=$sf '{print $1,$2,$3,$4/sf}' > ${BED}.bg
@@ -70,7 +59,8 @@ bedToBam -i ${NICKSBED%.*}.tmp.bed -g $GENOMEFILE > $NICKSBAM
 samtools sort -@4 -o ${NICKSBAM%.*}.sorted.bam $NICKSBAM
 mv ${NICKSBAM%.*}.sorted.bam $NICKSBAM
 rm -f ${NICKSBED%.*}.tmp.bed ${BED}.bg
-rm -f $BED
+pigz -f -p4 $BED
+mv ${BED}.gz $READSBEDFOLDER/
 pigz -f -p4 $NICKSBED
 mv ${NICKSBED}.gz ${OUTDIR}/tn5nicks/
 mv $NICKSBAM ${OUTDIR}/tn5nicks/
@@ -85,6 +75,7 @@ parser.add_argument('--outdir',required=True, help= 'outputfolder')
 
 parser.add_argument('--genome',required=True,help="hg19/38 or mm9/10")
 parser.add_argument('--genomefile',required=True,help=".genome file")
+parser.add_argument('--effectivegenomesize',required=True,help="effective genome size")
 parser.add_argument('--samplename',required=True, help='samplename,i.e., all replicates belong to this sample')
 
 parser.add_argument('--genrich_d',required=False,default=100,help="Genrich -d parameter")
@@ -94,6 +85,8 @@ parser.add_argument('--genrich_q',required=False,default=1,help="Genrich -q para
 parser.add_argument('--genrich_l',required=False,default=100,help="Genrich -l parameter")
 parser.add_argument('--genrich_g',required=False,default=100,help="Genrich -g parameter")
 parser.add_argument('--runchipseeker',required=False,default="False",help="run chipseeker")
+parser.add_argument('--readsbedfolder',required=True,default="False",help="folder to save reads used by Genrich")
+
 
 
 # parser.add_argument('--pooledpeakfile',required=False, help='output narrowPeak file for both replicates combined')
@@ -103,7 +96,7 @@ parser.add_argument('--runchipseeker',required=False,default="False",help="run c
 parser.add_argument('--filterpeaks',required=False, default="True", help='filterpeaks by qvalue: True or False')
 parser.add_argument('--qfilter',required=False, default=0.693147, help='default qfiltering value is 0.693147 (-log10 of 0.5) for q=0.5')
 
-parser.add_argument('--scriptsfolder',required=False, default='/opt2', help='folder where the scripts are... used for debuging without rebuilding the docker')
+parser.add_argument('--scriptsfolder',required=True, help='folder where the scripts are ... usually workflow/scripts')
 EOF
 
 cd $OUTDIR
@@ -136,21 +129,21 @@ excludelist=$(samtools view -H $BAMREP1|grep ^@SQ|cut -f2|sed "s/SN://g"|awk "\$
 # echo $excludelist
 
 # replicate 1 peak calling
-callGenrichPeaksProcessReadsBed $BAMREP1 $REP1NAME $PEAKFILE1 $GENOME $GENOMEFILE "$excludelist"
+callGenrichPeaksProcessReadsBed $BAMREP1 $REP1NAME $PEAKFILE1 "$excludelist"
 # 
 # replicate 2 peak calling
 if [ "$nreplicates" -ge 2 ]; then
-callGenrichPeaksProcessReadsBed $BAMREP2 $REP2NAME $PEAKFILE2 $GENOME $GENOMEFILE "$excludelist"
+callGenrichPeaksProcessReadsBed $BAMREP2 $REP2NAME $PEAKFILE2 "$excludelist"
 fi
 # 
 # replicate 3 peak calling
 if [ "$nreplicates" -ge 3 ]; then
-callGenrichPeaksProcessReadsBed $BAMREP3 $REP3NAME $PEAKFILE3 $GENOME $GENOMEFILE "$excludelist"
+callGenrichPeaksProcessReadsBed $BAMREP3 $REP3NAME $PEAKFILE3 "$excludelist"
 fi
 # 
 # replicate 4 peak calling
 if [ "$nreplicates" -ge 4 ]; then
-callGenrichPeaksProcessReadsBed $BAMREP4 $REP4NAME $PEAKFILE4 $GENOME $GENOMEFILE "$excludelist"
+callGenrichPeaksProcessReadsBed $BAMREP4 $REP4NAME $PEAKFILE4 "$excludelist"
 fi
 
 
@@ -173,7 +166,7 @@ if [ "$nreplicates" -ge 2 ]; then
 	python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --qfilter $QFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $PEAKFILE4 --outbed $CONSENSUSBEDFILE
 	fi
 
-	processReadsBed $READSBEDFILE $READSBWFILE $GENOME $GENOMEFILE $NICKSBEDFILE $NICKSBAMFILE
+	processReadsBed $READSBEDFILE $READSBWFILE $NICKSBEDFILE $NICKSBAMFILE
 fi
 
 if [ "$nreplicates" -eq 1 ];then
@@ -204,6 +197,20 @@ if [ "$nreplicates" -eq "2" ];then files="$PEAKFILE1 $PEAKFILE2 $POOLEDPEAKFILE"
 if [ "$nreplicates" -eq "3" ];then files="$PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $POOLEDPEAKFILE"; fi
 if [ "$nreplicates" -eq "4" ];then files="$PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $PEAKFILE4 $POOLEDPEAKFILE"; fi
 
+#ChIPseeker in the container only works for hg19/hg38/mm10... so you cannot annotate other genomes here
+genome_is_known=0
+if [ "$RUNCHIPSEEKER" == "True" ];then
+	if [ "$GENOME" == "hg19" ];then
+		genome_is_known=1
+	elif [ "$GENOME" == "hg38" ];then
+		genome_is_known=1
+	elif [ "$GENOME" == "mm10" ];then
+		genome_is_known=1
+	fi
+	if [ "$genome_is_known" == "0" ];then
+	RUNCHIPSEEKER="False"
+	fi
+fi
 
 if [ $FILTERPEAKS == "True" ];then
   qvalue=$QFILTER

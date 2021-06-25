@@ -4,22 +4,23 @@ callPeaks(){
 # inputs
 	TAGALIGN=$1
 	PREFIX=$2
-	GENOME=$3
-	SHIFTSIZE=$4
-	EXTSIZE=$5
-	RUNCHIPSEEKER=$6
-	FILTERPEAKS=$7
-	QFILTER=$8
-	GENOMEFILE=$9
-	SCRIPTSFOLDER=${10}
-	OUTDIR=${11}
+	RUNCHIPSEEKER=$3
+	FILTERPEAKS=$4
 
 # call peaks
-	if [ $GENOME == "hg19" ]; then g="hs";fi
-	if [ $GENOME == "hg38" ]; then g="hs";fi
-	if [ $GENOME == "mm10" ]; then g="mm";fi
-	if [ $GENOME == "mm9" ]; then g="mm";fi
-	macs2 callpeak -t $TAGALIGN -f BED -n $PREFIX -g $g -p 0.01 --shift -$SHIFTSIZE --extsize $EXTSIZE --keep-dup all --call-summits --nomodel --SPMR -B --outdir $OUTDIR
+	macs2 callpeak \
+		-t $TAGALIGN \
+		-f BED \
+		-n $PREFIX \
+		-g $EFFECTIVEGENOMESIZE \
+		-p 0.01 \
+		--shift -$SHIFTSIZE \
+		--extsize $EXTSIZE \
+		--keep-dup all \
+		--call-summits \
+		--nomodel \
+		--SPMR -B \
+		--outdir $OUTDIR
 
 # remove duplicate peak calls
 	mv ${PREFIX}_peaks.narrowPeak ${PREFIX}_peaks.narrowPeak.tmp
@@ -104,7 +105,8 @@ argparse "$@" <<EOF || exit 1
 parser.add_argument('--tagalignfiles',required=True, nargs = '+', help = 'space separated list of tagAlignGz files')
 parser.add_argument('--outdir',required=True, help= 'outputfolder')
 
-parser.add_argument('--genome',required=True,help="hg19/38 or mm9/10")
+parser.add_argument('--effectivegenomesize',required=True,help="2700000000 for human or 1870000000 for mouse")
+parser.add_argument('--genome',required=True,help="genome only hg38/hg19/mm10 are supported by ChIPseeker")
 parser.add_argument('--genomefile',required=True,help=".genome file")
 
 parser.add_argument('--extsize',required=False, default=200, help='extsize')
@@ -122,6 +124,22 @@ EOF
 cd $OUTDIR
 
 CONSENSUSBEDFILE="${SAMPLENAME}.macs2.consensus.bed"
+
+#ChIPseeker in the container only works for hg19/hg38/mm10... so you cannot annotate other genomes here
+genome_is_known=0
+if [ "$RUNCHIPSEEKER" == "True" ];then
+	if [ "$GENOME" == "hg19" ];then
+		genome_is_known=1
+	elif [ "$GENOME" == "hg38" ];then
+		genome_is_known=1
+	elif [ "$GENOME" == "mm10" ];then
+		genome_is_known=1
+	fi
+	if [ "$genome_is_known" == "0" ];then
+	RUNCHIPSEEKER="False"
+	fi
+fi
+
 
 nreplicates=${#TAGALIGNFILES[@]}
 TAGALIGN1=${TAGALIGNFILES[0]}
@@ -141,21 +159,21 @@ fi
 
 
 # replicate 1 peak calling
-callPeaks $TAGALIGN1 ${REP1NAME}.macs2 $GENOME $SHIFTSIZE $EXTSIZE $RUNCHIPSEEKER $FILTERPEAKS $QFILTER $GENOMEFILE $SCRIPTSFOLDER $OUTDIR
+callPeaks $TAGALIGN1 ${REP1NAME}.macs2 $RUNCHIPSEEKER $FILTERPEAKS
 # 
 # replicate 2 peak calling
 if [ "$nreplicates" -ge 2 ]; then
-callPeaks $TAGALIGN2 ${REP2NAME}.macs2 $GENOME $SHIFTSIZE $EXTSIZE $RUNCHIPSEEKER $FILTERPEAKS $QFILTER $GENOMEFILE $SCRIPTSFOLDER $OUTDIR
+callPeaks $TAGALIGN2 ${REP2NAME}.macs2 $RUNCHIPSEEKER $FILTERPEAKS
 fi
 # 
 # replicate 3 peak calling
 if [ "$nreplicates" -ge 3 ]; then
-callPeaks $TAGALIGN3 ${REP3NAME}.macs2 $GENOME $SHIFTSIZE $EXTSIZE $RUNCHIPSEEKER $FILTERPEAKS $QFILTER $GENOMEFILE $SCRIPTSFOLDER $OUTDIR
+callPeaks $TAGALIGN3 ${REP3NAME}.macs2 $RUNCHIPSEEKER $FILTERPEAKS
 fi
 # 
 # replicate 4 peak calling
 if [ "$nreplicates" -ge 4 ]; then
-callPeaks $TAGALIGN4 ${REP4NAME}.macs2 $GENOME $SHIFTSIZE $EXTSIZE $RUNCHIPSEEKER $FILTERPEAKS $QFILTER $GENOMEFILE $SCRIPTSFOLDER $OUTDIR
+callPeaks $TAGALIGN4 ${REP4NAME}.macs2 $RUNCHIPSEEKER $FILTERPEAKS
 fi
 
 if [ "$nreplicates" -eq 1 ];then
@@ -185,7 +203,7 @@ fi
 if [ "$nreplicates" -ge 2 ];then
 bedSort ${pooled} ${pooled}
 pigz -f -p4 ${pooled}
-callPeaks ${pooled}.gz ${SAMPLENAME}.macs2.pooled $GENOME $SHIFTSIZE $EXTSIZE $RUNCHIPSEEKER $FILTERPEAKS $QFILTER $GENOMEFILE $SCRIPTSFOLDER $OUTDIR
+callPeaks ${pooled}.gz ${SAMPLENAME}.macs2.pooled $RUNCHIPSEEKER $FILTERPEAKS
 fi
 
 # consensus peak calling
