@@ -242,7 +242,7 @@ rule motif_enrichment:
         homermotif=config[GENOME]["homermotif"],
         mememotif=config[GENOME]["mememotif"]
     output:
-        dummy=join(RESULTSDIR,"tmp","{sample}.motif_enrichment"),
+        dummy=join(RESULTSDIR,"QC","{sample}.motif_enrichment"),
     container: config["masterdocker"]    
     threads: getthreads("motif_enrichment")
     shell:"""
