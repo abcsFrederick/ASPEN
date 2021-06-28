@@ -50,9 +50,9 @@ def check_writeaccess(filename):
     exit("File: %s exists, but cannot be read!"%(filename))
 
 def get_file_size(filename):
-	filename=filename.strip()
-	if check_readaccess(filename):
-		return os.stat(filename).st_size
+    filename=filename.strip()
+    if check_readaccess(filename):
+        return os.stat(filename).st_size
 #########################################################
 
 #########################################################
@@ -70,11 +70,11 @@ RESULTSDIR=join(WORKDIR,"results")
 SCRIPTSDIR=config['scriptsdir']
 RESOURCESDIR=config['resourcesdir']
 if not os.path.exists(join(WORKDIR,"fastqs")):
-	os.mkdir(join(WORKDIR,"fastqs"))
+    os.mkdir(join(WORKDIR,"fastqs"))
 if not os.path.exists(join(WORKDIR,"results")):
-	os.mkdir(join(WORKDIR,"results"))
+    os.mkdir(join(WORKDIR,"results"))
 for f in ["samplemanifest", "tools"]:
-	check_readaccess(config[f])
+    check_readaccess(config[f])
 #########################################################
 
 
@@ -99,33 +99,33 @@ REPLICATESDF["R2"]=join(RESOURCESDIR,"dummy")
 REPLICATESDF["PEorSE"]="PE"
 
 for replicate in REPLICATES:
-	R1file=REPLICATESDF["path_to_R1_fastq"][replicate]
-	R2file=REPLICATESDF["path_to_R2_fastq"][replicate]
-	# print(replicate,R1file,R2file)
-	check_readaccess(R1file)
-	R1filenewname=join(WORKDIR,"fastqs",replicate+".R1.fastq.gz")
-	if not os.path.exists(R1filenewname):
-		os.symlink(R1file,R1filenewname)
-	REPLICATESDF.loc[[replicate],"R1"]=R1filenewname
-	if str(R2file)!='nan':
-		check_readaccess(R2file)
-		R2filenewname=join(WORKDIR,"fastqs",replicate+".R2.fastq.gz")
-		if not os.path.exists(R2filenewname):
-			os.symlink(R2file,R2filenewname)
-		REPLICATESDF.loc[[replicate],"R2"]=R2filenewname
-	else:
+    R1file=REPLICATESDF["path_to_R1_fastq"][replicate]
+    R2file=REPLICATESDF["path_to_R2_fastq"][replicate]
+    # print(replicate,R1file,R2file)
+    check_readaccess(R1file)
+    R1filenewname=join(WORKDIR,"fastqs",replicate+".R1.fastq.gz")
+    if not os.path.exists(R1filenewname):
+        os.symlink(R1file,R1filenewname)
+    REPLICATESDF.loc[[replicate],"R1"]=R1filenewname
+    if str(R2file)!='nan':
+        check_readaccess(R2file)
+        R2filenewname=join(WORKDIR,"fastqs",replicate+".R2.fastq.gz")
+        if not os.path.exists(R2filenewname):
+            os.symlink(R2file,R2filenewname)
+        REPLICATESDF.loc[[replicate],"R2"]=R2filenewname
+    else:
 # only PE samples are supported by the ATACseq pipeline at the moment
-		print("Only Paired-end samples are supported by this pipeline!")
-		print(config["samplemanifest"]+" is missing second fastq file for "+replicate)
-		exit()
-		REPLICATESDF.loc[[replicate],"PEorSE"]="SE"
+        print("Only Paired-end samples are supported by this pipeline!")
+        print(config["samplemanifest"]+" is missing second fastq file for "+replicate)
+        exit()
+        REPLICATESDF.loc[[replicate],"PEorSE"]="SE"
 
 print("Read access to all raw fastqs is confirmed!")
 print("#"*100)
 
 SAMPLE2REPLICATES=dict()
 for g in SAMPLES:
-	SAMPLE2REPLICATES[g]=list(REPLICATESDF[REPLICATESDF['sampleName']==g].index)
+    SAMPLE2REPLICATES[g]=list(REPLICATESDF[REPLICATESDF['sampleName']==g].index)
 
 # print(REPLICATESDF.columns)
 # print(REPLICATESDF.sampleName)
@@ -143,7 +143,7 @@ for g in SAMPLES:
 ## Load tools from YAML file
 check_readaccess(config["tools"])
 with open(config["tools"]) as f:
-	TOOLS = yaml.safe_load(f)
+    TOOLS = yaml.safe_load(f)
 #########################################################
 
 
@@ -203,6 +203,38 @@ print("HOMER motifs :",HOMERMOTIF)
 MEMEMOTIF=config[GENOME]["mememotif"]
 check_readaccess(MEMEMOTIF)
 print("MEME motifs :",MEMEMOTIF)
+
+FRIPEXTRA=True
+
+try:
+    DHSBED=config[GENOME]["fripextra"]["dhsbed"]
+    check_readaccess(DHSBED)
+    print("DHS motifs :",DHSBED)
+except KeyError:
+    FRIPEXTRA=False
+    DHSBED=""
+    PROMOTERBED=""
+    ENHANCERBED=""
+
+try:
+    PROMOTERBED=config[GENOME]["fripextra"]["promoterbed"]
+    check_readaccess(PROMOTERBED)
+    print("Promoter Bed:",PROMOTERBED)
+except KeyError:
+    FRIPEXTRA=False
+    DHSBED=""
+    PROMOTERBED=""
+    ENHANCERBED=""
+
+try:
+    ENHANCERBED=config[GENOME]["fripextra"]["enhancerbed"]
+    check_readaccess(ENHANCERBED)
+    print("Enhancer Bed:",ENHANCERBED)
+except KeyError:
+    FRIPEXTRA=False
+    DHSBED=""
+    PROMOTERBED=""
+    ENHANCERBED=""
 
 print("#"*100)
 
