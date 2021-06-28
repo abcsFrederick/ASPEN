@@ -124,7 +124,7 @@ rule jaccard:
     threads: getthreads("jaccard")
     shell:"""
 set -e -x -o pipefail
-if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then TMPDIR="/lscratch/${{SLURM_JOB_ID}}";else cd TMPDIR="/dev/shm";fi
+if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then TMPDIR="/lscratch/${{SLURM_JOB_ID}}";else TMPDIR="/dev/shm";fi
 for f in {input};do
     rsync -Laz --progress $f $TMPDIR/
     while read replicateName sampleName file;do
@@ -177,6 +177,79 @@ for m in "macs2" "genrich" "allmethods";do
         rsync -az --progress --verbose --remove-source-files ${{m}}.${{f}}.jaccard.pca.html {params.qcdir}/jaccard/
     done
 done
+"""
+
+#########################################################
+
+rule frip:
+# """
+# Create a file to run frip on ... collect all the data needed into a flat file which can then be 
+# looped through
+# Output:
+# * "to_frip.txt"
+# """
+    input:
+        genrich_replicatePeakFileList=join(RESULTSDIR,"peaks","genrich","{sample}.replicate.genrich.peakfiles"),   
+        macs2_replicatePeakFileList=join(RESULTSDIR,"peaks","macs2","{sample}.replicate.macs2.peakfiles"),
+    output:
+        fripout=join(RESULTSDIR,"QC","frip","{sample}.frip")
+    params:
+        workdir=RESULTSDIR,
+        qcdir=QCDIR,
+        indexdir=INDEXDIR,
+        scriptsdir=SCRIPTSDIR,
+        tagAlignDir=join(RESULTSDIR,"tagAlign"),
+        readsbedfolder=join(RESULTSDIR,"tmp","genrichReads"),
+        genome=GENOME,
+        fripextra=FRIPEXTRA,
+        dhsbed=DHSBED,
+        promoterbed=PROMOTERBED,
+        enhancerbed=ENHANCERBED,
+        script="ccbr_frip.bash",
+    container: config["masterdocker"]
+    threads: getthreads("frip")
+    shell:"""
+set -e -x -o pipefail
+if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then TMPDIR="/lscratch/${{SLURM_JOB_ID}}";else TMPDIR="/dev/shm";fi
+fripout_dir=$(dirname {output.fripout})
+while read replicateName sampleName peakfile;do
+    if [ "{params.fripextra}" == "True" ];then
+        bash {params.scriptsdir}/{params.script} \
+        --narrowpeak $peakfile \
+        --tagalign {params.tagAlignDir}/${{replicateName}}.tagAlign.gz \
+        --samplename $replicateName \
+        --dhsbed {params.dhsbed} \
+        --promoterbed {params.promoterbed} \
+        --enhancerbed {params.enhancerbed} \
+        --out ${{fripout_dir}}/${{replicateName}}.genrich.frip
+    else
+        bash {params.scriptsdir}/{params.script} \
+        --narrowpeak $peakfile \
+        --tagalign {params.tagAlignDir}/${{replicateName}}.tagAlign.gz \
+        --samplename $replicateName \
+        --out ${{fripout_dir}}/${{replicateName}}.genrich.frip
+    fi 
+done < {input.genrich_replicatePeakFileList}
+while read replicateName sampleName peakfile;do
+    if [ "{params.fripextra}" == "True" ];then
+        bash {params.scriptsdir}/{params.script} \
+        --narrowpeak $peakfile \
+        --tagalign {params.tagAlignDir}/${{replicateName}}.tagAlign.gz \
+        --samplename $replicateName \
+        --dhsbed {params.dhsbed} \
+        --promoterbed {params.promoterbed} \
+        --enhancerbed {params.enhancerbed} \
+        --out ${{fripout_dir}}/${{replicateName}}.macs2.frip
+    else
+        bash {params.scriptsdir}/{params.script} \
+        --narrowpeak $peakfile \
+        --tagalign {params.tagAlignDir}/${{replicateName}}.tagAlign.gz \
+        --samplename $replicateName \
+        --out ${{fripout_dir}}/${{replicateName}}.macs2.frip
+    fi 
+done < {input.macs2_replicatePeakFileList}
+
+touch {output.fripout}
 """
 
 #########################################################
