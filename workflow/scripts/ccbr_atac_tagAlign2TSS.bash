@@ -4,7 +4,10 @@
 
 set -e -x -o pipefail
 ARGPARSE_DESCRIPTION="calculate TSS score from tagAlign file"     
-source /opt2/argparse.bash || exit 1
+source /opt2/argparse.bash || \
+
+source <(curl -s https://raw.githubusercontent.com/CCBR/Tools/master/scripts/argparse.bash) || \
+exit 1
 argparse "$@" <<EOF || exit 1
 parser.add_argument('--tagaligngz',required=True, help='tagalign.gz file')
 parser.add_argument('--genome',required=True, help='genome file')
@@ -40,7 +43,7 @@ f="${a}.counts"
 	if [ "$c" -gt "20" ];then
 		echo $f
 	fi
-done > countfiles
+done < beds.lst > countfiles
 ntss=$(wc -l countfiles|awk '{print $1}')
 if [ "$ntss" -gt "0" ]; then
 while read a; do cat $a;done < countfiles | awk -F"\t" -v OFS="\t" '{if (NF==2){s[$1]+=$2}}END{for (var in s){print var,s[var]}}'|sort -k1,1n|awk -F"\t" -v OFS="\t" '{if ($2!=0){print $1,$2}}'|python ${SCRIPTSFOLDER}/ccbr_counts2density.py - > $TSSTXT
