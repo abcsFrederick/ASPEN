@@ -160,6 +160,11 @@ function unlock() {
   run "--unlock"  
 }
 
+function dag() {
+  runcheck
+  snakemake -s $SNAKEFILE --configfile ${WORKDIR}/config.yaml --forceall --dag |dot -Teps > ${WORKDIR}/dag.eps
+}
+
 function runlocal() {
 # If the pipeline is fired up on an interactive node (with sinteractive), this function runs the pipeline
 
@@ -345,6 +350,7 @@ function main(){
 
   case $RUNMODE in
     init) init && exit 0;;
+    dag) dag && exit 0;;
     dryrun) dryrun && exit 0;;
     unlock) unlock && exit 0;;
     run) runslurm && exit 0;;
