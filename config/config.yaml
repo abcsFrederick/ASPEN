@@ -62,8 +62,11 @@ genrich:
   g: 100
   d: 100
   annotatePeaks: True
+multiqc:
+  extraparams: ""
+  configfile: "PIPELINE_HOME/config/multiqc_atacseq_config.yaml"
 # master container
 # masterdocker: "docker://nciccbr/ccbr_atacseq:v0.1.29"
-masterdocker: "docker://nciccbr/ccbr_atacseq:v1.7"
+masterdocker: "docker://nciccbr/ccbr_atacseq:v1.8"
 fastqcdocker: "docker://nciccbr/ccbr_fastqc_0.11.9:v1.1"
 

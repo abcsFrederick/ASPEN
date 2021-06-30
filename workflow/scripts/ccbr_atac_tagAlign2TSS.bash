@@ -19,6 +19,8 @@ EOF
 
 set -e -x -o pipefail
 
+SCRIPTSDIR=$(dirname $0)
+SCRIPTSDIR=$(readlink -f $SCRIPTSDIR)
 # create Tn5 nicks file
 nicksbed=$(echo $TAGALIGNGZ|sed "s/.tagAlign.gz/.tn5nicks.bed/g")
 zcat $TAGALIGNGZ |awk -F"\t" -v OFS="\t" '{if ($6=="+") {print $1,$2,$2+1} else {print $1,$3,$3+1}}' > $nicksbed
@@ -46,7 +48,7 @@ f="${a}.counts"
 done < beds.lst > countfiles
 ntss=$(wc -l countfiles|awk '{print $1}')
 if [ "$ntss" -gt "0" ]; then
-while read a; do cat $a;done < countfiles | awk -F"\t" -v OFS="\t" '{if (NF==2){s[$1]+=$2}}END{for (var in s){print var,s[var]}}'|sort -k1,1n|awk -F"\t" -v OFS="\t" '{if ($2!=0){print $1,$2}}'|python ${SCRIPTSFOLDER}/ccbr_counts2density.py - > $TSSTXT
+while read a; do cat $a;done < countfiles | awk -F"\t" -v OFS="\t" '{if (NF==2){s[$1]+=$2}}END{for (var in s){print var,s[var]}}'|sort -k1,1n|awk -F"\t" -v OFS="\t" '{if ($2!=0){print $1,$2}}'|python ${SCRIPTSDIR}/_ccbr_counts2density.py - > $TSSTXT
 else
 	echo -ne "# TSS enrichment: 0.0000\n" > $TSSTXT
 fi

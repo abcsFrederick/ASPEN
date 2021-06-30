@@ -1,3 +1,5 @@
+localrules: multiqc
+
 rule fastqc:
 # """
 # Run FASTQC on:
@@ -221,35 +223,52 @@ while read replicateName sampleName peakfile;do
         --dhsbed {params.dhsbed} \
         --promoterbed {params.promoterbed} \
         --enhancerbed {params.enhancerbed} \
-        --out ${{fripout_dir}}/${{replicateName}}.genrich.frip
+        --peakcaller "Genrich"
     else
         bash {params.scriptsdir}/{params.script} \
         --narrowpeak $peakfile \
         --tagalign {params.tagAlignDir}/${{replicateName}}.tagAlign.gz \
         --samplename $replicateName \
-        --out ${{fripout_dir}}/${{replicateName}}.genrich.frip
+        --peakcaller "Genrich"
     fi 
-done < {input.genrich_replicatePeakFileList}
+done < {input.genrich_replicatePeakFileList} > $TMPDIR/$(basename {output.fripout})
 while read replicateName sampleName peakfile;do
-    if [ "{params.fripextra}" == "True" ];then
-        bash {params.scriptsdir}/{params.script} \
-        --narrowpeak $peakfile \
-        --tagalign {params.tagAlignDir}/${{replicateName}}.tagAlign.gz \
-        --samplename $replicateName \
-        --dhsbed {params.dhsbed} \
-        --promoterbed {params.promoterbed} \
-        --enhancerbed {params.enhancerbed} \
-        --out ${{fripout_dir}}/${{replicateName}}.macs2.frip
-    else
-        bash {params.scriptsdir}/{params.script} \
-        --narrowpeak $peakfile \
-        --tagalign {params.tagAlignDir}/${{replicateName}}.tagAlign.gz \
-        --samplename $replicateName \
-        --out ${{fripout_dir}}/${{replicateName}}.macs2.frip
-    fi 
-done < {input.macs2_replicatePeakFileList}
+    bash {params.scriptsdir}/{params.script} \
+    --narrowpeak $peakfile \
+    --tagalign {params.tagAlignDir}/${{replicateName}}.tagAlign.gz \
+    --samplename $replicateName \
+    --peakcaller "MACS2"
+done < {input.macs2_replicatePeakFileList} >> $TMPDIR/$(basename {output.fripout})
+sort -k1,1 -k2,2 $TMPDIR/$(basename {output.fripout}) > {output.fripout} && rm -f $TMPDIR/$(basename {output.fripout})
+"""
 
-touch {output.fripout}
+#########################################################
+
+rule multiqc:
+    input:
+        expand(join(QCDIR,"fastqc","{replicate}.R1_fastqc.zip"), replicate=REPLICATES),
+        expand(join(QCDIR,"fastqc","{replicate}.R2_fastqc.zip"), replicate=REPLICATES),
+        expand(join(QCDIR,"fastqc","{replicate}.R1.noBL_fastqc.zip"), replicate=REPLICATES),
+        expand(join(QCDIR,"fastqc","{replicate}.R2.noBL_fastqc.zip"), replicate=REPLICATES),
+        expand(join(QCDIR,"frip","{sample}.frip"),sample=SAMPLES),
+        expand(join(QCDIR,"fld","{replicate}.fld.txt"),replicate=REPLICATES),
+        expand(join(QCDIR,"tss","{replicate}.tss.txt"),replicate=REPLICATES),
+        expand(join(RESULTSDIR,"peaks","macs2","{sample}.consensus.macs2.peakfiles"),sample=SAMPLES),
+        expand(join(RESULTSDIR,"peaks","genrich","{sample}.consensus.genrich.peakfiles"),sample=SAMPLES),
+    output:
+        join(RESULTSDIR,"QC","multiqc_report.html"),
+        join(RESULTSDIR,"QC","QCStats.tsv")
+    params:
+        qcdir=QCDIR,
+        multiqcextraparams=MULTIQCEXTRAPARAMS,
+        multiqcconfig=MULTIQCCONFIG,
+        script="ccbr_atac_qc.bash",
+        scriptsdir=SCRIPTSDIR,
+    container: config["masterdocker"]
+    shell:"""
+set -e -x -o pipefail
+if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then TMPDIR="/lscratch/${{SLURM_JOB_ID}}";else TMPDIR="/dev/shm";fi
+bash {params.scriptsdir}/{params.script} --qcfolder {params.qcdir} --multiqcconfig {params.multiqcconfig} --multiqcextraparams {params.multiqcextraparams}
 """
 
 #########################################################

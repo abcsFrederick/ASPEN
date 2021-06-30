@@ -49,9 +49,12 @@ rule all:
         join(QCDIR,"jaccard","allmethods.consensus.jaccard.pca.html"),
         join(QCDIR,"jaccard","allmethods.consensus_replicate.jaccard.pca.html"),
         #motif enrichment
-        expand(join(RESULTSDIR,"QC","{sample}.motif_enrichment"),sample=SAMPLES),
+        expand(join(QCDIR,"{sample}.motif_enrichment"),sample=SAMPLES),
         #frip
-        expand(join(RESULTSDIR,"QC","frip","{sample}.frip"),sample=SAMPLES),
+        expand(join(QCDIR,"frip","{sample}.frip"),sample=SAMPLES),
+        #multiqc
+        join(QCDIR,"multiqc_report.html"),
+        join(QCDIR,"QCStats.tsv")
 
 
 

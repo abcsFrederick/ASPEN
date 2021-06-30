@@ -11,24 +11,24 @@ import yaml
 
 print("#"*100)
 print("""
-  ____ ____ ____  ____  
- / ___/ ___| __ )|  _ \ 
-| |  | |   |  _ \| |_) |
-| |__| |___| |_) |  _ < 
- \____\____|____/|_| \_\ 
+#   ____ ____ ____  ____  
+#  / ___/ ___| __ )|  _ \ 
+# | |  | |   |  _ \| |_) |
+# | |__| |___| |_) |  _ < 
+#  \____\____|____/|_| \_\ 
 
-    _  _____  _    ____                
-   / \|_   _|/ \  / ___|___  ___  __ _ 
-  / _ \ | | / _ \| |   / __|/ _ \/ _` |
- / ___ \| |/ ___ \ |___\__ \  __/ (_| |
-/_/   \_\_/_/   \_\____|___/\___|\__, |
-                                    |_|
- ____  _            _ _            
-|  _ \(_)_ __   ___| (_)_ __   ___ 
-| |_) | | '_ \ / _ \ | | '_ \ / _ \ 
-|  __/| | |_) |  __/ | | | | |  __/
-|_|   |_| .__/ \___|_|_|_| |_|\___|
-        |_|                        
+#     _  _____  _    ____                
+#    / \|_   _|/ \  / ___|___  ___  __ _ 
+#   / _ \ | | / _ \| |   / __|/ _ \/ _` |
+#  / ___ \| |/ ___ \ |___\__ \  __/ (_| |
+# /_/   \_\_/_/   \_\____|___/\___|\__, |
+#                                     |_|
+#  ____  _            _ _            
+# |  _ \(_)_ __   ___| (_)_ __   ___ 
+# | |_) | | '_ \ / _ \ | | '_ \ / _ \ 
+# |  __/| | |_) |  __/ | | | | |  __/
+# |_|   |_| .__/ \___|_|_|_| |_|\___|
+#         |_|                        
 """)
 print("#"*100)
 
@@ -37,17 +37,17 @@ print("#"*100)
 #########################################################
 def check_existence(filename):
   if not os.path.exists(filename):
-    exit("File: %s does not exists!"%(filename))
+    exit("# File: %s does not exists!"%(filename))
 
 def check_readaccess(filename):
   check_existence(filename)
   if not os.access(filename,os.R_OK):
-    exit("File: %s exists, but cannot be read!"%(filename))
+    exit("# File: %s exists, but cannot be read!"%(filename))
 
 def check_writeaccess(filename):
   check_existence(filename)
   if not os.access(filename,os.W_OK):
-    exit("File: %s exists, but cannot be read!"%(filename))
+    exit("# File: %s exists, but cannot be read!"%(filename))
 
 def get_file_size(filename):
     filename=filename.strip()
@@ -89,10 +89,10 @@ REPLICATES = list(REPLICATESDF.index)
 SAMPLES = list(REPLICATESDF.sampleName.unique())
 
 print("#"*100)
-print("Checking Sample Manifest...")
-print("\tTotal Replicates in manifest : "+str(len(REPLICATES)))
-print("\tTotal Samples in manifest : "+str(len(SAMPLES)))
-print("Checking read access to raw fastqs...")
+print("# Checking Sample Manifest...")
+print("# \tTotal Replicates in manifest : "+str(len(REPLICATES)))
+print("# \tTotal Samples in manifest : "+str(len(SAMPLES)))
+print("# Checking read access to raw fastqs...")
 
 REPLICATESDF["R1"]=join(RESOURCESDIR,"dummy")
 REPLICATESDF["R2"]=join(RESOURCESDIR,"dummy")
@@ -115,12 +115,12 @@ for replicate in REPLICATES:
         REPLICATESDF.loc[[replicate],"R2"]=R2filenewname
     else:
 # only PE samples are supported by the ATACseq pipeline at the moment
-        print("Only Paired-end samples are supported by this pipeline!")
-        print(config["samplemanifest"]+" is missing second fastq file for "+replicate)
+        print("# Only Paired-end samples are supported by this pipeline!")
+        print("# "+config["samplemanifest"]+" is missing second fastq file for "+replicate)
         exit()
         REPLICATESDF.loc[[replicate],"PEorSE"]="SE"
 
-print("Read access to all raw fastqs is confirmed!")
+print("# Read access to all raw fastqs is confirmed!")
 print("#"*100)
 
 SAMPLE2REPLICATES=dict()
@@ -166,50 +166,50 @@ getmemG=lambda rname:getmemg(rname).replace("g","G")
 # SET OTHER PIPELINE GLOBAL VARIABLES
 #########################################################
 
-print("Pipeline Parameters:")
+print("# Pipeline Parameters:")
 print("#"*100)
-print("Working dir :",WORKDIR)
-print("Results dir :",RESULTSDIR)
-print("Scripts dir :",SCRIPTSDIR)
-print("Resources dir :",RESOURCESDIR)
+print("# Working dir :",WORKDIR)
+print("# Results dir :",RESULTSDIR)
+print("# Scripts dir :",SCRIPTSDIR)
+print("# Resources dir :",RESOURCESDIR)
 
 GENOME=config["genome"]
 INDEXDIR=config[GENOME]["indexdir"]
-print("Bowtie index dir:",INDEXDIR)
+print("# Bowtie index dir:",INDEXDIR)
 
 GENOMEFILE=join(INDEXDIR,GENOME+".genome") # genome file is required by macs2 peak calling
 check_readaccess(GENOMEFILE)
-print("Genome :",GENOME)
-print(".genome :",GENOMEFILE)
+print("# Genome :",GENOME)
+print("# .genome :",GENOMEFILE)
 
 GENOMEFA=join(INDEXDIR,GENOME+".fa") # genome file is required by motif enrichment rule
 check_readaccess(GENOMEFA)
-print("Genome fasta:",GENOMEFA)
+print("# Genome fasta:",GENOMEFA)
 
 BLACKLISTFA=config[GENOME]['blacklistFa']
 check_readaccess(BLACKLISTFA)
-print("Blacklist fasta:",BLACKLISTFA)
+print("# Blacklist fasta:",BLACKLISTFA)
 
 QCDIR=join(RESULTSDIR,"QC")
 
 TSSBED=config[GENOME]["tssBed"]
 check_readaccess(TSSBED)
-print("TSS BEDs :",TSSBED)
+print("# TSS BEDs :",TSSBED)
 
 HOMERMOTIF=config[GENOME]["homermotif"]
 check_readaccess(HOMERMOTIF)
-print("HOMER motifs :",HOMERMOTIF)
+print("# HOMER motifs :",HOMERMOTIF)
 
 MEMEMOTIF=config[GENOME]["mememotif"]
 check_readaccess(MEMEMOTIF)
-print("MEME motifs :",MEMEMOTIF)
+print("# MEME motifs :",MEMEMOTIF)
 
 FRIPEXTRA=True
 
 try:
     DHSBED=config[GENOME]["fripextra"]["dhsbed"]
     check_readaccess(DHSBED)
-    print("DHS motifs :",DHSBED)
+    print("# DHS motifs :",DHSBED)
 except KeyError:
     FRIPEXTRA=False
     DHSBED=""
@@ -219,7 +219,7 @@ except KeyError:
 try:
     PROMOTERBED=config[GENOME]["fripextra"]["promoterbed"]
     check_readaccess(PROMOTERBED)
-    print("Promoter Bed:",PROMOTERBED)
+    print("# Promoter Bed:",PROMOTERBED)
 except KeyError:
     FRIPEXTRA=False
     DHSBED=""
@@ -229,13 +229,21 @@ except KeyError:
 try:
     ENHANCERBED=config[GENOME]["fripextra"]["enhancerbed"]
     check_readaccess(ENHANCERBED)
-    print("Enhancer Bed:",ENHANCERBED)
+    print("# Enhancer Bed:",ENHANCERBED)
 except KeyError:
     FRIPEXTRA=False
     DHSBED=""
     PROMOTERBED=""
     ENHANCERBED=""
 
+try:
+    MULTIQCCONFIG=config['multiqc']['configfile']
+    check_readaccess(MULTIQCCONFIG)
+    print("# MultiQC configfile:",MULTIQCCONFIG)
+    MULTIQCEXTRAPARAMS=config['multiqc']['extraparams']   
+except KeyError:
+    MULTIQCCONFIG=""
+    MULTIQCEXTRAPARAMS=""
 print("#"*100)
 
 #########################################################
