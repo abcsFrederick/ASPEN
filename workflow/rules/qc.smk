@@ -268,7 +268,11 @@ rule multiqc:
     shell:"""
 set -e -x -o pipefail
 if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then TMPDIR="/lscratch/${{SLURM_JOB_ID}}";else TMPDIR="/dev/shm";fi
+if [ "{params.multiqcextraparams}" == "" ];then
+bash {params.scriptsdir}/{params.script} --qcfolder {params.qcdir} --multiqcconfig {params.multiqcconfig}
+else
 bash {params.scriptsdir}/{params.script} --qcfolder {params.qcdir} --multiqcconfig {params.multiqcconfig} --multiqcextraparams {params.multiqcextraparams}
+fi
 """
 
 #########################################################
