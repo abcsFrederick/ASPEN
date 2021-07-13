@@ -58,6 +58,12 @@ callPeaks(){
 #
 # Genrich normalization is as per 1x genome coverage... and macs2 normalization is per million reads 
 	bedSort ${PREFIX}_treat_pileup.bdg ${PREFIX}_treat_pileup.bdg
+# some coordinates go out of chromosome size in macs2 bam2bw conversion.... using a working around 
+	awk -F"\t" -v OFS="\t" '{print $1,"0",$2}' $GENOMEFILE > /dev/shm/${PREFIX}.genome.bed
+	bedtools intersect -a ${PREFIX}_treat_pileup.bdg -b /dev/shm/${PREFIX}.genome.bed > /dev/shm/${PREFIX}.bg
+	mv /dev/shm/${PREFIX}.bg ${PREFIX}_treat_pileup.bdg
+	rm -f /dev/shm/${PREFIX}.genome.bed
+#
 	bedGraphToBigWig ${PREFIX}_treat_pileup.bdg $GENOMEFILE ${PREFIX}.bw
 	rm -f ${PREFIX}_treat_pileup.bdg
 	rm -f ${PREFIX}_control_lambda.bdg

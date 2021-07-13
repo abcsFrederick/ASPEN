@@ -46,6 +46,13 @@ effectivegenomesize=$EFFECTIVEGENOMESIZE
 bedSort $BED $BED
 sf=$(awk -F"\t" -v size=$effectiveSize '{sum=sum+$3-$2}END{print sum/size}' $BED)
 genomeCoverageBed -bg -i $BED -g $GENOMEFILE |awk -F"\t" -v OFS="\t" -v sf=$sf '{print $1,$2,$3,$4/sf}' > ${BED}.bg
+# some coordinates go out of chromosome size in macs2 bam2bw conversion.... using a working around there which is copied here as well
+bn=$(basename $BED)
+awk -F"\t" -v OFS="\t" '{print $1,"0",$2}' $GENOMEFILE > /dev/shm/${bn}.genome.bed
+bedtools intersect -a ${BED}.bg -b /dev/shm/${bn}.genome.bed > /dev/shm/${bn}.bg
+mv /dev/shm/${bn}.bg ${BED}.bg
+rm -f /dev/shm/${bn}.genome.bed
+#
 bedGraphToBigWig ${BED}.bg $GENOMEFILE $BW
 mv $BW ${OUTDIR}/bigwig/
 d=$GENRICH_D
