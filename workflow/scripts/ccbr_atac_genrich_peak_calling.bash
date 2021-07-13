@@ -116,7 +116,7 @@ fi
 if [ "$nreplicates" -ge 3 ]; then
 	BAMREP3=${BAMFILES[2]}
 	REP3NAME=`echo $(basename $BAMREP3)|awk -F".qsorted.bam" '{print $1}'`
-	PEAKFILE2="${REP2NAME}.genrich.narrowPeak"
+	PEAKFILE3="${REP3NAME}.genrich.narrowPeak"
 fi	
 if [ "$nreplicates" -ge 4 ]; then
 	BAMREP4=${BAMFILES[3]}
