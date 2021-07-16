@@ -67,13 +67,26 @@ MEMORYG="100G"
 # read in various dirs from config file
 WORKDIR=config['workdir']
 RESULTSDIR=join(WORKDIR,"results")
-SCRIPTSDIR=config['scriptsdir']
-RESOURCESDIR=config['resourcesdir']
+
+# get scripts folder
+try:
+    SCRIPTSDIR = config["scriptsdir"]
+except KeyError:
+    SCRIPTSDIR = join(WORKDIR,"scripts")
+check_existence(SCRIPTSDIR)
+
+# get resources folder
+try:
+    RESOURCESDIR = config["resourcesdir"]
+except KeyError:
+    RESOURCESDIR = join(WORKDIR,"resources")
+check_existence(RESOURCESDIR)
+
 if not os.path.exists(join(WORKDIR,"fastqs")):
     os.mkdir(join(WORKDIR,"fastqs"))
 if not os.path.exists(join(WORKDIR,"results")):
     os.mkdir(join(WORKDIR,"results"))
-for f in ["samplemanifest", "tools"]:
+for f in ["samplemanifest"]:
     check_readaccess(config[f])
 #########################################################
 
@@ -139,10 +152,13 @@ for g in SAMPLES:
 # THESE INCLUDE LIST OF BIOWULF MODULES (AND THEIR VERSIONS)
 # MAY BE EMPTY IF ALL TOOLS ARE DOCKERIZED
 #########################################################
-
 ## Load tools from YAML file
-check_readaccess(config["tools"])
-with open(config["tools"]) as f:
+try:
+    TOOLSYAML = config["tools"]
+except KeyError:
+    TOOLSYAML = join(WORKDIR,"tools.yaml")
+check_readaccess(TOOLSYAML)
+with open(TOOLSYAML) as f:
     TOOLS = yaml.safe_load(f)
 #########################################################
 
@@ -152,9 +168,14 @@ with open(config["tools"]) as f:
 #########################################################
 
 ## Load cluster.json
-check_readaccess(config["clusterjson"])
-with open(config["clusterjson"]) as json_file:
+try:
+    CLUSTERJSON = config["clusterjson"]
+except KeyError:
+    CLUSTERJSON = join(WORKDIR,"cluster.json")
+check_readaccess(CLUSTERJSON)
+with open(CLUSTERJSON) as json_file:
     CLUSTER = json.load(json_file)
+
 ## Create lambda functions to allow a way to insert read-in values
 ## as rule directives
 getthreads=lambda rname:int(CLUSTER[rname]["threads"]) if rname in CLUSTER and "threads" in CLUSTER[rname] else int(CLUSTER["__default__"]["threads"])
@@ -172,6 +193,7 @@ print("# Working dir :",WORKDIR)
 print("# Results dir :",RESULTSDIR)
 print("# Scripts dir :",SCRIPTSDIR)
 print("# Resources dir :",RESOURCESDIR)
+print("# Cluster JSON :",CLUSTERJSON)
 
 GENOME=config["genome"]
 INDEXDIR=config[GENOME]["indexdir"]

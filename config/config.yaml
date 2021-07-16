@@ -3,8 +3,11 @@
 # The working dir... output will be in the results subfolder of the workdir
 workdir: "WORKDIR"
 # tools scriptsdir resourcesdir
+# to use the workdir version of tools.yaml comment out the following line
 tools: "PIPELINE_HOME/resources/tools.yaml"
+# to use the workdir version of cluster.json comment out the following line
 clusterjson: "PIPELINE_HOME/resources/cluster.json"
+# to use the workdir version of scriptsdir comment out the following line
 scriptsdir: "PIPELINE_HOME/workflow/scripts"
 resourcesdir: "PIPELINE_HOME/resources"
 #
