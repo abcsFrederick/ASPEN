@@ -58,7 +58,7 @@ custom_data:
             ylab: 'Peak Density Percentage'
             xlab: 'Peak Width'
             xmax: 20000
-    frip_stats_peaks:
+    frip_stats:
         file_format: 'tsv'
         section_name: 'FRiP Stats'
         description: 'The fraction of reads in called peak regions (FRiP score) should be >0.3, though values greater than 0.2 are acceptable. Fraction of Reads in Peaks/DHS/Enhancers/Promoters are also reported. For human or mouse data, FRiPromoters is 12-20%'
