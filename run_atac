@@ -11,6 +11,13 @@
 
 PYTHON_VERSION="python/3.7"
 SNAKEMAKE_VERSION="snakemake"
+SINGULARITY_VERSION="singularity/3.7.4"
+
+# essential files
+# these are relative to the workflows' base folder
+# these are copied into the WORKDIR
+ESSENTIAL_FILES="config/config.yaml config/samples.tsv resources/cluster.json resoures/tools.yaml"
+ESSENTIAL_FOLDERS="workflow/scripts"
 
 set -eo pipefail
 module purge
@@ -89,9 +96,21 @@ function init() {
 if [ -d $WORKDIR ];then err "Folder $WORKDIR already exists!"; fi
 mkdir -p $WORKDIR
 
+# copy essential files
+for f in $ESSENTIAL_FILES;do
+echo "Copying essential file: $f"
+fbn=$(basename $f)
+sed -e "s/PIPELINE_HOME/${PIPELINE_HOME//\//\\/}/g" -e "s/WORKDIR/${WORKDIR//\//\\/}/g" ${PIPELINE_HOME}/$f > $WORKDIR/$fbn
+done
+
 # copy config and samples files
-sed -e "s/PIPELINE_HOME/${PIPELINE_HOME//\//\\/}/g" -e "s/WORKDIR/${WORKDIR//\//\\/}/g" ${PIPELINE_HOME}/config/config.yaml > $WORKDIR/config.yaml
-sed -e "s/PIPELINE_HOME/${PIPELINE_HOME//\//\\/}/g" -e "s/WORKDIR/${WORKDIR//\//\\/}/g" ${PIPELINE_HOME}/config/samples.tsv > $WORKDIR/samples.tsv
+# sed -e "s/PIPELINE_HOME/${PIPELINE_HOME//\//\\/}/g" -e "s/WORKDIR/${WORKDIR//\//\\/}/g" ${PIPELINE_HOME}/config/config.yaml > $WORKDIR/config.yaml
+# sed -e "s/PIPELINE_HOME/${PIPELINE_HOME//\//\\/}/g" -e "s/WORKDIR/${WORKDIR//\//\\/}/g" ${PIPELINE_HOME}/config/samples.tsv > $WORKDIR/samples.tsv
+
+# copy essential folders
+for f in $ESSENTIAL_FOLDERS;do
+  rsync -az --progress $f $WORKDIR/
+done
 
 #create log and stats folders
 if [ ! -d $WORKDIR/logs ]; then mkdir -p $WORKDIR/logs;echo "Logs Dir: $WORKDIR/logs";fi
@@ -247,17 +266,22 @@ function run() {
   preruncleanup
 # if QOS is other than "global" and is supplied in the cluster.json file then add " --qos={cluster.qos}" to the 
 # snakemake command below
+#define partitions
+BUYINPARTITIONS=$(bash <(curl -s https://raw.githubusercontent.com/CCBR/Tools/master/Biowulf/get_buyin_partition_list.bash 2>/dev/null))
+PARTITIONS="norm"
+if [ $BUYINPARTITIONS ];then PARTITIONS="norm,$BUYINPARTITIONS";fi
+
   cat > ${WORKDIR}/submit_script.sbatch << EOF
 #!/bin/bash
-#SBATCH --job-name="CCBRPipeline"
+#SBATCH --job-name="CCBRATACseq"
 #SBATCH --mem=10g
-#SBATCH --partition="norm"
+#SBATCH --partition="$PARTITIONS"
 #SBATCH --time=96:00:00
 #SBATCH --cpus-per-task=2
 
 module load $PYTHON_VERSION
 module load $SNAKEMAKE_VERSION
-module load singularity
+module load $SINGULARITY_VERSION
 
 cd \$SLURM_SUBMIT_DIR
 
