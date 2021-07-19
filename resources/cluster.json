@@ -49,5 +49,10 @@
 	},
 	"create_BL_index": {
 		"time": "1:00:00"
+	},
+	"fastq_screen": {
+		"mem": "120g",
+		"threads": "56",
+		"time": "12:00:00"
 	}
 }
