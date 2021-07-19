@@ -26,7 +26,9 @@ SCRIPTNAME="$0"
 SCRIPTBASENAME=$(readlink -f $(basename $0))
 
 # set extra singularity bindings comma separated
-EXTRA_SINGULARITY_BINDS="/lscratch"
+# /data/CCBR_Pipeliner required for fastq_screen_config.txt to work
+EXTRA_SINGULARITY_BINDS="/lscratch,/data/CCBR_Pipeliner"
+
 
 function get_git_commitid_tag() {
 # This function gets the latest git commit id and tag
