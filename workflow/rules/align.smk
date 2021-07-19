@@ -153,6 +153,14 @@ rule align:
     threads: getthreads("align")
     shell:"""
 if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then cd /lscratch/${{SLURM_JOB_ID}};else cd /dev/shm;fi
+
+# make folder if they do not exist
+for  f in {output.tagAlign} {output.dedupbam} {output.qsortedBam};do
+if [ ! -w $(dirname $f) ];then
+mkdir -p $(dirname $f)
+fi
+done
+
 bash {params.scriptsdir}/{params.script} \
 --infastq1 {input.R1} \
 --infastq2 {input.R2} \
