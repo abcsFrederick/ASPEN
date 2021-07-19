@@ -25,7 +25,12 @@ rule all:
         expand(join(QCDIR,"fastqc","{replicate}.R1_fastqc.zip"), replicate=REPLICATES),
         expand(join(QCDIR,"fastqc","{replicate}.R2_fastqc.zip"), replicate=REPLICATES),
         expand(join(QCDIR,"fastqc","{replicate}.R1.noBL_fastqc.zip"), replicate=REPLICATES),
-        expand(join(QCDIR,"fastqc","{replicate}.R2.noBL_fastqc.zip"), replicate=REPLICATES), 
+        expand(join(QCDIR,"fastqc","{replicate}.R2.noBL_fastqc.zip"), replicate=REPLICATES),
+        #fastqscreen
+        expand(join(QCDIR,"FQscreen","{replicate}.R1.noBL_screen.txt"), replicate=REPLICATES),
+        expand(join(QCDIR,"FQscreen","{replicate}.R1.noBL_screen.png"), replicate=REPLICATES),
+        expand(join(QCDIR,"FQscreen","{replicate}.R2.noBL_screen.txt"), replicate=REPLICATES),
+        expand(join(QCDIR,"FQscreen","{replicate}.R2.noBL_screen.png"), replicate=REPLICATES),
         # #tss
         expand(join(QCDIR,"tss","{replicate}.tss.txt"),replicate=REPLICATES),
         # #fld
