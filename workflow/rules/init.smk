@@ -226,6 +226,13 @@ MEMEMOTIF=config[GENOME]["mememotif"]
 check_readaccess(MEMEMOTIF)
 print("# MEME motifs :",MEMEMOTIF)
 
+FASTQ_SCREEN_CONFIG=config["fastqscreen_config"]
+check_readaccess(FASTQ_SCREEN_CONFIG)
+print("# FQscreen config  :",FASTQ_SCREEN_CONFIG)
+
+
+
+
 FRIPEXTRA=True
 
 try:
