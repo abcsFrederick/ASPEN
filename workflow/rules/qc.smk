@@ -26,6 +26,38 @@ rule fastqc:
 
 #########################################################
 
+rule fastq_screen:
+    """
+    Quality-control step to screen for different sources of contamination.
+    FastQ Screen compares your sequencing data to a set of different reference
+    genomes to determine if there is contamination. It allows a user to see if
+    the composition of your library matches what you expect.
+    @Input:
+        Trimmed FastQ files (scatter)
+    @Output:
+        FastQ Screen report and logfiles
+    """
+    input:
+        R1=rules.remove_BL.output.R1,
+        R2=rules.remove_BL.output.R2,
+    output:
+        out1=join(QCDIR,"FQscreen","{replicate}.R1.noBL_screen.txt"),
+        out2=join(QCDIR,"FQscreen","{replicate}.R1.noBL_screen.png"),
+        out3=join(QCDIR,"FQscreen","{replicate}.R2.noBL_screen.txt"),
+        out4=join(QCDIR,"FQscreen","{replicate}.R2.noBL_screen.png"),
+    params:
+        outdir = join(QCDIR,"FQscreen"),
+        fastq_screen_config=FASTQ_SCREEN_CONFIG,
+    threads: getthreads("fastq_screen")  
+    container: config["fastqscreendocker"]
+    shell: """
+fastq_screen --conf {params.fastq_screen_config} --outdir {params.outdir} \
+    --threads {threads} --subset 1000000 \
+    --aligner bowtie2 --force {input.R1} {input.R2}
+    """
+
+#########################################################
+
 rule atac_tss:
 # """
 # * Creates read density profile near known TSS sites.
