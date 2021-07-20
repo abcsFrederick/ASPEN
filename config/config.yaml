@@ -68,6 +68,7 @@ genrich:
 multiqc:
   extraparams: ""
   configfile: "PIPELINE_HOME/config/multiqc_atacseq_config.yaml"
+jaccard_min_peaks: 1000
 
 
 fastqscreen_config: "PIPELINE_HOME/config/fastq_screen_config.txt"

@@ -230,9 +230,13 @@ FASTQ_SCREEN_CONFIG=config["fastqscreen_config"]
 check_readaccess(FASTQ_SCREEN_CONFIG)
 print("# FQscreen config  :",FASTQ_SCREEN_CONFIG)
 
+try:
+    JACCARD_MIN_PEAKS=int(config["jaccard_min_peaks"])
+except KeyError:
+    JACCARD_MIN_PEAKS=100
 
 
-
+# FRIPEXTRA ... do you calculate extra Fraction of reads in blahblahblah
 FRIPEXTRA=True
 
 try:

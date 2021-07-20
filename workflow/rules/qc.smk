@@ -154,6 +154,7 @@ rule jaccard:
         scriptsdir=SCRIPTSDIR,
         genome=GENOME,
         script="ccbr_jaccard_pca.bash",
+        min_peaks=JACCARD_MIN_PEAKS,
     container: config["masterdocker"]
     threads: getthreads("jaccard")
     shell:"""
@@ -171,7 +172,7 @@ for f in $(ls *narrowPeak);do
     bedSort $f $f
 done
 
-min_peaks=1000
+min_peaks={params.min_peaks}
 
 awk -F"/" -v OFS="" "{{print \$1,\$NF}}" *consensus.macs2.peakfiles > macs2.consensus.peakfiles.tmp
 awk -F"/" -v OFS="" "{{print \$1,\$NF}}" *replicate.macs2.peakfiles > macs2.replicate.peakfiles.tmp
