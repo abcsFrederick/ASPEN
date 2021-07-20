@@ -58,12 +58,20 @@ macs2:
   shiftsize: 100
   annotatePeaks: True
 genrich:
+# CCBR parameters
   s: 5
   m: 6
   q: 1
   l: 100
   g: 100
   d: 100
+# SF parameters
+  # s: 0
+  # m: 5
+  # q: 1
+  # l: 0
+  # g: 100
+  # d: 150
   annotatePeaks: True
 multiqc:
   extraparams: ""
