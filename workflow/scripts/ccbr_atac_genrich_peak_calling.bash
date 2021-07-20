@@ -18,7 +18,8 @@ Genrich -t $BAM \
  -b $READSBEDFILE \
  -q $GENRICH_Q \
  -l $GENRICH_L \
- -g $GENRICH_G
+ -g $GENRICH_G \
+ -d $GENRICH_D
 }
 
 callGenrichPeaksProcessReadsBed(){
