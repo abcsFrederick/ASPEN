@@ -16,7 +16,7 @@ SINGULARITY_VERSION="singularity/3.7.4"
 # essential files
 # these are relative to the workflows' base folder
 # these are copied into the WORKDIR
-ESSENTIAL_FILES="config/config.yaml config/samples.tsv resources/cluster.json resoures/tools.yaml"
+ESSENTIAL_FILES="config/config.yaml config/samples.tsv resources/cluster.json resources/tools.yaml"
 ESSENTIAL_FOLDERS="workflow/scripts"
 
 set -eo pipefail
