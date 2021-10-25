@@ -112,7 +112,7 @@ bash {params.scriptsdir}/{params.script} \
 if [ "{params.macs2_annotatePeaks}" == "True" ];then
 for g in "annotated" "genelist" "annotation_summary" "annotation_distribution"
 do
-    for f in `ls *.${{g}}`;do
+    for f in `ls *.${{g}} | grep "{params.sample}.macs2"`;do
         rsync -az --progress  --remove-source-files $f {params.qcdir}/peak_annotation/
     done
 done
@@ -205,7 +205,7 @@ bash {params.scriptsdir}/{params.script} \
 if [ "{params.genrich_annotatePeaks}" == "True" ];then
 for g in "annotated" "genelist" "annotation_summary" "annotation_distribution"
 do
-    for f in `ls *.${{g}}`;do
+    for f in `ls *.${{g}} | grep "{params.sample}.genrich"`;do
         rsync -az --progress  --remove-source-files $f {params.qcdir}/peak_annotation/
     done
 done
