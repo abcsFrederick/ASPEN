@@ -8,7 +8,8 @@ tools: "PIPELINE_HOME/resources/tools.yaml"
 # to use the workdir version of cluster.json comment out the following line
 clusterjson: "PIPELINE_HOME/resources/cluster.json"
 # to use the workdir version of scriptsdir comment out the following line
-scriptsdir: "PIPELINE_HOME/workflow/scripts"
+# scriptsdir: "PIPELINE_HOME/workflow/scripts"
+scriptsdir: "WORKDIR/scripts"
 resourcesdir: "PIPELINE_HOME/resources"
 #
 # tab delimited samples file ... should have the following 3 columns
