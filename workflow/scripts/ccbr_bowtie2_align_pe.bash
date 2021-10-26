@@ -45,16 +45,11 @@ samtools index ${samplename}.bowtie2.bam
 samtools view -@ $ncpus -F 516 -u ${samplename}.bowtie2.bam $CHROMOSOMES > ${samplename}.tmp1.bam
 samtools sort -@ $ncpus -n -o ${samplename}.tmp1.sorted.bam ${samplename}.tmp1.bam
 mv ${samplename}.tmp1.sorted.bam ${samplename}.qsorted.bam
-
-samtools view -@ $ncpus -h ${samplename}.tmp1.bam > ${samplename}.tmp1.sorted.sam
 rm -rf ${samplename}.tmp1.bam
 
-cat ${samplename}.tmp1.sorted.sam | \
-${SCRIPTSFOLDER}/atac_assign_multimappers.py -k $multimapping --paired-end > ${samplename}.tmp2.sorted.sam
-rm -rf ${samplename}.tmp1.sorted.sam
-
-samtools view -@ $ncpus -bS -o ${samplename}.tmp3.bam ${samplename}.tmp2.sorted.sam
-rm -rf ${samplename}.tmp2.sorted.sam
+samtools view -@ $ncpus -h ${samplename}.qsorted.bam | \
+${SCRIPTSFOLDER}/atac_assign_multimappers.py -k $multimapping --paired-end | \
+samtools view -@ $ncpus -bS -o ${samplename}.tmp3.bam -
 
 samtools sort -@ $ncpus -o ${samplename}.tmp3.sorted.bam ${samplename}.tmp3.bam
 mv ${samplename}.tmp3.sorted.bam ${samplename}.tmp3.bam
