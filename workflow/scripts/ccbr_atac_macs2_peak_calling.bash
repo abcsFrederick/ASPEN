@@ -28,7 +28,7 @@ callPeaks(){
 	rm -f ${PREFIX}_peaks.narrowPeak.tmp
 	mv ${PREFIX}_peaks.narrowPeak ${PREFIX}.narrowPeak
 
-# qvalue filter of 0.5 ... very lenient
+# qvalue filter of 0.1 ... very lenient
 	if [ $FILTERPEAKS == "True" ];then
 	  qvalue=$QFILTER
 	  awk -F"\t" -v q=$qvalue '{if ($9>q){print}}' ${PREFIX}.narrowPeak > ${PREFIX}.qfilter.narrowPeak
@@ -130,6 +130,8 @@ EOF
 cd $OUTDIR
 
 CONSENSUSBEDFILE="${SAMPLENAME}.macs2.consensus.bed"
+# fraction of replicates that need representation in each peak.. default > 50% of samples
+CONSENSUSFILTER=0.5
 
 #ChIPseeker in the container only works for hg19/hg38/mm10... so you cannot annotate other genomes here
 genome_is_known=0
@@ -214,15 +216,15 @@ fi
 
 # consensus peak calling
 if [ "$nreplicates" -eq 2 ];then
-python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --qfilter $QFILTER --peakfiles ${REP1NAME}.macs2.narrowPeak ${REP2NAME}.macs2.narrowPeak --outbed $CONSENSUSBEDFILE
+python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles ${REP1NAME}.macs2.narrowPeak ${REP2NAME}.macs2.narrowPeak --outbed $CONSENSUSBEDFILE
 fi
 
 if [ "$nreplicates" -eq 3 ];then
-python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --qfilter $QFILTER --peakfiles ${REP1NAME}.macs2.narrowPeak ${REP2NAME}.macs2.narrowPeak ${REP3NAME}.macs2.narrowPeak --outbed $CONSENSUSBEDFILE
+python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles ${REP1NAME}.macs2.narrowPeak ${REP2NAME}.macs2.narrowPeak ${REP3NAME}.macs2.narrowPeak --outbed $CONSENSUSBEDFILE
 fi
 
 if [ "$nreplicates" -eq 4 ];then
-python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --qfilter $QFILTER --peakfiles ${REP1NAME}.macs2.narrowPeak ${REP2NAME}.macs2.narrowPeak ${REP3NAME}.macs2.narrowPeak ${REP4NAME}.macs2.narrowPeak --outbed $CONSENSUSBEDFILE
+python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles ${REP1NAME}.macs2.narrowPeak ${REP2NAME}.macs2.narrowPeak ${REP3NAME}.macs2.narrowPeak ${REP4NAME}.macs2.narrowPeak --outbed $CONSENSUSBEDFILE
 fi
 
 if [ "$RUNCHIPSEEKER" == "True" ];then
