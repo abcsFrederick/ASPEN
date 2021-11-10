@@ -50,7 +50,7 @@ Once the data is stored on biowulf, sample manifest TSV (`samples.tsv`) can be c
 
 Note that:
 
-* symlinks are created for R1 and R2 files from the sample manifest in the results folder. These symlinks have the filenames <replicateName>.R1.fastq.gz and <replicateName>.R2.fastq.gz, respectively. Thus, original filenames do not matter and original files do not need to be renamed.
+* symlinks are created for R1 and R2 files from the sample manifest in the results folder. These symlinks have the filenames \<replicateName\>.R1.fastq.gz and \<replicateName\>.R2.fastq.gz, respectively. Thus, original filenames do not matter and original files do not need to be renamed.
 * **replicateName** is used as prefix for individual peak calls
 * **sampleName** is used as prefix for consensus peak calls
 
