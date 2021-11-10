@@ -16,7 +16,7 @@ module load ucsc
 """,formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('--peakfiles', required = True, nargs = '+', help = 'space separated list of peakfiles')
 parser.add_argument('--outbed', required = True, dest = 'outbed', help = 'consensus output bed file')
-parser.add_argument('--qfilter', required = False, default=0.693147, dest = 'qfilter', help = 'qfilter value (default (-log10 of 0.5) = ~0.69)')
+parser.add_argument('--filter', required = False, default=0.5, dest = 'filter', help = 'min. fraction of replicates that should be represented in each peak ')
 parser.add_argument('--nofilter', action = 'store_true', default = 'store_false',required = False,dest = 'nofilter',help = ' do not filter keep all peaks with score')
 
 
@@ -27,7 +27,7 @@ print(args)
 out=open(args.outbed,'w')
 
 
-filter=float(args.qfilter)
+filter=float(args.filter)
 
 rand_name=str(uuid.uuid4())
 
