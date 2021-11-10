@@ -2,25 +2,43 @@
 #
 # The working dir... output will be in the results subfolder of the workdir
 workdir: "WORKDIR"
+
 # tools scriptsdir resourcesdir
 # to use the workdir version of tools.yaml comment out the following line
 tools: "PIPELINE_HOME/resources/tools.yaml"
+
 # to use the workdir version of cluster.json comment out the following line
-clusterjson: "PIPELINE_HOME/resources/cluster.json"
+# clusterjson: "PIPELINE_HOME/resources/cluster.json"
+
 # to use the workdir version of scriptsdir comment out the following line
 # scriptsdir: "PIPELINE_HOME/workflow/scripts"
 scriptsdir: "WORKDIR/scripts"
+
 resourcesdir: "PIPELINE_HOME/resources"
+
+# tab delimited samples file ... should have the following 4 columns
 #
-# tab delimited samples file ... should have the following 3 columns
-# sampleName	path_to_R1_fastq	path_to_R2_fastq
+# replicateName sampleName	path_to_R1_fastq	path_to_R2_fastq
+#
+# multiple replicates may belong to the same sample
+# PE data is required!
 #
 samplemanifest: "WORKDIR/samples.tsv"
+
+# uncomment the genome of interest
+# genome: "hg38"
+# genome: "hg19"
 genome: "mm10"
+
+
+# setting below this line should be changed carefully... defaults are set after considerable optimizations.
+
+# multimapping parameter required by ENCODE multimapper assignment script. 
+# ENCODE uses 4 so sticking with 4.
 multimapping: 4
-#
-#
-#
+
+# genome specific resource locations on biowulf
+
 hg38:
   indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/hg38_basic/indexes"
   blacklistFa: "PIPELINE_HOME/resources/blacklistFa/hg38.blacklist.fa.gz"
@@ -32,6 +50,7 @@ hg38:
     dhsbed: "PIPELINE_HOME/resources/frip/hg38.DHS.bed.gz"
     promoterbed: "PIPELINE_HOME/resources/frip/hg38.promoters.bed.gz"
     enhancerbed: "PIPELINE_HOME/resources/frip/hg38.enhancers.bed.gz"
+
 hg19:
   indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/hg19_basic/indexes"
   blacklistFa: "PIPELINE_HOME/resources/blacklistFa/hg19.blacklist.fa.gz"
@@ -43,6 +62,7 @@ hg19:
     dhsbed: "PIPELINE_HOME/resources/frip/hg19.DHS.bed.gz"
     promoterbed: "PIPELINE_HOME/resources/frip/hg19.promoters.bed.gz"
     enhancerbed: "PIPELINE_HOME/resources/frip/hg19.enhancers.bed.gz"
+
 mm10:
   indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/mm10_basic/indexes"
   blacklistFa: "PIPELINE_HOME/resources/blacklistFa/mm10.blacklist.fa.gz"
@@ -54,12 +74,19 @@ mm10:
     dhsbed: "PIPELINE_HOME/resources/frip/mm10.DHS.bed.gz"
     promoterbed: "PIPELINE_HOME/resources/frip/mm10.promoters.bed.gz"
     enhancerbed: "PIPELINE_HOME/resources/frip/mm10.enhancers.bed.gz"
+
+# MACS2 arguments/parameters for peak calling
+# annotatePeaks: True ensures annotation of called peaks using ChIPSeeker
+# set annotatePeaks: False if genome cannot be annotated with ChIPSeeker
+
 macs2:
   extsize: 200
   shiftsize: 100
   annotatePeaks: True
-genrich:
+
+# Genrich peak calling parameters
 # CCBR parameters
+genrich:
   s: 5
   m: 6
   q: 1
@@ -74,16 +101,21 @@ genrich:
   # g: 100
   # d: 150
   annotatePeaks: True
+
+# final report generation with MultiQC
+# report customized using multiqc_atacseq_config.yaml
 multiqc:
   extraparams: ""
   configfile: "PIPELINE_HOME/config/multiqc_atacseq_config.yaml"
+
+# set min peaks to use for jaccard calculations
 jaccard_min_peaks: 1000
 
-
+# fastq screen configuration file
 fastqscreen_config: "PIPELINE_HOME/config/fastq_screen_config.txt"
-# master container
+
+# URLs for containers
 # masterdocker: "docker://nciccbr/ccbr_atacseq:v0.1.29"
 masterdocker: "docker://nciccbr/ccbr_atacseq:v1.8"
 fastqcdocker: "docker://nciccbr/ccbr_fastqc_0.11.9:v1.1"
 fastqscreendocker: "docker://nciccbr/ccbr_fastq_screen_0.14.1:v1.0"
-
