@@ -121,7 +121,7 @@ parser.add_argument('--samplename',required=True, help='samplename,i.e., all rep
 
 # only required if filtering
 parser.add_argument('--filterpeaks',required=False, default="True", help='filterpeaks by qvalue: True or False')
-parser.add_argument('--qfilter',required=False, default=0.693147, help='default qfiltering value is 0.693147 (-log10 of 0.5) for q=0.5')
+parser.add_argument('--qfilter',required=False, default=1, help='default qfiltering value is 1 (-log10 of 0.1) for q=1')
 
 parser.add_argument('--scriptsfolder',required=True,  help='folder where the scripts are... probably <path to workflow>/scripts')
 parser.add_argument('--runchipseeker',required=True, default="False", help='annotate peaks with chipseeker')
