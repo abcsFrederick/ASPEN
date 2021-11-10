@@ -102,7 +102,7 @@ parser.add_argument('--readsbedfolder',required=True,default="False",help="folde
 
 # only required if filtering
 parser.add_argument('--filterpeaks',required=False, default="True", help='filterpeaks by qvalue: True or False')
-parser.add_argument('--qfilter',required=False, default=0.693147, help='default qfiltering value is 0.693147 (-log10 of 0.5) for q=0.5')
+parser.add_argument('--qfilter',required=False, default=1, help='default qfiltering value is 1 (-log10 of 0.1) for q=0.1')
 
 parser.add_argument('--scriptsfolder',required=True, help='folder where the scripts are ... usually workflow/scripts')
 EOF
@@ -110,6 +110,7 @@ EOF
 cd $OUTDIR
 
 CONSENSUSBEDFILE="${SAMPLENAME}.genrich.consensus.bed"
+CONSENSUSFILTER=0.5 # more than 50% of the replicates must be represented in each peak.
 POOLEDPEAKFILE="${SAMPLENAME}.genrich.pooled.narrowPeak"
 
 nreplicates=${#BAMFILES[@]}
@@ -165,13 +166,13 @@ if [ "$nreplicates" -ge 2 ]; then
 
 	if [ "$nreplicates" -eq "2" ];then
 	callGenrichPeaks "$BAMREP1,$BAMREP2" $POOLEDPEAKFILE "$excludelist" $READSBEDFILE
-	python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --qfilter $QFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 --outbed $CONSENSUSBEDFILE
+	python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 --outbed $CONSENSUSBEDFILE
 	elif [ "$nreplicates" -eq "3" ];then
 	callGenrichPeaks  "$BAMREP1,$BAMREP2,$BAMREP3" $POOLEDPEAKFILE  "$excludelist" $READSBEDFILE
-	python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --qfilter $QFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 $PEAKFILE3 --outbed $CONSENSUSBEDFILE
+	python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 $PEAKFILE3 --outbed $CONSENSUSBEDFILE
 	elif [ "$nreplicates" -eq "4" ];then
 	callGenrichPeaks  "$BAMREP1,$BAMREP2,$BAMREP3,$BAMREP4" $POOLEDPEAKFILE  "$excludelist" $READSBEDFILE
-	python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --qfilter $QFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $PEAKFILE4 --outbed $CONSENSUSBEDFILE
+	python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $PEAKFILE4 --outbed $CONSENSUSBEDFILE
 	fi
 
 	processReadsBed $READSBEDFILE $READSBWFILE $NICKSBEDFILE $NICKSBAMFILE
