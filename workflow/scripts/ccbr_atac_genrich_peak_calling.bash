@@ -183,7 +183,7 @@ if [ "$nreplicates" -eq 1 ];then
 		newf=$(echo $f|sed "s/.genrich./.genrich.pooled./g")
 		cp $f $newf
 	done
-	cut -f1-3 $PEAKFILE1 > $CONSENSUSBEDFILE
+	cut -f1-3 $PEAKFILE1 | sort -k1,1 -k2,2n > $CONSENSUSBEDFILE
 fi
 
 if [ "$RUNCHIPSEEKER" == "True" ];then
