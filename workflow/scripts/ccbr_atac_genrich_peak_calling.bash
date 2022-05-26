@@ -45,7 +45,7 @@ NICKSBAM=$4
 effectivegenomesize=$EFFECTIVEGENOMESIZE
 
 bedSort $BED $BED
-sf=$(awk -F"\t" -v size=$effectiveSize '{sum=sum+$3-$2}END{print sum/size}' $BED)
+sf=$(awk -F"\t" -v size=$effectivegenomesize '{sum=sum+$3-$2}END{print sum/size}' $BED)
 genomeCoverageBed -bg -i $BED -g $GENOMEFILE |awk -F"\t" -v OFS="\t" -v sf=$sf '{print $1,$2,$3,$4/sf}' > ${BED}.bg
 # some coordinates go out of chromosome size in macs2 bam2bw conversion.... using a working around there which is copied here as well
 bn=$(basename $BED)
