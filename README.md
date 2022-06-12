@@ -1,8 +1,8 @@
-# **CCBR ATACseq Pipeline**
+# **ASAP**
 
 ### Outline
 
-CCBR ATACseq Pipeline calls peaks for ATACseq datasets. It currently accepts paired-end Illumina data and calls peak using MACS2 and Genrich peak callers. Below is a brief outline of the steps performed by the pipeline:
+ASAP or Atac Seq Analysis Pipeline is CCBR's pipeline to calls peaks for ATACseq datasets. It currently accepts paired-end Illumina data and calls peak using MACS2 and Genrich peak callers. Below is a brief outline of the steps performed by the pipeline:
 
 * Trim PE reads with CutAdapt
 * Remove reads aligning to known blacklisted regions, if provided
