@@ -181,7 +181,7 @@ function dryrun() {
   fi
   run "--dry-run" > ${WORKDIR}/dryrun.log && \
   cat ${WORKDIR}/dryrun.log && \
-  echo "Git Commit/Tag: $GIT_COMMIT_TAG" > dryrun_git_commit.txt
+  echo "Git Commit/Tag: $GIT_COMMIT_TAG" > ${WORKDIR}/dryrun_git_commit.txt
 }
 
 function unlock() {
@@ -204,7 +204,7 @@ function runlocal() {
   if [ "$SLURM_JOB_ID" == "" ];then err "runlocal can only be done on an interactive node"; fi
   module load singularity
   run "--dry-run" && echo "Dry-run was successful .... starting local execution" && \
-  echo "Git Commit/Tag: $GIT_COMMIT_TAG" > run_git_commit.txt && \
+  echo "Git Commit/Tag: $GIT_COMMIT_TAG" > ${WORKDIR}/run_git_commit.txt && \
   run "local"
 }
 
@@ -214,7 +214,7 @@ function runslurm() {
   runcheck
   set_singularity_binds
   run "--dry-run" && echo "Dry-run was successful .... submitting jobs to job-scheduler" && \
-  echo "Git Commit/Tag: $GIT_COMMIT_TAG" > run_git_commit.txt && \
+  echo "Git Commit/Tag: $GIT_COMMIT_TAG" > ${WORKDIR}/run_git_commit.txt && \
   run "slurm"
 }
 
