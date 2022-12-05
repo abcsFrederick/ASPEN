@@ -48,6 +48,8 @@ for l in gtfLines:
 		l = l.split("\t")
 		if l[2] == "gene":
 			geneID, geneName, geneType, chrom, start, strand = get_gene_metadata(l)
+			if geneName == '':
+				geneName = geneID
 			if geneType == "protein_coding":
 				genes_dict[geneID] = dict()
 				genes_dict[geneID]['geneName'] = geneName
