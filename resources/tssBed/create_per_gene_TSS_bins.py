@@ -8,12 +8,17 @@ def _get_gene_metadata(l,what):
 	for i,j in enumerate(l):
 		if j == what:
 			return l[i+1].replace(';','').replace('"','')
+	else:
+		return ''
 
 def get_gene_metadata(l):
 	metadata_str_list = l[8].strip().split()
 	geneID = _get_gene_metadata(metadata_str_list,'gene_id')
 	geneName = _get_gene_metadata(metadata_str_list,'gene_name')
+	geneType = ''
 	geneType = _get_gene_metadata(metadata_str_list,'gene_type')
+	if geneType == '':
+		geneType = _get_gene_metadata(metadata_str_list,'gene_biotype')
 	chrom = l[0]
 	strand = l[6]
 	start = int(l[3])-1
