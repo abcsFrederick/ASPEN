@@ -6,10 +6,24 @@ Definition:
 * 2kb upstream from TSS and 200 bp downstream
 
 GTF versions:
-* Gencode version 30 for hg38
-* Gencode version 19 for hg19
+* Gencode version 42 for hg38
+* Gencode version 42 for hg19
 * Gencode version M1 for mm9
-* Gencode version M21 for mm10
+* Gencode version M25 for mm10
+
+Use "create_promoters_bed.py" to generate BEDs
+
+```bash
+ % ./create_promoters_bed.py --help
+usage: create_promoters_bed.py [-h] --gtf GTF --out OUT
+
+Create windows around TSS for each gene in GTF file
+
+optional arguments:
+  -h, --help  show this help message and exit
+  --gtf GTF   GTF file path
+  --out OUT   Output BED file
+```
 
 # DNAase Hypersensitivity Regions (DHS)
 ### biowulf location: /data/CCBR_Pipeliner/db/PipeDB/db/DHS/ENCODE
