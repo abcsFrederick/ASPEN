@@ -237,36 +237,30 @@ except KeyError:
 
 
 # FRIPEXTRA ... do you calculate extra Fraction of reads in blahblahblah
-FRIPEXTRA=True
+FRIPEXTRA=False
 
 try:
     DHSBED=config[GENOME]["fripextra"]["dhsbed"]
     check_readaccess(DHSBED)
     print("# DHS motifs :",DHSBED)
+    FRIPEXTRA=True
 except KeyError:
-    FRIPEXTRA=False
     DHSBED=""
-    PROMOTERBED=""
-    ENHANCERBED=""
 
 try:
     PROMOTERBED=config[GENOME]["fripextra"]["promoterbed"]
     check_readaccess(PROMOTERBED)
     print("# Promoter Bed:",PROMOTERBED)
+    FRIPEXTRA=True
 except KeyError:
-    FRIPEXTRA=False
-    DHSBED=""
     PROMOTERBED=""
-    ENHANCERBED=""
 
 try:
     ENHANCERBED=config[GENOME]["fripextra"]["enhancerbed"]
     check_readaccess(ENHANCERBED)
     print("# Enhancer Bed:",ENHANCERBED)
+    FRIPEXTRA=True
 except KeyError:
-    FRIPEXTRA=False
-    DHSBED=""
-    PROMOTERBED=""
     ENHANCERBED=""
 
 try:
