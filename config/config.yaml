@@ -94,7 +94,6 @@ macs2:
   extsize: 200
   shiftsize: 100
   annotatePeaks: True
-l
 # Genrich peak calling parameters
 # CCBR parameters
 genrich:
