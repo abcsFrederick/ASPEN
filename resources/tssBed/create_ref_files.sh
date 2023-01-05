@@ -4,3 +4,4 @@ python3 create_per_gene_TSS_bins.py --gtf /data/CCBR_Pipeliner/db/PipeDB/Indices
 python3 create_per_gene_TSS_bins.py --gtf /data/CCBR_Pipeliner/db/PipeDB/Indices/GTFs/mm10/gencode.vM25.annotation.gtf --out mm10_M25_tssbeds.tar.gz 
 python3 create_per_gene_TSS_bins.py --gtf /data/CCBR_Pipeliner/db/PipeDB/Indices/Mmul_8.0.1_basic/genes.gtf --out mmul_tssbeds.tar.gz
 python3 create_per_gene_TSS_bins.py --gtf /data/CCBR_Pipeliner/db/PipeDB/Indices/mmul10/genes.gtf --out mmul10_v108_tssbeds.tar.gz
+python3 create_per_gene_TSS_bins.py --gtf /data/CCBR_Pipeliner/db/PipeDB/Indices/bosTau9/genes.gtf --out  bosTau9_v108_tssbeds.tar.gz
