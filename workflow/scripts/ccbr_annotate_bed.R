@@ -11,6 +11,11 @@ suppressPackageStartupMessages(library("TxDb.Mmusculus.UCSC.mm10.knownGene"))
 suppressPackageStartupMessages(library("org.Hs.eg.db"))
 suppressPackageStartupMessages(library("org.Mm.eg.db"))
 
+suppressPackageStartupMessages(library("TxDb.Btaurus.UCSC.bosTau9.refGene"))
+suppressPackageStartupMessages(library("TxDb.Mmulatta.UCSC.rheMac10.refGene"))
+suppressPackageStartupMessages(library("org.Mmu.eg.db"))
+suppressPackageStartupMessages(library("org.Bt.eg.db"))
+
 parser <- ArgumentParser()
 
 # specify our desired options 
@@ -26,7 +31,7 @@ parser$add_argument("-t", "--toppromoterpeaks", required=FALSE, type="integer", 
 parser$add_argument("-l", "--genelist", required=TRUE, help="list of genes with peaks in promoter regions")
 parser$add_argument("-f", "--atypefreq", required=TRUE, help="frequency of different annotation types")
 parser$add_argument("-g", "--genome", required=TRUE, dest="genome",
-                    help="hg38/hg19/mm10/mm9")
+                    help="hg38/hg19/mm10/mm9/mmul10/bosTau9")
 
 # get command line options, if help option encountered print help and exit,
 # otherwise if options not found on command line then set defaults, 
@@ -38,10 +43,21 @@ if (args$genome=="mm9" | args$genome=="mm10"){
 if (args$genome=="hg19" | args$genome=="hg38"){
   adb="org.Hs.eg.db"
 }
+
+if (args$genome=="mmul10"){
+  adb="org.Mmu.eg.db"
+}
+
+if (args$genome=="bosTau9"){
+  adb="org.Bt.eg.db"
+}
+
 if (args$genome=="hg19") {tdb=TxDb.Hsapiens.UCSC.hg19.knownGene}
 if (args$genome=="hg38") {tdb=TxDb.Hsapiens.UCSC.hg38.knownGene}
 if (args$genome=="mm9") {tdb=TxDb.Mmusculus.UCSC.mm9.knownGene}
 if (args$genome=="mm10") {tdb=TxDb.Mmusculus.UCSC.mm10.knownGene}
+if (args$genome=="mmul10") {tdb=TxDb.Mmulatta.UCSC.rheMac10.refGene}
+if (args$genome=="bosTau9") {tdb=TxDb.Btaurus.UCSC.bosTau9.refGene}
 
 
 np=read.table(args$bed,sep="\t")
