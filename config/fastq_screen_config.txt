@@ -1,6 +1,7 @@
 DATABASE    Human   /data/CCBR_Pipeliner/db/PipeDB/lib/fastq_screen_db/hg38/hg38
 DATABASE    Mouse   /data/CCBR_Pipeliner/db/PipeDB/lib/fastq_screen_db/mm10/mm10
-DATABASE    Macaque /data/CCBR_Pipeliner/db/PipeDB/Indices/mmul10/mmul10
+DATABASE    Macaque /data/CCBR_Pipeliner/db/PipeDB/Indices/mmul10/mmul10_no_rm
+DATABASE    Cattle    /data/CCBR_Pipeliner/db/PipeDB/Indices/Bos_taurus/Bos_taurus_no_rm
 DATABASE    Bacteria    /data/CCBR_Pipeliner/db/PipeDB/lib/fastq_screen_db/Bacteria/bacteria
 DATABASE    Fungi   /data/CCBR_Pipeliner/db/PipeDB/lib/fastq_screen_db/Fungi/fungi
 DATABASE    Virus   /data/CCBR_Pipeliner/db/PipeDB/lib/fastq_screen_db/Virus/virus
