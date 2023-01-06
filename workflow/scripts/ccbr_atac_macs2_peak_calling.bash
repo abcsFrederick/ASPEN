@@ -2,53 +2,53 @@
 
 callPeaks(){
 # inputs
-	TAGALIGN=$1
-	PREFIX=$2
-	RUNCHIPSEEKER=$3
-	FILTERPEAKS=$4
+    TAGALIGN=$1
+    PREFIX=$2
+    RUNCHIPSEEKER=$3
+    FILTERPEAKS=$4
 
 # call peaks
-	macs2 callpeak \
-		-t $TAGALIGN \
-		-f BED \
-		-n $PREFIX \
-		-g $EFFECTIVEGENOMESIZE \
-		-p 0.01 \
-		--shift -$SHIFTSIZE \
-		--extsize $EXTSIZE \
-		--keep-dup all \
-		--call-summits \
-		--nomodel \
-		--SPMR -B \
-		--outdir $OUTDIR
+    macs2 callpeak \
+        -t $TAGALIGN \
+        -f BED \
+        -n $PREFIX \
+        -g $EFFECTIVEGENOMESIZE \
+        -p 0.01 \
+        --shift -$SHIFTSIZE \
+        --extsize $EXTSIZE \
+        --keep-dup all \
+        --call-summits \
+        --nomodel \
+        --SPMR -B \
+        --outdir $OUTDIR
 
 # remove duplicate peak calls
-	mv ${PREFIX}_peaks.narrowPeak ${PREFIX}_peaks.narrowPeak.tmp
-	sort -k9,9gr ${PREFIX}_peaks.narrowPeak.tmp|awk -F"\t" '!NF || !seen[$1":"$2"-"$3]++'|sort -k1,1 -k2,2n > ${PREFIX}_peaks.narrowPeak
-	rm -f ${PREFIX}_peaks.narrowPeak.tmp
-	mv ${PREFIX}_peaks.narrowPeak ${PREFIX}.narrowPeak
+    mv ${PREFIX}_peaks.narrowPeak ${PREFIX}_peaks.narrowPeak.tmp
+    sort -k9,9gr ${PREFIX}_peaks.narrowPeak.tmp|awk -F"\t" '!NF || !seen[$1":"$2"-"$3]++'|sort -k1,1 -k2,2n > ${PREFIX}_peaks.narrowPeak
+    rm -f ${PREFIX}_peaks.narrowPeak.tmp
+    mv ${PREFIX}_peaks.narrowPeak ${PREFIX}.narrowPeak
 
 # qvalue filter of 0.1 ... very lenient
-	if [ $FILTERPEAKS == "True" ];then
-	  qvalue=$QFILTER
-	  awk -F"\t" -v q=$qvalue '{if ($9>q){print}}' ${PREFIX}.narrowPeak > ${PREFIX}.qfilter.narrowPeak
-	fi
+    if [ $FILTERPEAKS == "True" ];then
+      qvalue=$QFILTER
+      awk -F"\t" -v q=$qvalue '{if ($9>q){print}}' ${PREFIX}.narrowPeak > ${PREFIX}.qfilter.narrowPeak
+    fi
 
 # annotate
-	if [ "$RUNCHIPSEEKER" == "True" ];then
-	for f in ${PREFIX}.narrowPeak ${PREFIX}.qfilter.narrowPeak;do
-		npeaks=$(wc -l $f|awk '{print $1}')
-		if [ "$npeaks" -gt "0" ];then
-			Rscript ${SCRIPTSFOLDER}/ccbr_annotate_peaks.R -n $f  -a ${f}.annotated -g $GENOME -l ${f}.genelist -f ${f}.annotation_summary 
-			cut -f1,2 ${f}.annotation_summary > ${f}.annotation_distribution
-		else
-			touch ${f}.annotated
-			touch ${f}.genelist
-			touch ${f}.annotation_summary
-			touch ${f}.annotation_distribution
-		fi
-	done
-	fi
+    if [ "$RUNCHIPSEEKER" == "True" ];then
+    for f in ${PREFIX}.narrowPeak ${PREFIX}.qfilter.narrowPeak;do
+        npeaks=$(wc -l $f|awk '{print $1}')
+        if [ "$npeaks" -gt "0" ];then
+            Rscript ${SCRIPTSFOLDER}/ccbr_annotate_peaks.R -n $f  -a ${f}.annotated -g $GENOME -l ${f}.genelist -f ${f}.annotation_summary 
+            cut -f1,2 ${f}.annotation_summary > ${f}.annotation_distribution
+        else
+            touch ${f}.annotated
+            touch ${f}.genelist
+            touch ${f}.annotation_summary
+            touch ${f}.annotation_distribution
+        fi
+    done
+    fi
 
 # save bigwig
 # MAY NEED TO BE NORMALIZED FOR GENOME SIZE ... DONT KNOW FOR SURE
@@ -57,17 +57,17 @@ callPeaks(){
 # MACS will save fragment pileup signal per million reads
 #
 # Genrich normalization is as per 1x genome coverage... and macs2 normalization is per million reads 
-	bedSort ${PREFIX}_treat_pileup.bdg ${PREFIX}_treat_pileup.bdg
+    bedSort ${PREFIX}_treat_pileup.bdg ${PREFIX}_treat_pileup.bdg
 # some coordinates go out of chromosome size in macs2 bam2bw conversion.... using a working around 
-	awk -F"\t" -v OFS="\t" '{print $1,"0",$2}' $GENOMEFILE > /dev/shm/${PREFIX}.genome.bed
-	bedtools intersect -a ${PREFIX}_treat_pileup.bdg -b /dev/shm/${PREFIX}.genome.bed > /dev/shm/${PREFIX}.bg
-	mv /dev/shm/${PREFIX}.bg ${PREFIX}_treat_pileup.bdg
-	rm -f /dev/shm/${PREFIX}.genome.bed
+    awk -F"\t" -v OFS="\t" '{print $1,"0",$2}' $GENOMEFILE > /dev/shm/${PREFIX}.genome.bed
+    bedtools intersect -a ${PREFIX}_treat_pileup.bdg -b /dev/shm/${PREFIX}.genome.bed > /dev/shm/${PREFIX}.bg
+    mv /dev/shm/${PREFIX}.bg ${PREFIX}_treat_pileup.bdg
+    rm -f /dev/shm/${PREFIX}.genome.bed
 #
-	bedGraphToBigWig ${PREFIX}_treat_pileup.bdg $GENOMEFILE ${PREFIX}.bw
-	rm -f ${PREFIX}_treat_pileup.bdg
-	rm -f ${PREFIX}_control_lambda.bdg
-	mv ${PREFIX}.bw ${OUTDIR}/bigwig/${PREFIX}.bw
+    bedGraphToBigWig ${PREFIX}_treat_pileup.bdg $GENOMEFILE ${PREFIX}.bw
+    rm -f ${PREFIX}_treat_pileup.bdg
+    rm -f ${PREFIX}_control_lambda.bdg
+    mv ${PREFIX}.bw ${OUTDIR}/bigwig/${PREFIX}.bw
 
 # save nicks bam and bed
   nicksBED=${PREFIX}.tn5nicks.bed
@@ -95,14 +95,14 @@ ARGPARSE_DESCRIPTION="""This scripts takes in Tn5-shifted tagAligne files as inp
 * Currently supports upto 4 replicates
 Output files:
 * Per replicate:
-	** narrowPeak file
-	** annotated file from ChIPseeker
-	** annotations summary file
-	** annotation distribution file (for pie-charting)
-	** genelist file
-	** sorted tn5nicks BED file (in tn5nicks subfolder)
-	** tn5nicks BAM file (required for downstream DiffBind analysis ... in tn5nicks subfolder)
-	** bigwig files (in bigwig subfolder)
+    ** narrowPeak file
+    ** annotated file from ChIPseeker
+    ** annotations summary file
+    ** annotation distribution file (for pie-charting)
+    ** genelist file
+    ** sorted tn5nicks BED file (in tn5nicks subfolder)
+    ** tn5nicks BAM file (required for downstream DiffBind analysis ... in tn5nicks subfolder)
+    ** bigwig files (in bigwig subfolder)
 * Pooled narrowPeak file with annotations
 * Consensus BED file with annotations 
 """
@@ -136,16 +136,16 @@ CONSENSUSFILTER=0.5
 #ChIPseeker in the container only works for hg19/hg38/mm10... so you cannot annotate other genomes here
 genome_is_known=0
 if [ "$RUNCHIPSEEKER" == "True" ];then
-	if [ "$GENOME" == "hg19" ];then
-		genome_is_known=1
-	elif [ "$GENOME" == "hg38" ];then
-		genome_is_known=1
-	elif [ "$GENOME" == "mm10" ];then
-		genome_is_known=1
-	fi
-	if [ "$genome_is_known" == "0" ];then
-	RUNCHIPSEEKER="False"
-	fi
+    if [ "$GENOME" == "hg19" ];then
+        genome_is_known=1
+    elif [ "$GENOME" == "hg38" ];then
+        genome_is_known=1
+    elif [ "$GENOME" == "mm10" ];then
+        genome_is_known=1
+    fi
+    if [ "$genome_is_known" == "0" ];then
+    RUNCHIPSEEKER="False"
+    fi
 fi
 
 
@@ -153,43 +153,56 @@ nreplicates=${#TAGALIGNFILES[@]}
 TAGALIGN1=${TAGALIGNFILES[0]}
 REP1NAME=`echo $(basename $TAGALIGN1)|awk -F".tag" '{print $1}'`
 if [ "$nreplicates" -ge 2 ]; then
-	TAGALIGN2=${TAGALIGNFILES[1]}
-	REP2NAME=`echo $(basename $TAGALIGN2)|awk -F".tag" '{print $1}'`
+    TAGALIGN2=${TAGALIGNFILES[1]}
+    REP2NAME=`echo $(basename $TAGALIGN2)|awk -F".tag" '{print $1}'`
 fi	
 if [ "$nreplicates" -ge 3 ]; then
-	TAGALIGN3=${TAGALIGNFILES[2]}
-	REP3NAME=`echo $(basename $TAGALIGN3)|awk -F".tag" '{print $1}'`
+    TAGALIGN3=${TAGALIGNFILES[2]}
+    REP3NAME=`echo $(basename $TAGALIGN3)|awk -F".tag" '{print $1}'`
 fi	
 if [ "$nreplicates" -ge 4 ]; then
-	TAGALIGN4=${TAGALIGNFILES[3]}
-	REP4NAME=`echo $(basename $TAGALIGN4)|awk -F".tag" '{print $1}'`
-fi	
+    TAGALIGN4=${TAGALIGNFILES[3]}
+    REP4NAME=`echo $(basename $TAGALIGN4)|awk -F".tag" '{print $1}'`
+fi
+if [ "$nreplicates" -ge 5 ]; then
+    TAGALIGN5=${TAGALIGNFILES[4]}
+    REP5NAME=`echo $(basename $TAGALIGN5)|awk -F".tag" '{print $1}'`
+fi
+if [ "$nreplicates" -ge 6 ]; then
+    TAGALIGN6=${TAGALIGNFILES[5]}
+    REP6NAME=`echo $(basename $TAGALIGN6)|awk -F".tag" '{print $1}'`
+fi
 
 
 # replicate 1 peak calling
-callPeaks $TAGALIGN1 ${REP1NAME}.macs2 $RUNCHIPSEEKER $FILTERPEAKS
-# 
+callPeaks $TAGALIGN1 ${REP1NAME}.macs2 $RUNCHIPSEEKER $FILTERPEAKS 
 # replicate 2 peak calling
 if [ "$nreplicates" -ge 2 ]; then
 callPeaks $TAGALIGN2 ${REP2NAME}.macs2 $RUNCHIPSEEKER $FILTERPEAKS
 fi
-# 
 # replicate 3 peak calling
 if [ "$nreplicates" -ge 3 ]; then
 callPeaks $TAGALIGN3 ${REP3NAME}.macs2 $RUNCHIPSEEKER $FILTERPEAKS
 fi
-# 
 # replicate 4 peak calling
 if [ "$nreplicates" -ge 4 ]; then
 callPeaks $TAGALIGN4 ${REP4NAME}.macs2 $RUNCHIPSEEKER $FILTERPEAKS
 fi
+# replicate 5 peak calling
+if [ "$nreplicates" -ge 5 ]; then
+callPeaks $TAGALIGN5 ${REP5NAME}.macs2 $RUNCHIPSEEKER $FILTERPEAKS
+fi
+# replicate 6 peak calling
+if [ "$nreplicates" -ge 6 ]; then
+callPeaks $TAGALIGN6 ${REP6NAME}.macs2 $RUNCHIPSEEKER $FILTERPEAKS
+fi
 
 if [ "$nreplicates" -eq 1 ];then
-	for f in `ls ${REP1NAME}.macs2*`;do
-		newf=$(echo $f|sed "s/.macs2./.macs2.pooled./g")
-		cp $f $newf
-	done
-	cut -f1-3 ${REP1NAME}.macs2.narrowPeak > $CONSENSUSBEDFILE
+    for f in `ls ${REP1NAME}.macs2*`;do
+        newf=$(echo $f|sed "s/.macs2./.macs2.pooled./g")
+        cp $f $newf
+    done
+    cut -f1-3 ${REP1NAME}.macs2.narrowPeak > $CONSENSUSBEDFILE
 fi
 
 if [ "$nreplicates" -eq 2 ];then
@@ -205,6 +218,16 @@ fi
 if [ "$nreplicates" -eq 4 ];then
 pooled="${REP1NAME}_${REP2NAME}_${REP3NAME}_${REP4NAME}.pooled.tagAlign"
 zcat $TAGALIGN1 $TAGALIGN2 $TAGALIGN3 $TAGALIGN4 > ${pooled}
+fi
+
+if [ "$nreplicates" -eq 5 ];then
+pooled="${REP1NAME}_${REP2NAME}_${REP3NAME}_${REP4NAME}_${REP5NAME}.pooled.tagAlign"
+zcat $TAGALIGN1 $TAGALIGN2 $TAGALIGN3 $TAGALIGN4 $TAGALIGN5 > ${pooled}
+fi
+
+if [ "$nreplicates" -eq 6 ];then
+pooled="${REP1NAME}_${REP2NAME}_${REP3NAME}_${REP4NAME}_${REP5NAME}_${REP6NAME}.pooled.tagAlign"
+zcat $TAGALIGN1 $TAGALIGN2 $TAGALIGN3 $TAGALIGN4 $TAGALIGN5 $TAGALIGN6 > ${pooled}
 fi
 
 # pooled peak calling
@@ -227,16 +250,24 @@ if [ "$nreplicates" -eq 4 ];then
 python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles ${REP1NAME}.macs2.narrowPeak ${REP2NAME}.macs2.narrowPeak ${REP3NAME}.macs2.narrowPeak ${REP4NAME}.macs2.narrowPeak --outbed $CONSENSUSBEDFILE
 fi
 
+if [ "$nreplicates" -eq 5 ];then
+python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles ${REP1NAME}.macs2.narrowPeak ${REP2NAME}.macs2.narrowPeak ${REP3NAME}.macs2.narrowPeak ${REP4NAME}.macs2.narrowPeak ${REP5NAME}.macs2.narrowPeak --outbed $CONSENSUSBEDFILE
+fi
+
+if [ "$nreplicates" -eq 6 ];then
+python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles ${REP1NAME}.macs2.narrowPeak ${REP2NAME}.macs2.narrowPeak ${REP3NAME}.macs2.narrowPeak ${REP4NAME}.macs2.narrowPeak ${REP5NAME}.macs2.narrowPeak ${REP6NAME}.macs2.narrowPeak --outbed $CONSENSUSBEDFILE
+fi
+
 if [ "$RUNCHIPSEEKER" == "True" ];then
-	f="$CONSENSUSBEDFILE"
-	npeaks_consensus=$(wc -l $f|awk '{print $1}')
-	if [ "$npeaks_consensus" -gt "0" ];then
-		Rscript ${SCRIPTSFOLDER}/ccbr_annotate_bed.R -b $f -a ${f}.annotated -g $GENOME -l ${f}.genelist -f ${f}.annotation_summary
-		cut -f1,2 ${f}.annotation_summary > ${f}.annotation_distribution
-	else
-		touch ${f}.annotated
-		touch ${f}.genelist
-		touch ${f}.annotation_summary
-		touch ${f}.annotation_distribution
-	fi
+    f="$CONSENSUSBEDFILE"
+    npeaks_consensus=$(wc -l $f|awk '{print $1}')
+    if [ "$npeaks_consensus" -gt "0" ];then
+        Rscript ${SCRIPTSFOLDER}/ccbr_annotate_bed.R -b $f -a ${f}.annotated -g $GENOME -l ${f}.genelist -f ${f}.annotation_summary
+        cut -f1,2 ${f}.annotation_summary > ${f}.annotation_distribution
+    else
+        touch ${f}.annotated
+        touch ${f}.genelist
+        touch ${f}.annotation_summary
+        touch ${f}.annotation_distribution
+    fi
 fi
