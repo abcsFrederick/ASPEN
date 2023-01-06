@@ -133,6 +133,55 @@ echo -ne "{params.sample}\t{params.sample}\t{params.outdir}/{params.sample}.macs
 
 #########################################################
 
+rule atac_macs_peakcalling_fixed_width:
+# """
+# 1. Gets replicate peak calls and converts them to fixed-width calls
+# 2. Finds consensus for the fixed-width calls
+# 3. Re-normalizes the p-values of the consensus fixed-width peak calls
+# """
+    input:
+        replicatePeakFileList=join(RESULTSDIR,"peaks","macs2","{sample}.replicate.macs2.peakfiles"),
+    output:
+        consensusNarrowPeak=join(RESULTSDIR,"peaks","macs2","fixed_width","{sample}.fixed_width.consensus.narrowPeak")
+        renormalizedConsensusNarrowPeak=join(RESULTSDIR,"peaks","macs2","fixed_width","{sample}.renormalized.fixed_width.consensus.narrowPeak")
+    params:
+        sample="{sample}",
+        outdir=join(RESULTSDIR,"peaks","macs2","fixed_width"),
+        scriptsdir=SCRIPTSDIR,
+        width=config["fixed_width"],
+        script="ccbr_atac_get_fixedwidth_peaks.sh"
+    shell:"""
+set -exo pipefail
+TMPDIR="/lscratch/$SLURM_JOB_ID"
+if [ ! -d $TMPDIR ];then
+    TMPDIR="/dev/shm"
+fi
+cd {params.outdir}
+count=0
+while read repname sample np;do
+    count=$((count+1))
+    if [ "$count" == "1" ];then
+        REPNAMES="$repname"
+        NPS="$np"
+    else
+        REPNAMES="$REPNAME $repname"
+        NPS="$NPS $np"
+    fi
+done < {input.replicatePeakFileList}
+
+bash {params.scriptsdir}/{params.script} \
+    --narrowpeaks $NPS \
+    --replicatenames $REPNAMES \
+    --width {params.width} \
+    --samplename {params.sample} \
+    --consensusnp {output.consensusNarrowPeak} \
+    --consensusrenormnp {output.renormalizedConsensusNarrowPeak} \
+    --tmpdir $TMPDIR \
+    --scriptsfolder {params.scriptsdir}
+"""
+
+#########################################################
+
 rule atac_genrich_peakcalling:
 # """
 # Calling ATACseq peaks using Genrich 

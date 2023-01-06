@@ -39,6 +39,8 @@ genome: "mm10"
 # ENCODE uses 4 so sticking with 4.
 multimapping: 4
 
+# peak fixed width
+fixed_width: 500
 # genome specific resource locations on biowulf
 
 hg38:
