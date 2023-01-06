@@ -54,5 +54,25 @@
 		"mem": "120g",
 		"threads": "56",
 		"time": "12:00:00"
+	},
+	"atac_macs_peakcalling": {
+		"mem": "120g",
+		"threads": "4",
+		"time": "12:00:00"
+	},
+	"atac_genrich_peakcalling": {
+		"mem": "120g",
+		"threads": "4",
+		"time": "12:00:00"
+	},
+	"atac_macs_peakcalling_fixed_width": {
+		"mem": "120g",
+		"threads": "4",
+		"time": "12:00:00"
+	},
+	"atac_genrich_peakcalling_fixed_width": {
+		"mem": "120g",
+		"threads": "4",
+		"time": "12:00:00"
 	}
 }

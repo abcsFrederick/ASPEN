@@ -164,7 +164,7 @@ while read repname sample np;do
         REPNAMES="$repname"
         NPS="$np"
     else
-        REPNAMES="$REPNAME $repname"
+        REPNAMES="$REPNAMES $repname"
         NPS="$NPS $np"
     fi
 done < {input.replicatePeakFileList}
