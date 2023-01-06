@@ -142,7 +142,7 @@ rule atac_macs_peakcalling_fixed_width:
     input:
         replicatePeakFileList=join(RESULTSDIR,"peaks","macs2","{sample}.replicate.macs2.peakfiles"),
     output:
-        consensusNarrowPeak=join(RESULTSDIR,"peaks","macs2","fixed_width","{sample}.fixed_width.consensus.narrowPeak")
+        consensusNarrowPeak=join(RESULTSDIR,"peaks","macs2","fixed_width","{sample}.fixed_width.consensus.narrowPeak"),
         renormalizedConsensusNarrowPeak=join(RESULTSDIR,"peaks","macs2","fixed_width","{sample}.renormalized.fixed_width.consensus.narrowPeak")
     params:
         sample="{sample}",

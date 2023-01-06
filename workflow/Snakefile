@@ -53,6 +53,9 @@ rule all:
         join(QCDIR,"jaccard","allmethods.replicate.jaccard.pca.html"),
         join(QCDIR,"jaccard","allmethods.consensus.jaccard.pca.html"),
         join(QCDIR,"jaccard","allmethods.consensus_replicate.jaccard.pca.html"),
+        # fixed width peaks
+        expand(join(RESULTSDIR,"peaks","macs2","fixed_width","{sample}.fixed_width.consensus.narrowPeak"),sample=SAMPLES),
+        expand(join(RESULTSDIR,"peaks","macs2","fixed_width","{sample}.renormalized.fixed_width.consensus.narrowPeak"),sample=SAMPLES),
         #motif enrichment
         expand(join(QCDIR,"{sample}.motif_enrichment"),sample=SAMPLES),
         #frip
