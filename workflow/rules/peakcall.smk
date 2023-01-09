@@ -150,6 +150,8 @@ rule atac_macs_peakcalling_fixed_width:
         scriptsdir=SCRIPTSDIR,
         width=config["fixed_width"],
         script="ccbr_atac_get_fixedwidth_peaks.sh"
+    container: config["masterdocker"]    
+    threads: getthreads("atac_macs_peakcalling_fixed_width")
     shell:"""
 set -exo pipefail
 TMPDIR="/lscratch/$SLURM_JOB_ID"
