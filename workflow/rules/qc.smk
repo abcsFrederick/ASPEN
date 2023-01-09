@@ -256,8 +256,8 @@ while read replicateName sampleName peakfile;do
         if [ "{params.dhsbed}" != "" ];then cmd="$cmd --dhsbed {params.dhsbed}";fi
         if [ "{params.promoterbed}" != "" ];then cmd="$cmd --promoterbed {params.promoterbed}";fi
         if [ "{params.enhancerbed}" != "" ];then cmd="$cmd --enhancerbed {params.enhancerbed}";fi
-        cmd= "$cmd --peakcaller \"Genrich\""
-        eval $cmd
+        cmd="$cmd --peakcaller \"Genrich\""
+        eval "$cmd"
     else
         bash {params.scriptsdir}/{params.script} \
         --narrowpeak $peakfile \
