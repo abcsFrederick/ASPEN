@@ -141,6 +141,6 @@ fastqscreen_config: "PIPELINE_HOME/config/fastq_screen_config.txt"
 
 # URLs for containers
 # masterdocker: "docker://nciccbr/ccbr_atacseq:v0.1.29"
-masterdocker: "docker://nciccbr/ccbr_atacseq:v1.9"
+masterdocker: "docker://nciccbr/ccbr_atacseq:v1.10"
 fastqcdocker: "docker://nciccbr/ccbr_fastqc_0.11.9:v1.1"
 fastqscreendocker: "docker://nciccbr/ccbr_fastq_screen_0.14.1:v1.0"
