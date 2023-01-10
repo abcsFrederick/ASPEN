@@ -2,10 +2,10 @@
 set -e -x -o pipefail
 
 callGenrichPeaks(){
-BAM=$1
-PEAKFILE=$2
-EXCLUDELIST=$3
-READSBEDFILE=$4
+BAM=$1              #input: comma separated list of BAMs
+PEAKFILE=$2         #output:    narrowPeaks called by Genrich
+EXCLUDELIST=$3      #input: comma separated list of chromosome names/sequence ids to exclude from peak calling eg. chrM
+READSBEDFILE=$4     #output:    reads used in peak calling in BED format
 
 Genrich -t $BAM \
  -o $PEAKFILE \
@@ -189,6 +189,12 @@ if [ "$nreplicates" -ge 2 ]; then
     callGenrichPeaks  "$BAMREP1,$BAMREP2,$BAMREP3,$BAMREP4" $POOLEDPEAKFILE  "$excludelist" $READSBEDFILE
     python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $PEAKFILE4 --outbed $CONSENSUSBEDFILE
     elif [ "$nreplicates" -eq "5" ];then
+    echo $BAMREP1
+    echo $BAMREP2
+    echo $BAMREP3
+    echo $BAMREP4
+    echo $BAMREP5
+    echo $BAMREP6
     callGenrichPeaks  "$BAMREP1,$BAMREP2,$BAMREP3,$BAMREP4,$BAMREP5" $POOLEDPEAKFILE  "$excludelist" $READSBEDFILE
     python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $PEAKFILE4 $PEAKFILE5 --outbed $CONSENSUSBEDFILE
     elif [ "$nreplicates" -eq "6" ];then
