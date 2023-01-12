@@ -289,8 +289,8 @@ rule multiqc:
         expand(join(QCDIR,"tss","{replicate}.tss.txt"),replicate=REPLICATES),
         expand(join(RESULTSDIR,"peaks","macs2","{sample}.consensus.macs2.peakfiles"),sample=SAMPLES),
         expand(join(RESULTSDIR,"peaks","genrich","{sample}.consensus.genrich.peakfiles"),sample=SAMPLES),
-        expand(join(QCDIR,"FQscreen","{replicate}.R1.noBL_screen.txt"),sample=SAMPLES),
-        expand(join(QCDIR,"FQscreen","{replicate}.R2.noBL_screen.txt"),sample=SAMPLES),
+        expand(join(QCDIR,"FQscreen","{replicate}.R1.noBL_screen.txt"),sample=REPLICATES),
+        expand(join(QCDIR,"FQscreen","{replicate}.R2.noBL_screen.txt"),sample=REPLICATES),
     output:
         join(RESULTSDIR,"QC","multiqc_report.html"),
         join(RESULTSDIR,"QC","QCStats.tsv")
