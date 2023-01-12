@@ -262,6 +262,7 @@ function run() {
   preruncleanup
 
   snakemake -s $SNAKEFILE \
+  --rerun-trigger mtime \
   --directory $WORKDIR \
   --printshellcmds \
   --use-singularity \
@@ -305,6 +306,7 @@ module load $SINGULARITY_VERSION
 cd \$SLURM_SUBMIT_DIR
 
 snakemake -s $SNAKEFILE \
+--rerun-trigger mtime \
 --directory $WORKDIR \
 --use-singularity \
 --singularity-args "$SINGULARITY_BINDS" \
@@ -336,6 +338,7 @@ EOF
   else # for unlock and dryrun 
 
 snakemake $1 -s $SNAKEFILE \
+--rerun-trigger mtime \
 --directory $WORKDIR \
 --use-envmodules \
 --printshellcmds \

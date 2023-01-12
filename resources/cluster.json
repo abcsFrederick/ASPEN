@@ -25,7 +25,7 @@
 		"time": "12:00:00"
 	},
 	"align": {
-		"mem": "120g",
+		"mem": "240g",
 		"threads": "56",
 		"time": "12:00:00"
 	},
@@ -42,10 +42,10 @@
 	"motif_enrichment": {
 		"mem": "120g",
 		"threads": "56",
-		"time": "12:00:00"
+		"time": "24:00:00"
 	},
 	"jaccard": {
-		"time": "4:00:00"
+		"time": "24:00:00"
 	},
 	"create_BL_index": {
 		"time": "1:00:00"
@@ -54,5 +54,31 @@
 		"mem": "120g",
 		"threads": "56",
 		"time": "12:00:00"
+	},
+	"atac_macs_peakcalling": {
+		"mem": "120g",
+		"threads": "4",
+		"time": "12:00:00"
+	},
+	"atac_genrich_peakcalling": {
+		"mem": "120g",
+		"threads": "4",
+		"time": "12:00:00"
+	},
+	"atac_macs_peakcalling_fixed_width": {
+		"mem": "120g",
+		"threads": "4",
+		"time": "12:00:00"
+	},
+	"atac_genrich_peakcalling_fixed_width": {
+		"mem": "120g",
+		"threads": "4",
+		"time": "12:00:00"
+	},
+	"frip": {
+		"time": "12:00:00"
+	},
+	"multiqc": {
+		"time": "4:00:00"
 	}
 }

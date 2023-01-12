@@ -1,4 +1,4 @@
-localrules: multiqc
+#localrules: multiqc
 
 rule fastqc:
 # """
@@ -249,14 +249,15 @@ if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then TMPDIR="/lscratch/${{SLURM_JOB_ID}}
 fripout_dir=$(dirname {output.fripout})
 while read replicateName sampleName peakfile;do
     if [ "{params.fripextra}" == "True" ];then
-        bash {params.scriptsdir}/{params.script} \
-        --narrowpeak $peakfile \
-        --tagalign {params.tagAlignDir}/${{replicateName}}.tagAlign.gz \
-        --samplename $replicateName \
-        --dhsbed {params.dhsbed} \
-        --promoterbed {params.promoterbed} \
-        --enhancerbed {params.enhancerbed} \
-        --peakcaller "Genrich"
+        cmd="bash {params.scriptsdir}/{params.script}"
+        cmd="$cmd --narrowpeak $peakfile"
+        cmd="$cmd --tagalign {params.tagAlignDir}/${{replicateName}}.tagAlign.gz"
+        cmd="$cmd --samplename $replicateName"
+        if [ "{params.dhsbed}" != "" ];then cmd="$cmd --dhsbed {params.dhsbed}";fi
+        if [ "{params.promoterbed}" != "" ];then cmd="$cmd --promoterbed {params.promoterbed}";fi
+        if [ "{params.enhancerbed}" != "" ];then cmd="$cmd --enhancerbed {params.enhancerbed}";fi
+        cmd="$cmd --peakcaller \"Genrich\""
+        eval "$cmd"
     else
         bash {params.scriptsdir}/{params.script} \
         --narrowpeak $peakfile \

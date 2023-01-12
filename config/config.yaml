@@ -29,7 +29,8 @@ samplemanifest: "WORKDIR/samples.tsv"
 # genome: "hg38"
 # genome: "hg19"
 genome: "mm10"
-# genome: "mmul"
+# genome: "mmul10"
+# genome: "bosTau9" # this is same as ARS-UCD1.2
 
 
 # setting below this line should be changed carefully... defaults are set after considerable optimizations.
@@ -38,6 +39,8 @@ genome: "mm10"
 # ENCODE uses 4 so sticking with 4.
 multimapping: 4
 
+# peak fixed width
+fixed_width: 500
 # genome specific resource locations on biowulf
 
 hg38:
@@ -76,15 +79,26 @@ mm10:
     promoterbed: "PIPELINE_HOME/resources/frip/mm10.promoters.bed.gz"
     enhancerbed: "PIPELINE_HOME/resources/frip/mm10.enhancers.bed.gz"
 
-mmul:
-  indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/mmul_10/indexes"
-  blacklistFa: "PIPELINE_HOME/resources/blacklistFa/mmul.blacklist.fa.gz"
-  tssBed: "PIPELINE_HOME/resources/tssBed/mmul_tssbeds.tar.gz"
+mmul10:
+  indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/mmul10"
+  blacklistFa: "PIPELINE_HOME/resources/blacklistFa/mmul10.blacklist.fa.gz"
+  tssBed: "PIPELINE_HOME/resources/tssBed/mmul10_v108_tssbeds.tar.gz"
   homermotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_HUMAN_MOUSE_mono_homer_format_0.001.motif"
   mememotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_HUMAN_MOUSE_mono_meme_format.tar.gz"
   effectiveGenomeSize: 2000000000
   fripextra:
-    promoterbed: "PIPELINE_HOME/resources/frip/mmul.promoters.bed.gz"
+    promoterbed: "PIPELINE_HOME/resources/frip/mmul10.promoters.bed.gz"
+
+
+bosTau9:
+  indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/bosTau9"
+  blacklistFa: "PIPELINE_HOME/resources/blacklistFa/bosTau9.blacklist.fa.gz"
+  tssBed: "PIPELINE_HOME/resources/tssBed/bosTau9_v108_tssbeds.tar.gz"
+  homermotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_HUMAN_MOUSE_mono_homer_format_0.001.motif"
+  mememotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_HUMAN_MOUSE_mono_meme_format.tar.gz"
+  effectiveGenomeSize: 2000000000
+  fripextra:
+    promoterbed: "PIPELINE_HOME/resources/frip/bosTau9.promoters.bed.gz"
 
 # MACS2 arguments/parameters for peak calling
 # annotatePeaks: True ensures annotation of called peaks using ChIPSeeker
@@ -94,7 +108,7 @@ macs2:
   extsize: 200
   shiftsize: 100
   annotatePeaks: True
-l
+
 # Genrich peak calling parameters
 # CCBR parameters
 genrich:
@@ -127,6 +141,6 @@ fastqscreen_config: "PIPELINE_HOME/config/fastq_screen_config.txt"
 
 # URLs for containers
 # masterdocker: "docker://nciccbr/ccbr_atacseq:v0.1.29"
-masterdocker: "docker://nciccbr/ccbr_atacseq:v1.8"
+masterdocker: "docker://nciccbr/ccbr_atacseq:v1.10"
 fastqcdocker: "docker://nciccbr/ccbr_fastqc_0.11.9:v1.1"
 fastqscreendocker: "docker://nciccbr/ccbr_fastq_screen_0.14.1:v1.0"

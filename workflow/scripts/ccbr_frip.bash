@@ -23,19 +23,25 @@ frip=$(echo "scale=3;$frip_reads/$nreads"|bc)
 echo -ne "$SAMPLENAME\tFRiP${PEAKCALLER}\t$frip\n"
 
 if [ $DHSBED ];then
+if [ "$DHSBED" != "" ];then
 fridhs_reads=$(bedtools intersect -wa -a $TAGALIGN -b $DHSBED|wc -l)
 fridhs=$(echo "scale=3;$fridhs_reads/$nreads"|bc)
 echo -ne "$SAMPLENAME\tFRiDHS\t$fridhs\n"
 fi
+fi
 
 if [ $PROMOTERBED ];then
+if [ "$PROMOTERBED" != "" ];then
 fripro_reads=$(bedtools intersect -wa -a $TAGALIGN -b $PROMOTERBED|wc -l)
 fripro=$(echo "scale=3;$fripro_reads/$nreads"|bc)
 echo -ne "$SAMPLENAME\tFRiPro\t$fripro\n"
 fi
+fi
 
 if [ $ENHANCERBED ];then
+if [ "$ENHANCEDBED" != "" ];then
 frienh_reads=$(bedtools intersect -wa -a $TAGALIGN -b $ENHANCERBED|wc -l)
 frienh=$(echo "scale=3;$frienh_reads/$nreads"|bc)
 echo -ne "$SAMPLENAME\tFRiEnh\t$frienh\n"
+fi
 fi

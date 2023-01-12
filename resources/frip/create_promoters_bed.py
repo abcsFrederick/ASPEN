@@ -41,6 +41,10 @@ genes_dict = dict()
 gtfLines = gtfFile.readlines()
 gtfFile.close()
 
+#chroms=['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'chr7', 'chr8', 'chr9', 'chr10', 
+#		'chr11', 'chr12', 'chr13', 'chr14', 'chr15', 'chr16', 'chr17', 'chr18', 'chr19', 'chr20', 
+#		'chr21', 'chr22', 'chrX', 'chrY', 'chrM', 'chrMT']
+
 for l in gtfLines:
 	l = l.strip()
 	if not l.startswith('#'):
@@ -66,6 +70,7 @@ for geneID,metaData in genes_dict.items():
 	else:
 		s = metaData['start'] - 2000
 		e = metaData['start'] + 200
+	if s <= 0: continue
 	regionName = metaData['chrom'] + ":" + str(s) + "-" + str(e) + "|" + geneID + "|" + metaData['geneName']
 	outList = [metaData['chrom'],str(s),str(e),regionName,str(0),metaData['strand']]
 	outStr = "\t".join(outList)

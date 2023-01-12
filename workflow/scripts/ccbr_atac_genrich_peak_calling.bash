@@ -2,10 +2,10 @@
 set -e -x -o pipefail
 
 callGenrichPeaks(){
-BAM=$1
-PEAKFILE=$2
-EXCLUDELIST=$3
-READSBEDFILE=$4
+BAM=$1              #input: comma separated list of BAMs
+PEAKFILE=$2         #output:    narrowPeaks called by Genrich
+EXCLUDELIST=$3      #input: comma separated list of chromosome names/sequence ids to exclude from peak calling eg. chrM
+READSBEDFILE=$4     #output:    reads used in peak calling in BED format
 
 Genrich -t $BAM \
  -o $PEAKFILE \
@@ -118,20 +118,30 @@ BAMREP1=${BAMFILES[0]}
 REP1NAME=`echo $(basename $BAMREP1)|awk -F".qsorted.bam" '{print $1}'`
 PEAKFILE1="${REP1NAME}.genrich.narrowPeak"
 if [ "$nreplicates" -ge 2 ]; then
-	BAMREP2=${BAMFILES[1]}
-	REP2NAME=`echo $(basename $BAMREP2)|awk -F".qsorted.bam" '{print $1}'`
-	PEAKFILE2="${REP2NAME}.genrich.narrowPeak"
+    BAMREP2=${BAMFILES[1]}
+    REP2NAME=`echo $(basename $BAMREP2)|awk -F".qsorted.bam" '{print $1}'`
+    PEAKFILE2="${REP2NAME}.genrich.narrowPeak"
 fi	
 if [ "$nreplicates" -ge 3 ]; then
-	BAMREP3=${BAMFILES[2]}
-	REP3NAME=`echo $(basename $BAMREP3)|awk -F".qsorted.bam" '{print $1}'`
-	PEAKFILE3="${REP3NAME}.genrich.narrowPeak"
+    BAMREP3=${BAMFILES[2]}
+    REP3NAME=`echo $(basename $BAMREP3)|awk -F".qsorted.bam" '{print $1}'`
+    PEAKFILE3="${REP3NAME}.genrich.narrowPeak"
 fi	
 if [ "$nreplicates" -ge 4 ]; then
-	BAMREP4=${BAMFILES[3]}
-	REP4NAME=`echo $(basename $BAMREP4)|awk -F".qsorted.bam" '{print $1}'`
-	PEAKFILE4="${REP4NAME}.genrich.narrowPeak"
-fi	
+    BAMREP4=${BAMFILES[3]}
+    REP4NAME=`echo $(basename $BAMREP4)|awk -F".qsorted.bam" '{print $1}'`
+    PEAKFILE4="${REP4NAME}.genrich.narrowPeak"
+fi
+if [ "$nreplicates" -ge 5 ]; then
+    BAMREP5=${BAMFILES[4]}
+    REP5NAME=`echo $(basename $BAMREP5)|awk -F".qsorted.bam" '{print $1}'`
+    PEAKFILE5="${REP5NAME}.genrich.narrowPeak"
+fi
+if [ "$nreplicates" -ge 6 ]; then
+    BAMREP6=${BAMFILES[5]}
+    REP6NAME=`echo $(basename $BAMREP6)|awk -F".qsorted.bam" '{print $1}'`
+    PEAKFILE6="${REP6NAME}.genrich.narrowPeak"
+fi
 
 
 excludelist=$(samtools view -H $BAMREP1|grep ^@SQ|cut -f2|sed "s/SN://g"|awk "\$1 !~ /[0-9]$/"|grep -v "chrX"|grep -v "chrY"|tr "\n" ","|awk "{print substr(\$_,1,length(\$_)-1)}")
@@ -139,65 +149,82 @@ excludelist=$(samtools view -H $BAMREP1|grep ^@SQ|cut -f2|sed "s/SN://g"|awk "\$
 
 # replicate 1 peak calling
 callGenrichPeaksProcessReadsBed $BAMREP1 $REP1NAME $PEAKFILE1 "$excludelist"
-# 
 # replicate 2 peak calling
 if [ "$nreplicates" -ge 2 ]; then
 callGenrichPeaksProcessReadsBed $BAMREP2 $REP2NAME $PEAKFILE2 "$excludelist"
 fi
-# 
 # replicate 3 peak calling
 if [ "$nreplicates" -ge 3 ]; then
 callGenrichPeaksProcessReadsBed $BAMREP3 $REP3NAME $PEAKFILE3 "$excludelist"
 fi
-# 
 # replicate 4 peak calling
 if [ "$nreplicates" -ge 4 ]; then
 callGenrichPeaksProcessReadsBed $BAMREP4 $REP4NAME $PEAKFILE4 "$excludelist"
+fi
+# replicate 5 peak calling
+if [ "$nreplicates" -ge 5 ]; then
+callGenrichPeaksProcessReadsBed $BAMREP5 $REP5NAME $PEAKFILE5 "$excludelist"
+fi
+# replicate 6 peak calling
+if [ "$nreplicates" -ge 6 ]; then
+callGenrichPeaksProcessReadsBed $BAMREP6 $REP6NAME $PEAKFILE6 "$excludelist"
 fi
 
 
 if [ "$nreplicates" -ge 2 ]; then
 
-	# merged peak calling and consensus peak calling
-	READSBEDFILE=${POOLEDPEAKFILE%.*}.reads.bed
-	READSBWFILE=${POOLEDPEAKFILE%.*}.reads.bw
-	NICKSBEDFILE=${POOLEDPEAKFILE%.*}.tn5nicks.bed
-	NICKSBAMFILE=${POOLEDPEAKFILE%.*}.tn5nicks.bam
+    # merged peak calling and consensus peak calling
+    READSBEDFILE=${POOLEDPEAKFILE%.*}.reads.bed
+    READSBWFILE=${POOLEDPEAKFILE%.*}.reads.bw
+    NICKSBEDFILE=${POOLEDPEAKFILE%.*}.tn5nicks.bed
+    NICKSBAMFILE=${POOLEDPEAKFILE%.*}.tn5nicks.bam
 
-	if [ "$nreplicates" -eq "2" ];then
-	callGenrichPeaks "$BAMREP1,$BAMREP2" $POOLEDPEAKFILE "$excludelist" $READSBEDFILE
-	python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 --outbed $CONSENSUSBEDFILE
-	elif [ "$nreplicates" -eq "3" ];then
-	callGenrichPeaks  "$BAMREP1,$BAMREP2,$BAMREP3" $POOLEDPEAKFILE  "$excludelist" $READSBEDFILE
-	python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 $PEAKFILE3 --outbed $CONSENSUSBEDFILE
-	elif [ "$nreplicates" -eq "4" ];then
-	callGenrichPeaks  "$BAMREP1,$BAMREP2,$BAMREP3,$BAMREP4" $POOLEDPEAKFILE  "$excludelist" $READSBEDFILE
-	python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $PEAKFILE4 --outbed $CONSENSUSBEDFILE
-	fi
+    if [ "$nreplicates" -eq "2" ];then
+    callGenrichPeaks "$BAMREP1,$BAMREP2" $POOLEDPEAKFILE "$excludelist" $READSBEDFILE
+    python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 --outbed $CONSENSUSBEDFILE
+    elif [ "$nreplicates" -eq "3" ];then
+    callGenrichPeaks  "$BAMREP1,$BAMREP2,$BAMREP3" $POOLEDPEAKFILE  "$excludelist" $READSBEDFILE
+    python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 $PEAKFILE3 --outbed $CONSENSUSBEDFILE
+    elif [ "$nreplicates" -eq "4" ];then
+    callGenrichPeaks  "$BAMREP1,$BAMREP2,$BAMREP3,$BAMREP4" $POOLEDPEAKFILE  "$excludelist" $READSBEDFILE
+    python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $PEAKFILE4 --outbed $CONSENSUSBEDFILE
+    elif [ "$nreplicates" -eq "5" ];then
+    echo $BAMREP1
+    echo $BAMREP2
+    echo $BAMREP3
+    echo $BAMREP4
+    echo $BAMREP5
+    echo $BAMREP6
+    callGenrichPeaks  "$BAMREP1,$BAMREP2,$BAMREP3,$BAMREP4,$BAMREP5" $POOLEDPEAKFILE  "$excludelist" $READSBEDFILE
+    python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $PEAKFILE4 $PEAKFILE5 --outbed $CONSENSUSBEDFILE
+    elif [ "$nreplicates" -eq "6" ];then
+    callGenrichPeaks  "$BAMREP1,$BAMREP2,$BAMREP3,$BAMREP4,$BAMREP5,$BAMREP6" $POOLEDPEAKFILE  "$excludelist" $READSBEDFILE
+    python ${SCRIPTSFOLDER}/ccbr_get_consensus_peaks.py --filter $CONSENSUSFILTER --peakfiles $PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $PEAKFILE4 $PEAKFILE5 $PEAKFILE6 --outbed $CONSENSUSBEDFILE
+    fi
 
-	processReadsBed $READSBEDFILE $READSBWFILE $NICKSBEDFILE $NICKSBAMFILE
+    processReadsBed $READSBEDFILE $READSBWFILE $NICKSBEDFILE $NICKSBAMFILE
 fi
 
 if [ "$nreplicates" -eq 1 ];then
-	for f in `ls ${REP1NAME}.genrich*`;do
-		newf=$(echo $f|sed "s/.genrich./.genrich.pooled./g")
-		cp $f $newf
-	done
-	cut -f1-3 $PEAKFILE1 | sort -k1,1 -k2,2n > $CONSENSUSBEDFILE
+    for f in `ls ${REP1NAME}.genrich*`;do
+        newf=$(echo $f|sed "s/.genrich./.genrich.pooled./g")
+        cp $f $newf
+    done
+    cut -f1-3 $PEAKFILE1 | sort -k1,1 -k2,2n > $CONSENSUSBEDFILE
 fi
 
 if [ "$RUNCHIPSEEKER" == "True" ];then
-	f="$CONSENSUSBEDFILE"
-	npeaks_consensus=$(wc -l $f|awk '{print $1}')
-	if [ "$npeaks_consensus" -gt "0" ];then
-		Rscript ${SCRIPTSFOLDER}/ccbr_annotate_bed.R -b $f -a ${f}.annotated -g $GENOME -l ${f}.genelist -f ${f}.annotation_summary
-		cut -f1,2 ${f}.annotation_summary > ${f}.annotation_distribution
-	else
-		touch ${f}.annotated
-		touch ${f}.genelist
-		touch ${f}.annotation_summary
-		touch ${f}.annotation_distribution
-	fi
+    f="$CONSENSUSBEDFILE"
+    npeaks_consensus=$(wc -l $f|awk '{print $1}')
+    if [ "$npeaks_consensus" -gt "0" ];then
+        Rscript ${SCRIPTSFOLDER}/ccbr_annotate_bed.R -b $f -a ${f}.annotated -g $GENOME -l ${f}.genelist -f ${f}.annotation_summary
+        cut -f1,2 ${f}.annotation_summary > ${f}.annotation_distribution
+    else
+        touch ${f}.annotated
+        touch ${f}.genelist
+        touch ${f}.annotation_summary
+        touch ${f}.annotation_distribution
+    fi
 fi
 
 
@@ -205,48 +232,50 @@ files="$PEAKFILE1"
 if [ "$nreplicates" -eq "2" ];then files="$PEAKFILE1 $PEAKFILE2 $POOLEDPEAKFILE"; fi
 if [ "$nreplicates" -eq "3" ];then files="$PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $POOLEDPEAKFILE"; fi
 if [ "$nreplicates" -eq "4" ];then files="$PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $PEAKFILE4 $POOLEDPEAKFILE"; fi
+if [ "$nreplicates" -eq "5" ];then files="$PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $PEAKFILE4 $PEAKFILE5 $POOLEDPEAKFILE"; fi
+if [ "$nreplicates" -eq "6" ];then files="$PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $PEAKFILE4 $PEAKFILE5 $PEAKFILE6 $POOLEDPEAKFILE"; fi
 
 #ChIPseeker in the container only works for hg19/hg38/mm10... so you cannot annotate other genomes here
 genome_is_known=0
 if [ "$RUNCHIPSEEKER" == "True" ];then
-	if [ "$GENOME" == "hg19" ];then
-		genome_is_known=1
-	elif [ "$GENOME" == "hg38" ];then
-		genome_is_known=1
-	elif [ "$GENOME" == "mm10" ];then
-		genome_is_known=1
-	fi
-	if [ "$genome_is_known" == "0" ];then
-	RUNCHIPSEEKER="False"
-	fi
+    if [ "$GENOME" == "hg19" ];then
+        genome_is_known=1
+    elif [ "$GENOME" == "hg38" ];then
+        genome_is_known=1
+    elif [ "$GENOME" == "mm10" ];then
+        genome_is_known=1
+    fi
+    if [ "$genome_is_known" == "0" ];then
+    RUNCHIPSEEKER="False"
+    fi
 fi
 
 if [ $FILTERPEAKS == "True" ];then
   qvalue=$QFILTER
   for f in $files;do
-	filteredpeakfile=$(echo $f|sed "s/.narrowPeak/.qfilter.narrowPeak/g")
-	awk -F"\t" -v q=$qvalue "{if (\$9>q){print}}" $f > $filteredpeakfile
-	if [ "$RUNCHIPSEEKER" == "True" ];then
-		npeaks=$(wc -l $f|awk '{print $1}')
-		if [ "$npeaks" -gt "0" ];then
-			Rscript ${SCRIPTSFOLDER}/ccbr_annotate_peaks.R -n $f -a ${f}.annotated -g $GENOME -l ${f}.genelist -f ${f}.annotation_summary
-			cut -f1,2 ${f}.annotation_summary > ${f}.annotation_distribution
-		else
-			touch ${f}.annotated
-			touch ${f}.genelist
-			touch ${f}.annotation_summary
-			touch ${f}.annotation_distribution
-		fi
-		npeaks_filtered=$(wc -l $filteredpeakfile|awk '{print $1}')
-		if [ "$npeaks_filtered" -gt "0" ];then
-			Rscript ${SCRIPTSFOLDER}/ccbr_annotate_peaks.R -n $filteredpeakfile -a ${filteredpeakfile}.annotated -g $GENOME -l ${filteredpeakfile}.genelist -f ${filteredpeakfile}.annotation_summary
-			cut -f1,2 ${filteredpeakfile}.annotation_summary > ${filteredpeakfile}.annotation_distribution
-		else
-			touch ${filteredpeakfile}.annotated
-			touch ${filteredpeakfile}.genelist
-			touch ${filteredpeakfile}.annotation_summary
-			touch ${filteredpeakfile}.annotation_distribution
-		fi
-	fi
+    filteredpeakfile=$(echo $f|sed "s/.narrowPeak/.qfilter.narrowPeak/g")
+    awk -F"\t" -v q=$qvalue "{if (\$9>q){print}}" $f > $filteredpeakfile
+    if [ "$RUNCHIPSEEKER" == "True" ];then
+        npeaks=$(wc -l $f|awk '{print $1}')
+        if [ "$npeaks" -gt "0" ];then
+            Rscript ${SCRIPTSFOLDER}/ccbr_annotate_peaks.R -n $f -a ${f}.annotated -g $GENOME -l ${f}.genelist -f ${f}.annotation_summary
+            cut -f1,2 ${f}.annotation_summary > ${f}.annotation_distribution
+        else
+            touch ${f}.annotated
+            touch ${f}.genelist
+            touch ${f}.annotation_summary
+            touch ${f}.annotation_distribution
+        fi
+        npeaks_filtered=$(wc -l $filteredpeakfile|awk '{print $1}')
+        if [ "$npeaks_filtered" -gt "0" ];then
+            Rscript ${SCRIPTSFOLDER}/ccbr_annotate_peaks.R -n $filteredpeakfile -a ${filteredpeakfile}.annotated -g $GENOME -l ${filteredpeakfile}.genelist -f ${filteredpeakfile}.annotation_summary
+            cut -f1,2 ${filteredpeakfile}.annotation_summary > ${filteredpeakfile}.annotation_distribution
+        else
+            touch ${filteredpeakfile}.annotated
+            touch ${filteredpeakfile}.genelist
+            touch ${filteredpeakfile}.annotation_summary
+            touch ${filteredpeakfile}.annotation_distribution
+        fi
+    fi
   done
 fi

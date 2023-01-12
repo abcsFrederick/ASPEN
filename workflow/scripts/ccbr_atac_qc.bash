@@ -151,10 +151,12 @@ data=$(grep -v "^#" $f|sh ${SCRIPTSDIR}/_transpose.sh|tail -n1)
 samplename=$(basename $f|awk -F".macs2" '{print $1}')
 echo -ne "$samplename\t$data\n" | sort >> MACS2_Peak_Annotations_mqc.csv
 done
+if [ -f MACS2_Peak_Annotations_mqc.csv.header ];then # MACS2_Peak_Annotations_mqc.csv.header may not get created if *.macs2.narrowPeak.annotation_distribution files dont exist ... ie if ChiPSeeker was not run ... like mmul10 case
 cat MACS2_Peak_Annotations_mqc.csv.header > MACS2_Peak_Annotations_mqc.csv.tmp
 rm -f MACS2_Peak_Annotations_mqc.csv.header
 sort MACS2_Peak_Annotations_mqc.csv >> MACS2_Peak_Annotations_mqc.csv.tmp
 mv MACS2_Peak_Annotations_mqc.csv.tmp MACS2_Peak_Annotations_mqc.csv
+fi
 
 
 #####
@@ -173,10 +175,12 @@ data=$(grep -v "^#" $f|sh ${SCRIPTSDIR}/_transpose.sh|tail -n1)
 samplename=$(basename $f|awk -F".genrich" '{print $1}')
 echo -ne "$samplename\t$data\n" | sort >> Genrich_Peak_Annotations_mqc.csv
 done
+if [ -f Genrich_Peak_Annotations_mqc.csv.header ];then
 cat Genrich_Peak_Annotations_mqc.csv.header > Genrich_Peak_Annotations_mqc.csv.tmp
 rm -f Genrich_Peak_Annotations_mqc.csv.header
 sort Genrich_Peak_Annotations_mqc.csv >> Genrich_Peak_Annotations_mqc.csv.tmp
 mv Genrich_Peak_Annotations_mqc.csv.tmp Genrich_Peak_Annotations_mqc.csv
+fi
 
 #####
 #Run multiqc
