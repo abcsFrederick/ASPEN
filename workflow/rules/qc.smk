@@ -1,4 +1,4 @@
-localrules: multiqc
+#localrules: multiqc
 
 rule fastqc:
 # """
