@@ -121,3 +121,7 @@ Required Arguments:
 This  will submit one  _master_ job to slurm, which will in-turn  keep managing the entire pipeline and submit/monitor jobs to the job scheduler as-and-when required.
 
 ### 
+
+This snakemake pipeline is built to run on [Biowulf](https://hpc.nih.gov/).
+
+For comments/suggestions/advice please reach out to [Vishal Koparde](mailto:vishal.koparde@nih.gov).
