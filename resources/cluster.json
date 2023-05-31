@@ -77,6 +77,16 @@
 		"threads": "4",
 		"time": "12:00:00"
 	},
+	"atac_genrich_calculate_regions_of_interest_for_diffatac": {
+		"mem": "120g",
+		"threads": "4",
+		"time": "12:00:00"
+	},
+	"get_counts_table": {
+		"threads": "16",
+		"mem": "120g",
+		"time": "12:00:00"
+	},
 	"frip": {
 		"time": "12:00:00"
 	},
