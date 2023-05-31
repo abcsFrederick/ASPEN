@@ -11,6 +11,8 @@ parser.add_argument('--samplename',required=True, help='samplename,i.e., all rep
 
 parser.add_argument('--consensusnp',required=True,help="consensus narrowPeak file")
 parser.add_argument('--consensusrenormnp',required=True,help="consensus renormalized narrowPeak file")
+parser.add_argument('--consensusminrep',required=False,default=2,type=int,help="minimum replicates that need to overlap for any peak to be considered a consensus peak")
+parser.add_argument('--consensusminspm',required=False,default=5,type=int,help="cutoff score per million or normalized p-value. All minimum number of replicate peaks that need to overlap with a consensus peak should also be greater than this cutoff score per million or SPM")
 
 parser.add_argument('--tmpdir',required=False,default="/dev/shm",help="temp dir")
 
@@ -53,8 +55,8 @@ Rscript ${SCRIPTSFOLDER}/fixed_width_peakSets_to_consensus_peakSet.R \
     -p $REPLICATENAMES \
     -o $CONSENSUSNP \
     -t $TMPDIR \
-    -m 2 \
-    -c 5
+    -m $CONSENSUSMINREP \
+    -c $CONSENSUSMINSPM
 
 Rscript ${SCRIPTSFOLDER}/narrowPeak_normalize_pvalues.R \
     -i $CONSENSUSNP \
