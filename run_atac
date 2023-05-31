@@ -295,7 +295,7 @@ if [ $BUYINPARTITIONS ];then PARTITIONS="norm,$BUYINPARTITIONS";fi
 #!/bin/bash
 #SBATCH --job-name="CCBRATACseq"
 #SBATCH --mem=10g
-#SBATCH --partition="$PARTITIONS"
+#SBATCH --partition="norm,ccr"
 #SBATCH --time=96:00:00
 #SBATCH --cpus-per-task=2
 
