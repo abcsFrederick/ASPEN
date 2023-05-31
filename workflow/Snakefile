@@ -58,6 +58,10 @@ rule all:
         expand(join(RESULTSDIR,"peaks","macs2","fixed_width","{sample}.renormalized.fixed_width.consensus.narrowPeak"),sample=SAMPLES),
         expand(join(RESULTSDIR,"peaks","genrich","fixed_width","{sample}.fixed_width.consensus.narrowPeak"),sample=SAMPLES),
         expand(join(RESULTSDIR,"peaks","genrich","fixed_width","{sample}.renormalized.fixed_width.consensus.narrowPeak"),sample=SAMPLES),
+        # roi gtf for genrich-only
+        join(RESULTSDIR,"peaks","genrich","fixed_width","ROI.gtf"),
+        # counts matrix
+        join(RESULTSDIR,"peaks","genrich","ROI.counts.tsv"),
         #motif enrichment
         expand(join(QCDIR,"{sample}.motif_enrichment"),sample=SAMPLES),
         #frip
