@@ -3,6 +3,7 @@ include: join("rules/init.smk")
 include: join("rules/align.smk")
 include: join("rules/qc.smk")
 include: join("rules/peakcall.smk")
+include: join("rules/diffatac.smk")
 localrules: all
 rule all:
     input:
@@ -62,6 +63,9 @@ rule all:
         join(RESULTSDIR,"peaks","genrich","fixed_width","ROI.gtf"),
         # counts matrix
         join(RESULTSDIR,"peaks","genrich","ROI.counts.tsv"),
+        # diffatac
+        join(RESULTSDIR,"peaks","genrich","DiffATAC","sampleinfo.tsv"),
+        join(RESULTSDIR,"peaks","genrich","DiffATAC","contrasts.lst"),
         #motif enrichment
         expand(join(QCDIR,"{sample}.motif_enrichment"),sample=SAMPLES),
         #frip
