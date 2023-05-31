@@ -26,9 +26,9 @@ resourcesdir: "PIPELINE_HOME/resources"
 samplemanifest: "WORKDIR/samples.tsv"
 
 # uncomment the genome of interest
-# genome: "hg38"
+genome: "hg38"
 # genome: "hg19"
-genome: "mm10"
+# genome: "mm10"
 # genome: "mmul10"
 # genome: "bosTau9" # this is same as ARS-UCD1.2
 
@@ -44,6 +44,8 @@ fixed_width: 500
 
 # contrasts info
 contrasts: "WORKDIR/contrasts.tsv"
+contrasts_fc_cutoff: 2
+contrasts_fdr_cutoff: 0.05
 
 # genome specific resource locations on biowulf
 
@@ -156,3 +158,4 @@ fastqcdocker: "docker://nciccbr/ccbr_fastqc_0.11.9:v1.1"
 fastqscreendocker: "docker://nciccbr/ccbr_fastq_screen_0.14.1:v1.0"
 # featurecounts: "docker://genomicpariscentre/featurecounts:1.5.3"
 featurecountsdocker: "docker://dsaha0295/featurecounts:latest"
+baser: "docker://nciccbr/ccbr_baser:230531"
