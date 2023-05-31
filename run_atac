@@ -179,8 +179,7 @@ function dryrun() {
       mv ${WORKDIR}/dryrun_git_commit.txt ${WORKDIR}/logs/dryrun_git_commit.${modtime}.txt
     fi
   fi
-  run "--dry-run" > ${WORKDIR}/dryrun.log && \
-  cat ${WORKDIR}/dryrun.log && \
+  run "--dry-run" | tee ${WORKDIR}/dryrun.log && \
   echo "Git Commit/Tag: $GIT_COMMIT_TAG" > ${WORKDIR}/dryrun_git_commit.txt
 }
 
