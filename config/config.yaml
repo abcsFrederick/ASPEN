@@ -41,6 +41,10 @@ multimapping: 4
 
 # peak fixed width
 fixed_width: 500
+
+# contrasts info
+contrasts: "WORKDIR/contrasts.tsv"
+
 # genome specific resource locations on biowulf
 
 hg38:
@@ -127,6 +131,12 @@ genrich:
   # d: 150
   annotatePeaks: True
 
+# consensus calling
+consensus_min_replicates: 2
+consensus_min_spm: 5
+# roi calling
+roi_min_replicates: 1
+roi_min_spm: 2
 # final report generation with MultiQC
 # report customized using multiqc_atacseq_config.yaml
 multiqc:
@@ -144,3 +154,5 @@ fastqscreen_config: "PIPELINE_HOME/config/fastq_screen_config.txt"
 masterdocker: "docker://nciccbr/ccbr_atacseq:v1.10"
 fastqcdocker: "docker://nciccbr/ccbr_fastqc_0.11.9:v1.1"
 fastqscreendocker: "docker://nciccbr/ccbr_fastq_screen_0.14.1:v1.0"
+# featurecounts: "docker://genomicpariscentre/featurecounts:1.5.3"
+featurecountsdocker: "docker://dsaha0295/featurecounts:latest"
