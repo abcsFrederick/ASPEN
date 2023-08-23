@@ -1,6 +1,14 @@
 # **ASPEN**
 
-### Outline
+### Table of Contents
+- [ASPEN - **A**tac **S**eq **P**ip**E**li**N**e](#aspen)
+    - [1. Outline](#1-outline)
+    - [2. Runtime details](#2-runtime-details)
+      - [2.1 Load Module On Biowulf](#21-load-module-on-biowulf)
+      - [2.2 Create Sample Manifest](#22-create-sample-manifest)
+      - [2.3 Run Pipeline](#23-run-pipeline)
+
+### 1. Outline
 
 ASPEN or **A**tac **S**eq **P**ip**E**li**N**e is CCBR's pipeline to calls peaks for ATAC-Seq datasets. It currently accepts paired-end Illumina data and calls peak using MACS2 and Genrich peak callers. Below is a brief outline of the steps performed by the pipeline:
 
@@ -26,7 +34,9 @@ ASPEN or **A**tac **S**eq **P**ip**E**li**N**e is CCBR's pipeline to calls peaks
 * Motif enrichment: Motif Enrichment is calculated using HOMER and AME (MEME suite)
 * Report: MultiQC is used to generate a customized final HTML report
 
-### Load module on BIOWULF
+### 2. Runtime details
+
+#### 2.1 Load module on BIOWULF
 
 To clone the repo run:
 
@@ -36,7 +46,7 @@ To clone the repo run:
 
 This will add `aspen` to your PATH environmental variable.
 
-### Create Sample Manifest
+### 2.2 Create Sample Manifest
 
 Once the data is stored on biowulf, sample manifest TSV (`samples.tsv`) can be created to have the following columns:
 
@@ -54,7 +64,7 @@ Note that:
 * **replicateName** is used as prefix for individual peak calls
 * **sampleName** is used as prefix for consensus peak calls
 
-### Run Pipeline
+### 2.3 Run Pipeline
 
 To get more information about how to run the pipeline simply `cd` to the above `CCBR_ATACseq` folder and run
 
