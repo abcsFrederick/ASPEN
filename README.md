@@ -1,8 +1,8 @@
-# **ASAP**
+# **ASPEN**
 
 ### Outline
 
-ASAP or **A**tac **S**eq **A**nalysis **P**ipeline is CCBR's pipeline to calls peaks for ATACseq datasets. It currently accepts paired-end Illumina data and calls peak using MACS2 and Genrich peak callers. Below is a brief outline of the steps performed by the pipeline:
+ASPEN or **A**tac **S**eq **P**ip**E**li**N**e is CCBR's pipeline to calls peaks for ATAC-Seq datasets. It currently accepts paired-end Illumina data and calls peak using MACS2 and Genrich peak callers. Below is a brief outline of the steps performed by the pipeline:
 
 * Trim PE reads with CutAdapt
 * Remove reads aligning to known blacklisted regions, if provided
@@ -26,15 +26,15 @@ ASAP or **A**tac **S**eq **A**nalysis **P**ipeline is CCBR's pipeline to calls p
 * Motif enrichment: Motif Enrichment is calculated using HOMER and AME (MEME suite)
 * Report: MultiQC is used to generate a customized final HTML report
 
-### Clone Repo
+### Load module on BIOWULF
 
 To clone the repo run:
 
 ```bash
-% git clone git@github.com:kopardev/CCBR_ATACseq.git
+% module load ccbrpipeliner
 ```
 
-This will create `CCBR_ATACseq` subfolder at your current location.
+This will add `aspen` to your PATH environmental variable.
 
 ### Create Sample Manifest
 
@@ -59,69 +59,112 @@ Note that:
 To get more information about how to run the pipeline simply `cd` to the above `CCBR_ATACseq` folder and run
 
 ```bash
-% ./run_atac --help
+% aspen --help
 
-Pipeline Dir: /gpfs/gsfs11/users/kopardevn/GitRepos/CCBR_ATACseq
-Git Commit/Tag: 2ba69f785d0e2fd5c3f7c77de6807e0ef0d00312
+##########################################################################################
 
-#
-#
-#
-  Unknown argument!
-#
-#
-#
+Welcome to
+____ ____ ___  ____ _  _
+|__| [__  |__] |___ |\ |
+|  | ___] |    |___ | \|    v0.6.0
 
-/gpfs/gsfs11/users/kopardevn/GitRepos/CCBR_ATACseq/run_atac
---> run CCBR ATACseq pipeline
+A_TAC_S_eq A_nalysis P_ip_E_li_N_e
+
+##########################################################################################
+
+This pipeline was built by CCBR (https://bioinformatics.ccr.cancer.gov/ccbr)
+Please contact Vishal Koparde for comments/questions (vishal.koparde@nih.gov)
+
+##########################################################################################
+
+Here is a list of genome supported by aspen:
+
+  * hg19          [Human]
+  * hg38          [Human]
+  * mm10          [Mouse]
+  * mmul10        [Macaca mulatta(Rhesus monkey) or rheMac10]
+  * bosTau9       [Bos taurus(cattle)]
+
+aspen calls peaks using the following tools:
+
+ * MACS2
+ * Genrich        [RECOMMENDED FOR USE]
 
 USAGE:
-  bash ./run_atac -m/--runmode=<RUNMODE> -w/--workdir=<WORKDIR>
+  bash ./aspen -w/--workdir=<WORKDIR> -m/--runmode=<RUNMODE>
+
 Required Arguments:
-1.  RUNMODE: [Type: String] Valid options:
-    *) init : initialize workdir
-    *) run : run with slurm
-    *) reset : DELETE workdir dir and re-init it
-    *) dryrun : dry run snakemake to generate DAG
-    *) unlock : unlock workdir if locked by snakemake
-    *) runlocal : run without submitting to sbatch
-2.  WORKDIR: [Type: String]: Absolute or relative path to the output folder with write permissions.
+1.  WORKDIR     : [Type: String]: Absolute or relative path to the output folder with write permissions.
+
+2.  RUNMODE     : [Type: String] Valid options:
+    * init      : initialize workdir
+    * dryrun    : dry run snakemake to generate DAG
+    * run       : run with slurm
+    * runlocal  : run without submitting to sbatch
+    ADVANCED RUNMODES (use with caution!!)
+    * unlock    : unlock WORKDIR if locked by snakemake NEVER UNLOCK WORKDIR WHERE PIPELINE IS CURRENTLY RUNNING!
+    * reconfig  : recreate config file in WORKDIR (debugging option) EDITS TO config.yaml WILL BE LOST!
+    * reset     : DELETE workdir dir and re-init it (debugging option) EDITS TO ALL FILES IN WORKDIR WILL BE LOST!
+    * printbinds: print singularity binds (paths)
+    * local     : same as runlocal
+
+Optional Arguments:
+
+--manifest|-s   : absolute path to samples.tsv. This will be copied to output folder                    (--runmode=init only)
+--useenvmod|-e  : use  option while running Snakemake. This is for using modules on HPC instead of containers(default).
+--help|-h       : print this help
+
+Example commands:
+  bash ./aspen -w=/my/ouput/folder -m=init
+  bash ./aspen -w=/my/ouput/folder -m=dryrun
+  bash ./aspen -w=/my/ouput/folder -m=run
+
+##########################################################################################
+
+VersionInfo:
+  python          : python/3.7
+  snakemake       : snakemake
+  pipeline_home   : /gpfs/gsfs10/users/CCBR_Pipeliner/Pipelines/ASPEN/dev
+  git commit/tag  : 2a86949a63101eae06d9f8b7e53aa0234bf83b00	v0.6.1-13-g2a86949
+  aspen_version   : v0.6.0
+
+##########################################################################################
 ```
 
-`run_atac` is a **Biowulf** specific wrapper script to the pipeline. Essentially, to run the pipeline the user has to follow 3 steps:
+`aspen` is a **Biowulf** and **FRCE** specific wrapper script to the pipeline. Essentially, to run the pipeline the user has to follow 3 steps:
 
 1. **Initialize the output folder**:
 
    This can be done using the following command:
 
    ```bash
-   % ./run_atac -m=init -w=<path_to_output_folder>
+   % aspen -m=init -w=<path_to_output_folder>
    ```
 
-   The above command will create `config.yaml` and `samples.tsv` in the output folder. Please edit these as per your requirement. You can replace the `sample.tsv` file in the output folder with the sample manifest created in the previous step outlined above.
+   The above command will create `config.yaml` and `samples.tsv` in the output folder. Please edit these as per your requirements. You can replace the `sample.tsv` file in the output folder with the sample manifest created in the previous step outlined above.
 
 2. **Dryrun**:
 
    To dry-run the pipeline, you can run the following command after initializing the output folder:
 
    ```bash
-   % ./run_atac -m=dryrun -w=<path_to_output_folder>
+   % aspen -m=dryrun -w=<path_to_output_folder>
    ```
 
-   This is should list out the chain of jobs that will be submitted to the job-scheduler.
+   This should list out the chain of jobs (DAG) that will be submitted to the job scheduler.
 
 3. **RUN!!**:
 
-   If dry-run looks as expected, then you can submitted the job using:
+   If the dry-run looks as expected, then you can submit the job using:
 
    ```bash
-   % ./run_atac -m=run -w=<path_to_output_folder>
+   % aspen -m=run -w=<path_to_output_folder>
    ```
 
-This  will submit one  _master_ job to slurm, which will in-turn  keep managing the entire pipeline and submit/monitor jobs to the job scheduler as-and-when required.
+This  will submit one  _master_ job to slurm, which will in turn  keep managing the entire pipeline and submit/monitor jobs to the job scheduler as and when required.
 
 ### 
 
-This snakemake pipeline is built to run on [Biowulf](https://hpc.nih.gov/).
+This snakemake pipeline is built to run on [Biowulf](https://hpc.nih.gov/) and [FRCE](https://ncifrederick.cancer.gov/staff/frce/). But, as it uses containers for all intermediate steps, the pipeline can be executed on any HPC with minimal edits to the config file.
 
 For comments/suggestions/advice please reach out to [Vishal Koparde](mailto:vishal.koparde@nih.gov).
