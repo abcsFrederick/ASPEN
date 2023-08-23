@@ -173,13 +173,11 @@ VersionInfo:
 
 This  will submit one  _master_ job to slurm, which will in turn  keep managing the entire pipeline and submit/monitor jobs to the job scheduler as and when required.
 
-### 
+This snakemake pipeline is built to run on [Biowulf](https://hpc.nih.gov/) and [FRCE](https://ncifrederick.cancer.gov/staff/frce/). But, as it uses containers for all intermediate steps, the pipeline can be executed on any HPC with minimal edits to the config file.
+
+For comments/suggestions/advice please reach out to [Vishal Koparde](mailto:vishal.koparde@nih.gov).
 
 <hr>
 <p align="center">
 	<a href="#aspen">Back to Top</a>
 </p>
-
-This snakemake pipeline is built to run on [Biowulf](https://hpc.nih.gov/) and [FRCE](https://ncifrederick.cancer.gov/staff/frce/). But, as it uses containers for all intermediate steps, the pipeline can be executed on any HPC with minimal edits to the config file.
-
-For comments/suggestions/advice please reach out to [Vishal Koparde](mailto:vishal.koparde@nih.gov).
