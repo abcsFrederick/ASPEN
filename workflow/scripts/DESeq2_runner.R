@@ -1,61 +1,65 @@
 #!/usr/bin/env Rscript
 suppressPackageStartupMessages(library("argparse"))
-suppressPackageStartupMessages(library("here"))
-scriptfolder=here()
+#suppressPackageStartupMessages(library("here"))
+#scriptfolder=here()
 
 
 # create parser object
 parser <- ArgumentParser(description="Wrapper for running DESeq2 with ATACseq counts matrix")
 
 
-parser$add_argument("-m", "--countsmatrix", 
-                    type="character", 
+parser$add_argument("-m", "--countsmatrix",
+                    type="character",
                     help="path to countsmatrix",
                     required=TRUE)
-parser$add_argument("-g", "--genome", 
-                    type="character", 
+parser$add_argument("-g", "--genome",
+                    type="character",
                     help="genome .. either hg38 or mm10",
                     required=FALSE,
                     default="hg38")
-parser$add_argument("-c", "--coldata", 
-                    type="character", 
+parser$add_argument("-c", "--coldata",
+                    type="character",
                     help="coldata or sampleinto TSV file",
                     required=TRUE)
-parser$add_argument("-n", "--contrastnumerator", 
-                    type="character", 
+parser$add_argument("-n", "--contrastnumerator",
+                    type="character",
                     help="Group1 of the contrasts",
                     required=TRUE)
-parser$add_argument("-d", "--contrastdenominator", 
-                    type="character", 
+parser$add_argument("-d", "--contrastdenominator",
+                    type="character",
                     help="Group2 of the contrasts",
                     required=TRUE)
-parser$add_argument("-f", "--foldchange", 
-                    type="double", 
+parser$add_argument("-f", "--foldchange",
+                    type="double",
                     help="log2FC threshold",
                     required=FALSE,
                     default=2.0)
-parser$add_argument("-p", "--fdr", 
-                    type="double", 
+parser$add_argument("-p", "--fdr",
+                    type="double",
                     help="adj. p-value threshold",
                     required=FALSE,
                     default=0.05)
-parser$add_argument("-i", "--indexcols", 
-                    type="character", 
+parser$add_argument("-i", "--indexcols",
+                    type="character",
                     help="comma-separated list of index columns",
                     required=TRUE)
-parser$add_argument("-e", "--excludecols", 
-                    type="character", 
+parser$add_argument("-e", "--excludecols",
+                    type="character",
                     help="comma-separated list of columns to exclude",
                     required=TRUE)
-parser$add_argument("-o", "--outdir", 
-                    type="character", 
+parser$add_argument("-o", "--outdir",
+                    type="character",
                     help="output dir",
                     required=TRUE)
-parser$add_argument("-t", "--tmpdir", 
-                    type="character", 
+parser$add_argument("-t", "--tmpdir",
+                    type="character",
                     help="temp dir",
                     required=FALSE,
 		    default="/tmp")
+parser$add_argument("-s", "--scriptsdir",
+                    type="character",
+                    help="scripts dir",
+                    required=TRUE)
 
 args <- parser$parse_args()
 
@@ -69,7 +73,7 @@ for ( f in c(args$countmatrix,args$coldata)) {
   if (file.access(f,mode=4)!=0){
     outstr=paste("ERROR: File: ",f,"is not readable!")
     message(outstr)
-    quit(status = 1)    
+    quit(status = 1)
   }
 }
 if (!dir.exists(args$outdir)){
@@ -92,7 +96,7 @@ for ( condition in c(args$contrastnumerator,args$contrastdenominator) ) {
   if (! condition %in% freq_table$Var1) {
     outstr=paste("ERROR: Condition: ",condition,"absent in ",args$coldata)
     message(outstr)
-    quit(status = 1)      
+    quit(status = 1)
   }
 }
 
@@ -111,8 +115,7 @@ myparams <- list(rawcountsmatrix 	= args$countsmatrix,
                  excludecols 		= args$excludecols,
                  diffatactsv 		= paste(args$outdir,outtsv,sep="/"))
 
-rmarkdown::render(paste(scriptfolder,'DESeq2.Rmd',sep="/"),
+rmarkdown::render(paste(args$scriptsdir,'DESeq2.Rmd',sep="/"),
           params		=	myparams,
 	  output_file		=	paste(args$outdir,outhtml,sep="/"),
 	  intermediates_dir	=	args$tmpdir)
-

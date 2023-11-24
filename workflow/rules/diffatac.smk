@@ -1,3 +1,16 @@
+# functions
+def get_diffatac_input():
+    expected_filelist = list()
+    deffiles = list()
+# diffatac only works for hg38 and mm10
+    if GENOME == "mm10" or GENOME == "hg38":
+        if CONTRASTS.shape[0] != 0:
+            expected_filelist = [ join(RESULTSDIR,"peaks","genrich","DiffATAC","degs.done") ]
+            expected_filelist.append([  join(RESULTSDIR,"peaks","genrich","DiffATAC","all_diff_atacs.html"),
+                                    join(RESULTSDIR,"peaks","genrich","DiffATAC","all_diff_atacs.tsv")])
+    return expected_filelist
+
+
 
 rule atac_genrich_calculate_regions_of_interest_for_diffatac:
 # """
@@ -6,17 +19,17 @@ rule atac_genrich_calculate_regions_of_interest_for_diffatac:
     input:
         expand(join(RESULTSDIR,"peaks","genrich","fixed_width","{sample}.renormalized.fixed_width.consensus.narrowPeak"),sample=SAMPLES)
     output:
-        roi=join(RESULTSDIR,"peaks","genrich","fixed_width","ROI.narrowPeak"),
-        roi_bed=join(RESULTSDIR,"peaks","genrich","fixed_width","ROI.bed"),
-        roi_gtf=join(RESULTSDIR,"peaks","genrich","fixed_width","ROI.gtf"),
-        roi_renormalized=join(RESULTSDIR,"peaks","genrich","fixed_width","ROI.renormalized.narrowPeak")
+        roi              = join(RESULTSDIR,"peaks","genrich","fixed_width","ROI.narrowPeak"),
+        roi_bed          = join(RESULTSDIR,"peaks","genrich","fixed_width","ROI.bed"),
+        roi_gtf          = join(RESULTSDIR,"peaks","genrich","fixed_width","ROI.gtf"),
+        roi_renormalized = join(RESULTSDIR,"peaks","genrich","fixed_width","ROI.renormalized.narrowPeak")
     params:
         script      =   "ccbr_atac_get_fixedwidth_peaks.sh",
         scriptsdir  =   SCRIPTSDIR,
         width       =   config["fixed_width"],
         roi_min_rep =   config['roi_min_replicates'],
         roi_min_spm =   config['roi_min_spm'],
-    container: config["masterdocker"] 
+    container: config["masterdocker"]
     shell:"""
 set -exo pipefail
 TMPDIR="/lscratch/$SLURM_JOB_ID"
@@ -103,17 +116,17 @@ cat ${{TMPDIR}}/`basename {output.counts}` | python {params.scriptsdir}/_feature
 
 rule diffatac:
     input:
-        files   = expand(join(RESULTSDIR,"peaks","genrich","{sample}.genrich.tn5nicksbedfiles"),sample=SAMPLES),
-        counts  = rules.get_counts_table.output.counts,        
+        counts      = rules.get_counts_table.output.counts,
     output:
-        sampleinfo  =   join(RESULTSDIR,"peaks","genrich","DiffATAC","sampleinfo.tsv"),
-        degfilelist =   join(RESULTSDIR,"peaks","genrich","DiffATAC","contrasts.lst")
+        degsdone    = join(RESULTSDIR,"peaks","genrich","DiffATAC","degs.done"),
+        sampleinfo  = join(RESULTSDIR,"peaks","genrich","DiffATAC","sampleinfo.txt"),
     params:
         contrasts   = config['contrasts'],
         scriptsdir  = SCRIPTSDIR,
         genome      = config['genome'],
         fc_cutoff   = config['contrasts_fc_cutoff'],
         fdr_cutoff  = config['contrasts_fdr_cutoff'],
+        manifest    = config['samplemanifest'],
     container: config['baser']
     shell:"""
 set -exo pipefail
@@ -121,12 +134,10 @@ TMPDIR="/lscratch/$SLURM_JOB_ID"
 if [ ! -d $TMPDIR ];then
     TMPDIR="/dev/shm"
 fi
-outdir=$(dirname {output.sampleinfo})
+outdir=$(dirname {output.degsdone})
 if [ ! -d $outdir ];then mkdir $outdir;fi
 cd $outdir
-if [ -f {output.degfilelist} ];then rm -f {output.degfilelist};fi
-
-cat {input.files} | cut -f1-2 | sort > {output.sampleinfo}
+tail -n +2 {params.manifest} | cut -f1-2 | sort > {output.sampleinfo}
 
 while read g1 g2;do
     Rscript {params.scriptsdir}/DESeq2_runner.R \\
@@ -139,8 +150,46 @@ while read g1 g2;do
         --fdr {params.fdr_cutoff} \\
         --indexcols Geneid \\
         --excludecols Chr,Start,End,Strand,Length \\
-        --outdir $outdir
-    echo -ne "$g1\\t$g2\\t${{outdir}}/${{g1}}_vs_${{g2}}.tsv\\n" >> {output.degfilelist}
-done < {params.contrasts}
+        --outdir $outdir \\
+        --tmpdir $TMPDIR \\
+        --scriptsdir {params.scriptsdir}
+done < {params.contrasts} && \
+touch {output.degsdone}
 
+"""
+
+rule diffatac_aggregate:
+    input:
+        counts      = rules.get_counts_table.output.counts,
+        degsdone    = rules.diffatac.output.degsdone,
+        sampleinfo  = rules.diffatac.output.sampleinfo,
+    output:
+        alldegshtml = join(RESULTSDIR,"peaks","genrich","DiffATAC","all_diff_atacs.html"),
+        alldegstsv  = join(RESULTSDIR,"peaks","genrich","DiffATAC","all_diff_atacs.tsv"),
+    params:
+        contrasts   = config['contrasts'],
+        scriptsdir  = SCRIPTSDIR,
+        genome      = config['genome'],
+        fc_cutoff   = config['contrasts_fc_cutoff'],
+        fdr_cutoff  = config['contrasts_fdr_cutoff'],
+    container:config['baser']
+    shell:"""
+set -exo pipefail
+TMPDIR="/lscratch/$SLURM_JOB_ID"
+if [ ! -d $TMPDIR ];then
+    TMPDIR="/dev/shm"
+fi
+outdir=$(dirname {input.degsdone})
+cd $outdir
+Rscript {params.scriptsdir}/aggregate_results_runner.R \\
+    --countsmatrix {input.counts} \\
+    --diffatacdir $outdir \\
+    --coldata {input.sampleinfo} \\
+    --foldchange {params.fc_cutoff} \\
+    --fdr {params.fdr_cutoff} \\
+    --indexcols Geneid \\
+    --excludecols Chr,Start,End,Strand,Length \\
+    --diffatacdir $outdir \\
+    --tmpdir $TMPDIR \\
+    --scriptsdir {params.scriptsdir}
 """

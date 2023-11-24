@@ -1,6 +1,8 @@
 ---
 title: "DESeq2 DEG Analysis"
 # author: "Vishal Koparde, Ph.D."
+editor_options:
+  chunk_output_type: console
 output:
   html_document:
     toc: true
@@ -19,6 +21,10 @@ params:
   excludecols: "Chr,Start,End,Strand,Length" # comma separated list of columns to be excluded
   diffatactsv: "DiffATAC.tsv"
 ---
+
+`r message("");message("genome=",params$genome)`
+
+`r message(params$genome == "mm10")`
 
 ```{r setup, include=FALSE, cache=FALSE}
 # load libraries
@@ -39,7 +45,9 @@ suppressPackageStartupMessages(library("ggrepel"))
 suppressPackageStartupMessages(library("EnhancedVolcano"))
 suppressPackageStartupMessages(library("ChIPseeker"))
 suppressPackageStartupMessages(library("TxDb.Hsapiens.UCSC.hg38.knownGene"))
+suppressPackageStartupMessages(library("TxDb.Mmusculus.UCSC.mm10.knownGene"))
 suppressPackageStartupMessages(library("org.Hs.eg.db"))
+suppressPackageStartupMessages(library("org.Mm.eg.db"))
 # suppressPackageStartupMessages(library("umap"))
 suppressPackageStartupMessages(library("rtracklayer"))
 suppressPackageStartupMessages(library("RColorBrewer"))
@@ -71,7 +79,7 @@ colnames(roi)=c("chr","start","end","Geneid")
 roi=makeGRangesFromDataFrame(roi,keep.extra.columns=TRUE)
 nroi=nrow(as.data.frame(roi))
 
-contrast=paste0(params$contrast_numerator,"_vs_",params$contrast_denominator)                        
+contrast=paste0(params$contrast_numerator,"_vs_",params$contrast_denominator)
 if (!(params$contrast_numerator %in% sampleinfo$sampleName)) {
   stop(paste("ERROR:",params$contrast_numerator,"is not a samplename in sampleinfo file."))
 }
@@ -82,11 +90,13 @@ nsamples=nrow(sampleinfo)
 
 ```
 
+
 ## ROIs
 
 Total of `r nroi` ROIs
 
 ```{r pieplot,include=TRUE,echo=FALSE, message=FALSE, results='hide',cache=FALSE,warning=FALSE,message=FALSE,error=FALSE}
+x <- 0
 if (params$genome == "hg38") {
   txdb <- TxDb.Hsapiens.UCSC.hg38.knownGene
   roiAnno <- annotatePeak(roi, tssRegion=c(-2000, 200),
@@ -96,13 +106,25 @@ if (params$genome == "hg38") {
   table_anno=table(roiAnnodf$shortAnno)
   piecolor <- brewer.pal(length(table_anno), "Set2")
   pieplot <- pie(table_anno,col=piecolor)
+  x <- 1
+}
+if (params$genome == "mm10"){
+  txdb <- TxDb.Mmusculus.UCSC.mm10.knownGene
+  roiAnno <- annotatePeak(roi, tssRegion=c(-2000, 200),
+                            TxDb=txdb, annoDb="org.Mm.eg.db")
+  roiAnnodf=as.data.frame(roiAnno)
+  roiAnnodf$shortAnno=stringr::word(roiAnnodf$annotation,1)
+  table_anno=table(roiAnnodf$shortAnno)
+  piecolor <- brewer.pal(length(table_anno), "Set2")
+  pieplot <- pie(table_anno,col=piecolor)
+  x <- 2
 }
 ```
 
 
 ## Sample Stats
 
-Total of `r nsamples` samples. 
+Total of `r nsamples` samples.
 
 ```{r metadata,include=TRUE,echo=FALSE,cache=FALSE}
 pander(sampleinfo,style="rmarkdown")
@@ -116,12 +138,12 @@ pander(sampleinfo,style="rmarkdown")
 ```{r allsamplepca,include=TRUE,echo=FALSE, results='hide',cache=FALSE,warning=FALSE,message=FALSE,error=FALSE}
 dds1 <- DESeqDataSetFromMatrix(countData = as.matrix(countmatrix),
                                 colData = sampleinfo[,c("replicateName","sampleName")],
-                                design = ~ 1) 
+                                design = ~ 1)
 dds1 <- DESeq(dds1)
 rld1 <- vst(dds1)
 assayrld1 = as.data.frame(assay(rld1))
 assayrld1$row_variance = rowVars(as.matrix(assayrld1))
-assayrld1 = arrange(assayrld1,desc(row_variance)) 
+assayrld1 = arrange(assayrld1,desc(row_variance))
 zero_variance_rows=assayrld1$row_variance<1e-5
 assayrld1$row_variance = NULL
 assayrld1 = assayrld1[!zero_variance_rows,]
@@ -153,7 +175,7 @@ sampleinfo %>% filter(sampleinfo$sampleName %in% groups_in_contrasts) -> samplei
 countmatrix2 <- countmatrix[,sampleinfo2$replicateName]
 dds2 <- DESeqDataSetFromMatrix(countData = as.matrix(countmatrix2),
                                 colData = sampleinfo2[,c("replicateName","sampleName")],
-                                design = ~ sampleName) 
+                                design = ~ sampleName)
 dds2$sampleName <- relevel(dds2$sampleName, ref=params$contrast_denominator)
 dds2 <- DESeq(dds2)
 rld2 <- vst(dds2)
@@ -211,7 +233,7 @@ EnhancedVolcano::EnhancedVolcano(resdf_w_anno,
                 title="",titleLabSize=0,
                 drawConnectors = TRUE,
                 subtitle = contrast,subtitleLabSize = 10,
-                caption = "",captionLabSize=0) 
+                caption = "",captionLabSize=0)
 ```
 
 
@@ -223,10 +245,15 @@ x=as.data.frame(rbind(table(up_roi$shortAnno),table(down_roi$shortAnno)))
 rownames(x)=c(paste("Open in",params$contrast_numerator),paste("Open in",params$contrast_denominator))
 x$Total=rowSums(x)
 DT::datatable(x,rownames = TRUE)
-```
-
-```{r heatmap,include=TRUE,echo=FALSE, message=FALSE, results='hide',fig.width=4,fig.height=10,warning=FALSE,message=FALSE,error=FALSE}
 heatmap_matrix=assay(rld2)
-heatmap_matrix=heatmap_matrix[c(up_roi$Geneid,down_roi$Geneid),]
-Heatmap(matrix = t(scale(t(heatmap_matrix),scale = TRUE)),show_row_names = FALSE,name=" ")
 ```
+# `r message(str(rld2))`
+`r message(head(heatmap_matrix))`
+
+
+# ```{r heatmap,include=TRUE,echo=FALSE, message=FALSE, results='hide',fig.width=4,fig.height=10,warning=FALSE,message=FALSE,error=FALSE}
+# heatmap_matrix=assay(rld2)
+# interesting_genes=c(up_roi$Geneid,down_roi$Geneid)
+# heatmap_matrix %>% filter( Geneid %in% interesting_genes ) -> matrix_for_heatmap
+# Heatmap(matrix = t(scale(t(matrix_for_heatmap),scale = TRUE)),show_row_names = FALSE,name=" ")
+# ```
