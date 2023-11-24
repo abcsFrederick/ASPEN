@@ -3,7 +3,8 @@ include: join("rules/init.smk")
 include: join("rules/align.smk")
 include: join("rules/qc.smk")
 include: join("rules/peakcall.smk")
-localrules: all
+include: join("rules/diffatac.smk")
+#localrules: all
 rule all:
     input:
         #trim
@@ -19,6 +20,7 @@ rule all:
         expand(join(QCDIR,"{replicate}.filt.bam.flagstat"),replicate=REPLICATES),
         expand(join(QCDIR,"{replicate}.dupmetric"),replicate=REPLICATES),
         expand(join(QCDIR,"preseq","{replicate}.nrf"),replicate=REPLICATES),
+
         #nreads stats
         expand(join(QCDIR,"{replicate}.nreads.txt"),replicate=REPLICATES),
         #fastqc
@@ -35,7 +37,7 @@ rule all:
         expand(join(QCDIR,"tss","{replicate}.tss.txt"),replicate=REPLICATES),
         # #fld
         expand(join(QCDIR,"fld","{replicate}.fld.txt"),replicate=REPLICATES),
-        # #macs2 peaks
+        # # #macs2 peaks
         expand(join(RESULTSDIR,"peaks","macs2","{sample}.consensus.macs2.peakfiles"),sample=SAMPLES),
         expand(join(RESULTSDIR,"peaks","macs2","{sample}.replicate.macs2.peakfiles"),sample=SAMPLES),
         expand(join(RESULTSDIR,"peaks","macs2","{sample}.macs2.tn5nicksbedfiles"),sample=SAMPLES),
@@ -43,33 +45,55 @@ rule all:
         expand(join(RESULTSDIR,"peaks","genrich","{sample}.consensus.genrich.peakfiles"),sample=SAMPLES),
         expand(join(RESULTSDIR,"peaks","genrich","{sample}.replicate.genrich.peakfiles"),sample=SAMPLES),
         expand(join(RESULTSDIR,"peaks","genrich","{sample}.genrich.tn5nicksbedfiles"),sample=SAMPLES),
-        #jaccard comparison of called peaks
-        join(QCDIR,"jaccard","macs2.replicate.jaccard.pca.html"),
-        join(QCDIR,"jaccard","macs2.consensus.jaccard.pca.html"),
-        join(QCDIR,"jaccard","macs2.consensus_replicate.jaccard.pca.html"),
-        join(QCDIR,"jaccard","genrich.replicate.jaccard.pca.html"),
-        join(QCDIR,"jaccard","genrich.consensus.jaccard.pca.html"),
-        join(QCDIR,"jaccard","genrich.consensus_replicate.jaccard.pca.html"),
-        join(QCDIR,"jaccard","allmethods.replicate.jaccard.pca.html"),
-        join(QCDIR,"jaccard","allmethods.consensus.jaccard.pca.html"),
-        join(QCDIR,"jaccard","allmethods.consensus_replicate.jaccard.pca.html"),
-        # fixed width peaks
-        expand(join(RESULTSDIR,"peaks","macs2","fixed_width","{sample}.fixed_width.consensus.narrowPeak"),sample=SAMPLES),
-        expand(join(RESULTSDIR,"peaks","macs2","fixed_width","{sample}.renormalized.fixed_width.consensus.narrowPeak"),sample=SAMPLES),
-        expand(join(RESULTSDIR,"peaks","genrich","fixed_width","{sample}.fixed_width.consensus.narrowPeak"),sample=SAMPLES),
-        expand(join(RESULTSDIR,"peaks","genrich","fixed_width","{sample}.renormalized.fixed_width.consensus.narrowPeak"),sample=SAMPLES),
-        # roi gtf for genrich-only
-        join(RESULTSDIR,"peaks","genrich","fixed_width","ROI.gtf"),
-        # counts matrix
-        join(RESULTSDIR,"peaks","genrich","ROI.counts.tsv"),
-        #motif enrichment
+        # #jaccard comparison of called peaks
+        # join(QCDIR,"jaccard","macs2.replicate.jaccard.pca.html"),
+        # join(QCDIR,"jaccard","macs2.consensus.jaccard.pca.html"),
+        # join(QCDIR,"jaccard","macs2.consensus_replicate.jaccard.pca.html"),
+        # join(QCDIR,"jaccard","genrich.replicate.jaccard.pca.html"),
+        # join(QCDIR,"jaccard","genrich.consensus.jaccard.pca.html"),
+        # join(QCDIR,"jaccard","genrich.consensus_replicate.jaccard.pca.html"),
+        # join(QCDIR,"jaccard","allmethods.replicate.jaccard.pca.html"),
+        # join(QCDIR,"jaccard","allmethods.consensus.jaccard.pca.html"),
+        # join(QCDIR,"jaccard","allmethods.consensus_replicate.jaccard.pca.html"),
+        # # fixed width peaks
+        # expand(join(RESULTSDIR,"peaks","macs2","fixed_width","{sample}.fixed_width.consensus.narrowPeak"),sample=SAMPLES),
+        # expand(join(RESULTSDIR,"peaks","macs2","fixed_width","{sample}.renormalized.fixed_width.consensus.narrowPeak"),sample=SAMPLES),
+        # expand(join(RESULTSDIR,"peaks","genrich","fixed_width","{sample}.fixed_width.consensus.narrowPeak"),sample=SAMPLES),
+        # expand(join(RESULTSDIR,"peaks","genrich","fixed_width","{sample}.renormalized.fixed_width.consensus.narrowPeak"),sample=SAMPLES),
+        # # roi gtf for genrich-only
+        # join(RESULTSDIR,"peaks","genrich","fixed_width","ROI.gtf"),
+        # # counts matrix
+        # join(RESULTSDIR,"peaks","genrich","ROI.counts.tsv"),
+        # diffatac
+        # get_diffatac_input(),
+        # #motif enrichment
         expand(join(QCDIR,"{sample}.motif_enrichment"),sample=SAMPLES),
-        #frip
+        # #frip
         expand(join(QCDIR,"frip","{sample}.frip"),sample=SAMPLES),
-        #multiqc
+        # #multiqc
         join(QCDIR,"multiqc_report.html"),
         join(QCDIR,"QCStats.tsv")
 
+# create jobby tables
+jobby_cmd = "run_jobby_on_snakemake_log " + join(WORKDIR, 'snakemake.log') + " | tee " + join(WORKDIR, 'snakemake.log.jobby') + " | cut -f2,3,18 > " + join(WORKDIR, 'snakemake.log.jobby.short')
+spook_cmd = "spooker " + WORKDIR + " ASPEN | tee " + join(WORKDIR, 'spooker.log')
 
+onsuccess:
+    #subprocess.run(shlex.split(jobby_cmd),capture_output=False,shell=False,text=True)
+    print("OnSuccess")
+    shell("printenv")
+    shell("module list")
+    print(jobby_cmd)
+    shell(jobby_cmd)
+    print(spook_cmd)
+    shell(spook_cmd)
 
-
+onerror:
+    #subprocess.run(shlex.split(jobby_cmd),capture_output=False,shell=False,text=True)
+    print("OnError")
+    shell("printenv")
+    shell("module list")
+    print(jobby_cmd)
+    shell(jobby_cmd)
+    print(spook_cmd)
+    shell(spook_cmd)

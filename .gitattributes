@@ -1,2 +1,6 @@
 *.smk linguist-language=Python
 *.snakefile linguist-language=Python
+resources/blacklistFa/hs1.blacklist.fa.gz filter=lfs diff=lfs merge=lfs -text
+resources/frip/hs1.enhancers.bed.gz filter=lfs diff=lfs merge=lfs -text
+resources/tssBed/hs1_tssbeds.tar.gz filter=lfs diff=lfs merge=lfs -text
+resources/frip/hs1.DHS.bed.gz filter=lfs diff=lfs merge=lfs -text

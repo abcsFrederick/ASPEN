@@ -5,35 +5,22 @@ import sys
 import os
 import pandas as pd
 import yaml
+import json
 # import glob
 # import shutil
 #########################################################
 
 print("#"*100)
 print("""
-#   ____ ____ ____  ____  
-#  / ___/ ___| __ )|  _ \ 
-# | |  | |   |  _ \| |_) |
-# | |__| |___| |_) |  _ < 
-#  \____\____|____/|_| \_\ 
-
-#     _  _____  _    ____                
-#    / \|_   _|/ \  / ___|___  ___  __ _ 
-#   / _ \ | | / _ \| |   / __|/ _ \/ _` |
-#  / ___ \| |/ ___ \ |___\__ \  __/ (_| |
-# /_/   \_\_/_/   \_\____|___/\___|\__, |
-#                                     |_|
-#  ____  _            _ _            
-# |  _ \(_)_ __   ___| (_)_ __   ___ 
-# | |_) | | '_ \ / _ \ | | '_ \ / _ \ 
-# |  __/| | |_) |  __/ | | | | |  __/
-# |_|   |_| .__/ \___|_|_|_| |_|\___|
-#         |_|                        
+THANK YOU for using:
+____ ____ ___  ____ _  _
+|__| [__  |__] |___ |\ |
+|  | ___] |    |___ | \|
 """)
 print("#"*100)
 
 #########################################################
-# FILE-ACTION FUNCTIONS 
+# FILE-ACTION FUNCTIONS
 #########################################################
 def check_existence(filename):
   if not os.path.exists(filename):
@@ -60,7 +47,7 @@ def get_file_size(filename):
 #########################################################
 CONFIGFILE = str(workflow.overwrite_configfiles[0])
 
-# set memory limit 
+# set memory limit
 # used for sambamba sort, etc
 MEMORYG="100G"
 
@@ -97,7 +84,11 @@ for f in ["samplemanifest"]:
 # each line in the samplemanifest is a replicate
 # multiple replicates belong to a sample
 # currently only 1,2,3 or 4 replicates per sample is supported
-REPLICATESDF = pd.read_csv(config["samplemanifest"],sep="\t",header=0,index_col="replicateName")
+manifestfile = config["samplemanifest"]
+REPLICATESDF = pd.read_csv(manifestfile,sep="\t",header=0)
+if len(REPLICATESDF['replicateName'].unique()) != REPLICATESDF.shape[0]:
+    exit("# File: %s replicate names need to be unique"%(manifestfile))
+REPLICATESDF = REPLICATESDF.set_index('replicateName')
 REPLICATES = list(REPLICATESDF.index)
 SAMPLES = list(REPLICATESDF.sampleName.unique())
 
@@ -135,6 +126,56 @@ for replicate in REPLICATES:
 
 print("# Read access to all raw fastqs is confirmed!")
 print("#"*100)
+
+# read in contrasts
+contrastsfileexists = False
+try:
+    contrastsfile=config["contrasts"]
+    try:
+        contrastsfileexists = os.path.exists(contrastsfile)
+        if not contrastsfileexists:
+            print("# %s file does not exist. No contrasts will be run!"%(contrastsfile))
+    except:
+        exit("# %s file may not exist"%(contrastsfile))
+except KeyError:
+    print("# No contrast file provided in config. No contrasts will be run!")
+
+if contrastsfileexists:
+    check_readaccess(config["contrasts"])
+    try:
+        if os.stat(contrastsfile).st_size > 0:
+            CONTRASTS = pd.read_csv(contrastsfile,sep="\t",header=None)
+
+            DIFFATACOUTDIR = join(RESULTSDIR,"peaks","genrich","DiffATAC")
+
+            if CONTRASTS.shape[1] != 2:
+                print(contrastsfile + " is expected to have 2 tab-delimited columns: Group1 and Group2")
+                exit()
+
+            CONTRASTS.columns = ['Group1','Group2']
+
+            # get groups in contrasts
+            GROUPSINCONTRASTS = list(CONTRASTS.Group1.unique())
+            GROUPSINCONTRASTS.extend(list(CONTRASTS.Group1.unique()))
+            GROUPSINCONTRASTS = set(GROUPSINCONTRASTS)
+
+            # groups should exist in the sample manifest
+            for g in GROUPSINCONTRASTS:
+                if not g in SAMPLES:
+                    print("Group: " + g + "does not have any samples in the sample manifest: " + config["samplemanifest"])
+                    exit()
+
+            # create a sampleinfo file
+            sampleinfo = join(WORKDIR,"sampleinfo.txt")
+            cmd="cut -f1,2 "+ config["samplemanifest"] + " | tail -n +2 > " + sampleinfo
+            os.system(cmd)
+        else:
+            CONTRASTS = pd.DataFrame()
+            print(contrastsfile + " is empty. No contrasts will be run.")
+    except OSError: # contrast file is empty!
+        print(contrastsfile + " is empty. No contrasts will be run.")
+
+
 
 SAMPLE2REPLICATES=dict()
 for g in SAMPLES:
@@ -267,7 +308,7 @@ try:
     MULTIQCCONFIG=config['multiqc']['configfile']
     check_readaccess(MULTIQCCONFIG)
     print("# MultiQC configfile:",MULTIQCCONFIG)
-    MULTIQCEXTRAPARAMS=config['multiqc']['extraparams']   
+    MULTIQCEXTRAPARAMS=config['multiqc']['extraparams']
 except KeyError:
     MULTIQCCONFIG=""
     MULTIQCEXTRAPARAMS=""

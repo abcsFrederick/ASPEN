@@ -34,7 +34,7 @@ rule trim:
         replicate="{replicate}",
         scriptsdir=SCRIPTSDIR,
         script="ccbr_cutadapt_pe.bash"
-    container: config["masterdocker"]    
+    container: config["masterdocker"]
     threads: getthreads("trim")
     shell:"""
 if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then cd /lscratch/${{SLURM_JOB_ID}};else cd /dev/shm;fi
@@ -61,7 +61,7 @@ rule create_BL_index:
     params:
         # bldir=join(RESULTSDIR,"tmp","BL"),
         genome=GENOME,
-    container: config["masterdocker"]    
+    container: config["masterdocker"]
     threads: getthreads("create_BL_index")
     shell:"""
 blindexdir=$(dirname {output.sa})
@@ -77,7 +77,7 @@ rule remove_BL:
 # """
 # Second step of TAD
 # Input: trimmed fastq files
-# Output: not aligning to blacklisted regions, trimmed fastq files 
+# Output: not aligning to blacklisted regions, trimmed fastq files
 # in "tmp" folder, so they can be deleted if no longer required.
 # """
     # group: "TAD"
@@ -92,7 +92,7 @@ rule remove_BL:
         replicate="{replicate}",
         scriptsdir=SCRIPTSDIR,
         script="ccbr_remove_blacklisted_reads_pe.bash"
-    container: config["masterdocker"]    
+    container: config["masterdocker"]
     threads: getthreads("remove_BL")
     shell:"""
 if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then cd /lscratch/${{SLURM_JOB_ID}};else cd /dev/shm;fi
@@ -114,9 +114,9 @@ rule align:
 # """
 # Third (final) step of TAD
 # Alignment is handled by bowtie
-# Filtering is based off of ENCODEs pipeline (atac_assign_multimappers.py is direclty pulled from ENCODE)
+# Filtering is based off of ENCODEs pipeline (atac_assign_multimappers.py is directly pulled from ENCODE)
 # Input: not aligning to blacklisted regions, trimmed fastq files
-# Output: 
+# Output:
 #     1. aligned and filtered alignment files:
 #         * tagAlign --> for MACS2
 #         * dedup bam --> for TOBIAS
@@ -152,6 +152,8 @@ rule align:
     container: config["masterdocker"]
     threads: getthreads("align")
     shell:"""
+set -exo pipefail
+
 if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then cd /lscratch/${{SLURM_JOB_ID}};else cd /dev/shm;fi
 
 # make folder if they do not exist
