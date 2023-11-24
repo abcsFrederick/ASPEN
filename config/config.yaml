@@ -26,16 +26,16 @@ resourcesdir: "PIPELINE_HOME/resources"
 samplemanifest: "WORKDIR/samples.tsv"
 
 # uncomment the genome of interest
-genome: "hg38"
+genome: "GENOME"
+# genome: "hg38"
 # genome: "hg19"
 # genome: "mm10"
 # genome: "mmul10"
 # genome: "bosTau9" # this is same as ARS-UCD1.2
 
-
 # setting below this line should be changed carefully... defaults are set after considerable optimizations.
 
-# multimapping parameter required by ENCODE multimapper assignment script. 
+# multimapping parameter required by ENCODE multimapper assignment script.
 # ENCODE uses 4 so sticking with 4.
 multimapping: 4
 
@@ -49,6 +49,18 @@ contrasts_fdr_cutoff: 0.05
 
 # genome specific resource locations on biowulf
 
+hs1:
+  indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/hs1/indexes"
+  blacklistFa: "PIPELINE_HOME/resources/blacklistFa/hs1.blacklist.fa.gz"
+  tssBed: "PIPELINE_HOME/resources/tssBed/hs1_tssbeds.tar.gz"
+  homermotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_HUMAN_mono_homer_format_0.001.motif"
+  mememotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_HUMAN_mono_meme_format.tar.gz"
+  effectiveGenomeSize: 3000000000
+  fripextra:
+    dhsbed: "PIPELINE_HOME/resources/frip/hs1.DHS.bed.gz"
+    promoterbed: "PIPELINE_HOME/resources/frip/hs1.promoters.bed.gz"
+    enhancerbed: "PIPELINE_HOME/resources/frip/hs1.enhancers.bed.gz"
+
 hg38:
   indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/hg38_basic/indexes"
   blacklistFa: "PIPELINE_HOME/resources/blacklistFa/hg38.blacklist.fa.gz"
@@ -56,7 +68,7 @@ hg38:
   homermotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_HUMAN_mono_homer_format_0.001.motif"
   mememotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_HUMAN_mono_meme_format.tar.gz"
   effectiveGenomeSize: 2700000000
-  fripextra: 
+  fripextra:
     dhsbed: "PIPELINE_HOME/resources/frip/hg38.DHS.bed.gz"
     promoterbed: "PIPELINE_HOME/resources/frip/hg38.promoters.bed.gz"
     enhancerbed: "PIPELINE_HOME/resources/frip/hg38.enhancers.bed.gz"
@@ -68,7 +80,7 @@ hg19:
   homermotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_HUMAN_mono_homer_format_0.001.motif"
   mememotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_HUMAN_mono_meme_format.tar.gz"
   effectiveGenomeSize: 2700000000
-  fripextra: 
+  fripextra:
     dhsbed: "PIPELINE_HOME/resources/frip/hg19.DHS.bed.gz"
     promoterbed: "PIPELINE_HOME/resources/frip/hg19.promoters.bed.gz"
     enhancerbed: "PIPELINE_HOME/resources/frip/hg19.enhancers.bed.gz"
@@ -94,7 +106,6 @@ mmul10:
   effectiveGenomeSize: 2000000000
   fripextra:
     promoterbed: "PIPELINE_HOME/resources/frip/mmul10.promoters.bed.gz"
-
 
 bosTau9:
   indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/bosTau9"
@@ -124,7 +135,7 @@ genrich:
   l: 100
   g: 100
   d: 100
-# SF parameters
+  # SF parameters
   # s: 0
   # m: 5
   # q: 1
