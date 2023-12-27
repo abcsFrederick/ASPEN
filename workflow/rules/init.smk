@@ -128,11 +128,14 @@ print("# Read access to all raw fastqs is confirmed!")
 print("#"*100)
 
 # read in contrasts
+print("# Checking contrasts to be run")
 contrastsfileexists = False
 try:
     contrastsfile=config["contrasts"]
+    print("# contrasts exist in config file!")
     try:
         contrastsfileexists = os.path.exists(contrastsfile)
+        print("# contrastsfileexists = ",contrastsfileexists)
         if not contrastsfileexists:
             print("# %s file does not exist. No contrasts will be run!"%(contrastsfile))
     except:
@@ -169,6 +172,8 @@ if contrastsfileexists:
             sampleinfo = join(WORKDIR,"sampleinfo.txt")
             cmd="cut -f1,2 "+ config["samplemanifest"] + " | tail -n +2 > " + sampleinfo
             os.system(cmd)
+            ncontrasts = CONTRASTS.shape[0]
+            print("# Number of contrasts to run: ",str(ncontrasts))
         else:
             CONTRASTS = pd.DataFrame()
             print(contrastsfile + " is empty. No contrasts will be run.")
