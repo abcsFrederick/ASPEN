@@ -1,4 +1,14 @@
 from os.path import join
+
+def get_diff_files():
+    flist = []
+    if CONTRASTS.shape[0] > 0:
+        flist.append(join(RESULTSDIR,"peaks","genrich","DiffATAC","degs.done"))
+        flist.append(join(RESULTSDIR,"peaks","genrich","DiffATAC","all_diff_atacs.html"))
+        flist.append(join(RESULTSDIR,"peaks","genrich","DiffATAC","all_diff_atacs.tsv"))
+    return flist
+
+
 include: join("rules/init.smk")
 include: join("rules/align.smk")
 include: join("rules/qc.smk")
@@ -65,7 +75,7 @@ rule all:
         # # counts matrix
         # join(RESULTSDIR,"peaks","genrich","ROI.counts.tsv"),
         # diffatac
-        # get_diffatac_input(),
+        get_diff_files(),
         # #motif enrichment
         expand(join(QCDIR,"{sample}.motif_enrichment"),sample=SAMPLES),
         # #frip
@@ -84,9 +94,11 @@ onsuccess:
     shell("printenv")
     shell("module list")
     print(jobby_cmd)
+    print("The above command may fail if run_jobby_on_snakemake_log is not in PATH!")
     shell(jobby_cmd)
     print(spook_cmd)
     shell(spook_cmd)
+    print("The above command may fail if spooker is not in PATH or not running on BIOWULF/FRCE!")
 
 onerror:
     #subprocess.run(shlex.split(jobby_cmd),capture_output=False,shell=False,text=True)
@@ -95,5 +107,7 @@ onerror:
     shell("module list")
     print(jobby_cmd)
     shell(jobby_cmd)
+    print("The above command may fail if run_jobby_on_snakemake_log is not in PATH!")
     print(spook_cmd)
     shell(spook_cmd)
+    print("The above command may fail if spooker is not in PATH or not running on BIOWULF/FRCE!")
