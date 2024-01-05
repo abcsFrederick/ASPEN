@@ -198,12 +198,28 @@ sed -e "s/PIPELINE_HOME/${PIPELINE_HOME//\//\\/}/g" \
   -e "s/WORKDIR/${WORKDIR//\//\\/}/g" \
   -e "s/GENOME/${GENOME}/g" $f > $WORKDIR/$fbn
 
-for f in $MANIFEST ${PIPELINE_HOME}/resources/cluster.json ${PIPELINE_HOME}/resources/tools.yaml
+for f in ${PIPELINE_HOME}/resources/cluster.json ${PIPELINE_HOME}/resources/tools.yaml
 do
   echo "Copying essential file: $f"
   fbn=$(basename $f)
   cp $f $WORKDIR/$fbn
 done
+
+if [[ "$MANIFEST_SUPPLIED" == "true" ]];then
+  f=$MANIFEST
+  echo "Copying essential file: $f"
+  fbn=$(basename $f)
+  cp $f $WORKDIR/$fbn
+fi
+
+if [[ "$MANIFEST_SUPPLIED" == "false" ]];then
+f=$MANIFEST
+echo "Copying essential file: $f"
+fbn=$(basename $f)
+sed -e "s/PIPELINE_HOME/${PIPELINE_HOME//\//\\/}/g" \
+  -e "s/WORKDIR/${WORKDIR//\//\\/}/g" \
+  -e "s/GENOME/${GENOME}/g" $f > $WORKDIR/$fbn
+fi
 
 # copy essential folders
 for f in $ESSENTIAL_FOLDERS;do
@@ -732,7 +748,10 @@ function main(){
   esac
   done
   WORKDIR=$(readlink -f "$WORKDIR")
+  MANIFEST_SUPPLIED="true"
+  # if manifest is empty ... aka not supplied at cli
   if [[ -z $MANIFEST ]];then
+    MANIFEST_SUPPLIED="false"
     MANIFEST=${PIPELINE_HOME}/config/samples.tsv
   fi
   echo "Working Dir       : $WORKDIR"
