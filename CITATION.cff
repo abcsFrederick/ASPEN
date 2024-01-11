@@ -4,9 +4,11 @@ authors:
     - family-names: Sevilla
       given-names: Samantha
       orcid: https://orcid.org/0000-0002-8734-9875
+      affiliation: Advanced Biomedical Computational Science, Frederick National Laboratory for Cancer Research, Frederick, MD 21702, USA
     - family-names: Koparde
       given-names: Vishal
       orcid: https://orcid.org/0000-0001-8978-8495
+      affiliation: Advanced Biomedical Computational Science, Frederick National Laboratory for Cancer Research, Frederick, MD 21702, USA
 title: "RENEE: Rna sEquencing aNalysis pipElinE"
 url: https://ccbr.github.io/ASPEN
 repository-code: https://github.com/CCBR/ASPEN
