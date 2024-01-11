@@ -9,7 +9,7 @@ authors:
       given-names: Vishal
       orcid: https://orcid.org/0000-0001-8978-8495
       affiliation: Advanced Biomedical Computational Science, Frederick National Laboratory for Cancer Research, Frederick, MD 21702, USA
-title: "RENEE: Rna sEquencing aNalysis pipElinE"
+title: "ASPEN: Atac Seq PipEliNe"
 url: https://ccbr.github.io/ASPEN
 repository-code: https://github.com/CCBR/ASPEN
 license: MIT
