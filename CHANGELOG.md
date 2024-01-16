@@ -1,66 +1,68 @@
-## v1.0.1
+## ASPEN development version
 
--   differential ATAC updated
--   documentation updated
+## ASPEN 1.0.1
 
-## v1.0.0
+- differential ATAC updated
+- documentation updated
 
--   completely dockerized
--   differential ATAC
+## ASPEN 1.0.0
 
-## v0.6.1 Latest
+- completely dockerized
+- differential ATAC
 
--   correction to fqscreen cattle path
+## ASPEN 0.6.1
 
-## v0.6
+- correction to fqscreen cattle path
 
--   support for mmul10 (Macaca) and bosTau9 (cattle) genomes
-    -   created resource files: indexes, promoter files, tss files etc.
--   Added Macaca and Cattle to fastqscreen indexes
--   support increased from 4 replicate to 6 replicates
--   macs and genrich fixed width peaks generation rule added
--   docker updated to v10 (genome support and tidyverse added)
+## ASPEN 0.6
 
-## v0.5.3
+- support for mmul10 (Macaca) and bosTau9 (cattle) genomes
+  - created resource files: indexes, promoter files, tss files etc.
+- Added Macaca and Cattle to fastqscreen indexes
+- support increased from 4 replicate to 6 replicates
+- macs and genrich fixed width peaks generation rule added
+- docker updated to v10 (genome support and tidyverse added)
 
--   Includes reference files for mmul10
+## ASPEN 0.5.3
 
-## v0.5.2
+- Includes reference files for mmul10
 
--   atac_assign_multimappers.py now getting query sorted input
--   dryrun log saved in workdir
--   local (workdir) scriptsdir used
+## ASPEN 0.5.2
 
-## v0.5.1
+- atac_assign_multimappers.py now getting query sorted input
+- dryrun log saved in workdir
+- local (workdir) scriptsdir used
 
--   typo fix in main wrapper script
+## ASPEN 0.5.1
 
-## v0.5
+- typo fix in main wrapper script
 
--   fastqscreen added
--   minor bug fixes
+## ASPEN 0.5
 
-## v0.4.1
+- fastqscreen added
+- minor bug fixes
 
--   Bug fixes
--   minor updates
+## ASPEN 0.4.1
 
-## v0.4
+- Bug fixes
+- minor updates
 
--   Multiqc edits
--   README updates
+## ASPEN 0.4
 
-## v0.3
+- Multiqc edits
+- README updates
 
--   FRiP calculations added
+## ASPEN 0.3
 
-## v0.2
+- FRiP calculations added
 
--   Peak motif enrichment with homer/meme
--   Peak replicate/sample/peakcaller PCA comparisons after bedtools jaccard pairwise calculations
+## ASPEN 0.2
 
-## v0.1
+- Peak motif enrichment with homer/meme
+- Peak replicate/sample/peakcaller PCA comparisons after bedtools jaccard pairwise calculations
 
--   first working version
--   calls peaks with macs2/genrich
--   annotates peaks with chipseeker (human and mouse support)
+## ASPEN 0.1
+
+- first working version
+- calls peaks with macs2/genrich
+- annotates peaks with chipseeker (human and mouse support)
