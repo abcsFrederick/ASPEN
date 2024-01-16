@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "Please cite ASPEN as below."
+authors:
+    - family-names: Sevilla
+      given-names: Samantha
+      orcid: https://orcid.org/0000-0002-8734-9875
+      affiliation: Advanced Biomedical Computational Science, Frederick National Laboratory for Cancer Research, Frederick, MD 21702, USA
+    - family-names: Koparde
+      given-names: Vishal
+      orcid: https://orcid.org/0000-0001-8978-8495
+      affiliation: Advanced Biomedical Computational Science, Frederick National Laboratory for Cancer Research, Frederick, MD 21702, USA
+title: "ASPEN: Atac Seq PipEliNe"
+url: https://ccbr.github.io/ASPEN
+repository-code: https://github.com/CCBR/ASPEN
+license: MIT
+type: software
+version: 1.0.1
+date-released: 2023-12-27
