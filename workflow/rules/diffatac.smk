@@ -139,7 +139,10 @@ if [ ! -d $outdir ];then mkdir $outdir;fi
 cd $outdir
 tail -n +2 {params.manifest} | cut -f1-2 | sort > {output.sampleinfo}
 
+cat {params.contrasts}
 while read g1 g2;do
+    echo "g1=$g1"
+    echo "g2=$g2"
     Rscript {params.scriptsdir}/DESeq2_runner.R \\
         --countsmatrix {input.counts} \\
         --genome {params.genome} \\
