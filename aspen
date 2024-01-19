@@ -446,7 +446,7 @@ function runslurm() {
 function create_runinfo {
   modtime=$1
   if [ "$modtime" == "" ];then
-   modtime=$(stat ${WORKDIR}/runinfo.yaml|grep Modify|awk '{print $2,$3}'|awk -F"." '{print $1}'|sed "s/ //g"|sed "s/-//g"|sed "s/://g")
+   modtime=$(stat ${WORKDIR}/runinfo.yaml 2>/dev/null|grep Modify|awk '{print $2,$3}'|awk -F"." '{print $1}'|sed "s/ //g"|sed "s/-//g"|sed "s/://g")
   fi
   if [ -f ${WORKDIR}/runinfo.yaml ];then
     mv ${WORKDIR}/runinfo.yaml ${WORKDIR}/stats/runinfo.${modtime}.yaml
