@@ -73,7 +73,11 @@ dds1 <- DESeqDataSetFromMatrix(countData = as.matrix(countmatrix),
                                 colData = sampleinfo[,c("replicateName","sampleName")],
                                 design = ~ 1)
 dds1 <- DESeq(dds1)
-rld1 <- vst(dds1)
+if (nrow(dds1)<2000) {
+  rld1 <- varianceStabilizingTransformation(dds1,blind=TRUE)
+} else {
+  rld1 <- vst(dds1, blind=TRUE)
+}
 assayrld1 = as.data.frame(assay(rld1))
 assayrld1$row_variance = rowVars(as.matrix(assayrld1))
 assayrld1 = arrange(assayrld1,desc(row_variance))
@@ -134,6 +138,7 @@ collist = c()
 for (i in 1:length(degfiles)){
   # i=1
   deg_file=paste(params$diffatacdir,degfiles[i],sep="/")
+  print(deg_file)
   contrast=contrasts[i]
   x <- read_deg_file(deg_file)
   all_sig_geneids <- c(all_sig_geneids,get_sig_geneids(x,params$FC_cutoff,params$FDR_cutoff))
