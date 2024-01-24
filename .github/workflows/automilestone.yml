@@ -1,0 +1,12 @@
+name: Autoassign milestone
+
+on:
+  issues:
+    types: [opened, reopened]
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  add_label:
+    uses: CCBR/gha-test/.github/workflows/autoadd_milestone_to_issue.yml@v0.1.0
+    secrets: inherit
