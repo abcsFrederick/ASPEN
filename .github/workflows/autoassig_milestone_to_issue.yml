@@ -1,0 +1,20 @@
+name: Autoassign milestone
+on:
+  issues:
+    types: [assigned, opened, reopened]
+  pull_request:
+    types: [assigned, opened, reopened]
+jobs:
+  milestone:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: do it
+        run: |
+          msname=$(date "+%b %Y")
+          echo $msname
+          echo "gh issue edit $ISSUE --milestone \"$msname\""
+          gh issue edit $ISSUE --milestone "$msname"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE: ${{ github.event.issue.number }}
