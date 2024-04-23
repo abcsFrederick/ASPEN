@@ -139,8 +139,12 @@ pander(sampleinfo,style="rmarkdown")
 dds1 <- DESeqDataSetFromMatrix(countData = as.matrix(countmatrix),
                                 colData = sampleinfo[,c("replicateName","sampleName")],
                                 design = ~ 1)
-dds1 <- DESeq(dds1)
-rld1 <- vst(dds1)
+dds1 <- DESeq(dds1) 
+if (nrow(dds1)<2000) {
+  rld1 <- varianceStabilizingTransformation(dds1, blind=TRUE)
+} else {
+  rld1 <- vst(dds1, blind=TRUE)
+}
 assayrld1 = as.data.frame(assay(rld1))
 assayrld1$row_variance = rowVars(as.matrix(assayrld1))
 assayrld1 = arrange(assayrld1,desc(row_variance))
@@ -178,7 +182,11 @@ dds2 <- DESeqDataSetFromMatrix(countData = as.matrix(countmatrix2),
                                 design = ~ sampleName)
 dds2$sampleName <- relevel(dds2$sampleName, ref=params$contrast_denominator)
 dds2 <- DESeq(dds2)
-rld2 <- vst(dds2)
+if (nrow(dds2)<2000) {
+  rld2 <- varianceStabilizingTransformation(dds2, blind=TRUE)
+} else {
+  rld2 <- vst(dds2, blind=TRUE)
+}
 pca2=prcomp(t(as.data.frame(assay(rld2))),scale.=T)
 m2.pc1 = round(pca2$sdev[1]^2/sum(pca2$sdev^2)*100,2)
 m2.pc2 = round(pca2$sdev[2]^2/sum(pca2$sdev^2)*100,2)

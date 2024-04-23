@@ -178,7 +178,11 @@ if contrastsfileexists:
             CONTRASTS = pd.DataFrame()
             print(contrastsfile + " is empty. No contrasts will be run.")
     except OSError: # contrast file is empty!
+        CONTRASTS = pd.DataFrame()
         print(contrastsfile + " is empty. No contrasts will be run.")
+else:
+    CONTRASTS = pd.DataFrame()
+    print(contrastsfile + " is absent. No contrasts will be run.")
 
 
 
