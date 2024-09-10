@@ -86,7 +86,7 @@ rule all:
 
 # create jobby tables
 jobby_cmd = 'run_jobby_on_snakemake_log logs/snakemake.log | tee logs/snakemake.log.jobby | cut -f2,3,18 > logs/snakemake.log.jobby.short'
-spook_cmd = f'spooker {WORKDIR} CARLISLE'
+spook_cmd = f'spooker {WORKDIR} ASPEN'
 
 onsuccess:
     #subprocess.run(shlex.split(jobby_cmd),capture_output=False,shell=False,text=True)
