@@ -766,8 +766,14 @@ function main(){
   # CLUSTERSTATUSCMD="${PIPELINE_HOME}/resources/cluster_status.sh"
 
   if [[ -z "$SING_CACHE_DIR" ]]; then
-    echo "singularity cache dir (--singcache) is not set, using ${WORKDIR}/.singularity"
-    SING_CACHE_DIR="${WORKDIR}/.singularity"
+    echo "singularity cache dir (--singcache) is not set"
+    if [[ -d "/data/$USER" ]]; then
+      SING_CACHE_DIR="/data/$USER/.singularity"
+    else
+      SING_CACHE_DIR="${WORKDIR}/.singularity"
+    fi
+    echo "\tusing ${SING_CACHE_DIR}"
+    mkdir -p $SING_CACHE_DIR
   fi
   EXPORT_SING_CACHE_DIR_CMD="export SINGULARITY_CACHEDIR=\"${SING_CACHE_DIR}\""
 
