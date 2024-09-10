@@ -530,6 +530,8 @@ set -exo pipefail
 
 $MODULE_STR
 
+$EXPORT_SING_CACHE_DIR_CMD
+
 snakemake -s $SNAKEFILE \
 --directory $WORKDIR \
 --printshellcmds \
@@ -594,6 +596,8 @@ $MODULE_STR
 
 cd \$SLURM_SUBMIT_DIR
 
+$EXPORT_SING_CACHE_DIR_CMD
+
 snakemake -s $SNAKEFILE \
 --directory $WORKDIR \
 $SINGULARITY_STR \
@@ -620,12 +624,8 @@ fi
 EOF
 
   cd $WORKDIR
-  if [[ "$EXPORT_SING_CACHE_DIR_CMD" != "" ]];then
-    $EXPORT_SING_CACHE_DIR_CMD && \
-    sbatch submit_script.sbatch
-  else
-    sbatch submit_script.sbatch
-  fi
+  sbatch submit_script.sbatch
+
 
 ##########################################################################################
 # unlock or dry-run
