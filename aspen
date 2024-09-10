@@ -228,11 +228,6 @@ for f in $ESSENTIAL_FOLDERS;do
 done
 
 cd ${WORKDIR}
-curl https://raw.githubusercontent.com/CCBR/Tools/master/Biowulf/jobby -O
-curl https://github.com/CCBR/Tools/blob/master/Biowulf/run_jobby_on_snakemake_log -O
-
-chmod a+x ${WORKDIR}/jobby
-chmod a+x ${WORKDIR}/run_jobby_on_snakemake_log
 
 #create log and stats folders
 if [ ! -d $WORKDIR/logs ]; then mkdir -p $WORKDIR/logs;echo "Logs Dir: $WORKDIR/logs";fi
@@ -760,8 +755,6 @@ function main(){
   # required files
   CONFIGFILE="${WORKDIR}/config.yaml"
   CLUSTERFILE="${WORKDIR}/cluster.json"
-  JOBBY="${WORKDIR}/jobby"
-  JOBBY2="${WORKDIR}/run_jobby_on_snakemake_log"
 
   # CLUSTERSTATUSCMD="${PIPELINE_HOME}/resources/cluster_status.sh"
 

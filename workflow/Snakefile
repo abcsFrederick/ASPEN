@@ -85,8 +85,8 @@ rule all:
         join(QCDIR,"QCStats.tsv")
 
 # create jobby tables
-jobby_cmd = "run_jobby_on_snakemake_log " + join(WORKDIR, 'snakemake.log') + " | tee " + join(WORKDIR, 'snakemake.log.jobby') + " | cut -f2,3,18 > " + join(WORKDIR, 'snakemake.log.jobby.short')
-spook_cmd = "spooker " + WORKDIR + " ASPEN | tee " + join(WORKDIR, 'spooker.log')
+jobby_cmd = 'run_jobby_on_snakemake_log logs/snakemake.log | tee logs/snakemake.log.jobby | cut -f2,3,18 > logs/snakemake.log.jobby.short'
+spook_cmd = f'spooker {WORKDIR} CARLISLE'
 
 onsuccess:
     #subprocess.run(shlex.split(jobby_cmd),capture_output=False,shell=False,text=True)
