@@ -773,8 +773,8 @@ function main(){
       SING_CACHE_DIR="${WORKDIR}/.singularity"
     fi
     echo "\tusing ${SING_CACHE_DIR}"
-    mkdir -p $SING_CACHE_DIR
   fi
+  mkdir -p $SING_CACHE_DIR
   EXPORT_SING_CACHE_DIR_CMD="export SINGULARITY_CACHEDIR=\"${SING_CACHE_DIR}\""
 
   case $RUNMODE in
