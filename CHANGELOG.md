@@ -1,6 +1,7 @@
 ## ASPEN development version
 
 - Set the singularity cache dir if `--singcache` is not provided. (#37, @kelly-sovacool)
+- ASPEN now has a documentation website: <https://ccbr.github.io/ASPEN>
 
 ## ASPEN 1.0.1
 
