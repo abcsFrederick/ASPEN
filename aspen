@@ -525,6 +525,8 @@ set -exo pipefail
 
 $MODULE_STR
 
+$EXPORT_SING_CACHE_DIR_CMD
+
 snakemake -s $SNAKEFILE \
 --directory $WORKDIR \
 --printshellcmds \
@@ -589,6 +591,8 @@ $MODULE_STR
 
 cd \$SLURM_SUBMIT_DIR
 
+$EXPORT_SING_CACHE_DIR_CMD
+
 snakemake -s $SNAKEFILE \
 --directory $WORKDIR \
 $SINGULARITY_STR \
@@ -615,12 +619,8 @@ fi
 EOF
 
   cd $WORKDIR
-  if [[ "$EXPORT_SING_CACHE_DIR_CMD" != "" ]];then
-    $EXPORT_SING_CACHE_DIR_CMD && \
-    sbatch submit_script.sbatch
-  else
-    sbatch submit_script.sbatch
-  fi
+  sbatch submit_script.sbatch
+
 
 ##########################################################################################
 # unlock or dry-run
@@ -758,11 +758,16 @@ function main(){
 
   # CLUSTERSTATUSCMD="${PIPELINE_HOME}/resources/cluster_status.sh"
 
-  if [[ ! -z "$SING_CACHE_DIR" ]];then
-    EXPORT_SING_CACHE_DIR_CMD="export SINGULARITY_CACHEDIR=\"${SING_CACHE_DIR}\""
-  else
-    EXPORT_SING_CACHE_DIR_CMD=""
+  if [[ -z "$SING_CACHE_DIR" ]]; then
+    if [[ -d "/data/$USER" ]]; then
+      SING_CACHE_DIR="/data/$USER/.singularity"
+    else
+      SING_CACHE_DIR="${WORKDIR}/.singularity"
+    fi
+    echo "singularity cache dir (--singcache) is not set, using ${SING_CACHE_DIR}"
   fi
+  mkdir -p $SING_CACHE_DIR
+  EXPORT_SING_CACHE_DIR_CMD="export SINGULARITY_CACHEDIR=\"${SING_CACHE_DIR}\""
 
   case $RUNMODE in
     init)     init      && exit 0;;

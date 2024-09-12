@@ -1,5 +1,7 @@
 ## ASPEN development version
 
+- Set the singularity cache dir if `--singcache` is not provided. (#37, @kelly-sovacool)
+
 ## ASPEN 1.0.1
 
 - differential ATAC updated
