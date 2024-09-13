@@ -24,5 +24,9 @@ url: https://ccbr.github.io/ASPEN
 repository-code: https://github.com/CCBR/ASPEN
 license: MIT
 type: software
+identifiers:
+  - description: Archived snapshots of all versions
+    type: doi
+    value: 10.5281/zenodo.13755867
 version: v1.0.2
 date-released: "2024-09-12"

@@ -1,8 +1,12 @@
-# **ASPEN**
+# ASPEN
+
+**A**tac **S**eq **P**ip**E**li**N**e
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13755867.svg)](https://doi.org/10.5281/zenodo.13755867)
 
 ### Table of Contents
 
-- [ASPEN - **A**tac **S**eq **P**ip**E**li**N**e](#aspen)
+- [ASPEN](#aspen)
   - [1. Outline](#1-outline)
   - [2. Runtime details](#2-runtime-details)
     - [2.1 Load Module On Biowulf](#21-load-module-on-biowulf)
