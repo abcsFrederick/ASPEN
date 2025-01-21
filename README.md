@@ -3,6 +3,7 @@
 **A**tac **S**eq **P**ip**E**li**N**e
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13755867.svg)](https://doi.org/10.5281/zenodo.13755867)
+[![release](https://img.shields.io/github/v/release/CCBR/ASPEN?color=blue&label=latest%20release)](https://github.com/CCBR/ASPEN/releases/latest)
 
 ### Table of Contents
 
