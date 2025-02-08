@@ -38,6 +38,7 @@ rule trim:
     threads: getthreads("trim")
     shell:"""
 if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then cd /lscratch/${{SLURM_JOB_ID}};else cd /dev/shm;fi
+unset PYTHONPATH
 bash {params.scriptsdir}/{params.script} \
 --infastq1 {input.R1} \
 --infastq2 {input.R2} \
@@ -153,8 +154,8 @@ rule align:
     threads: getthreads("align")
     shell:"""
 set -exo pipefail
-
 if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then cd /lscratch/${{SLURM_JOB_ID}};else cd /dev/shm;fi
+unset PYTHONPATH
 
 # make folder if they do not exist
 for  f in {output.tagAlign} {output.dedupbam} {output.qsortedBam};do
