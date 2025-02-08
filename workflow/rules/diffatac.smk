@@ -94,8 +94,9 @@ TMPDIR="/lscratch/$SLURM_JOB_ID"
 if [ ! -d $TMPDIR ];then
     TMPDIR="/dev/shm"
 fi
-
 cd $TMPDIR
+unset PYTHONPATH
+
 bams=""
 count=0
 for f in {input.files}

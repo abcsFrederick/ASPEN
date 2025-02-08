@@ -82,6 +82,7 @@ rule atac_tss:
     threads: getthreads("atac_tss")    
     shell:"""
 if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then cd /lscratch/${{SLURM_JOB_ID}};else cd /dev/shm;fi
+unset PYTHONPATH
 tagAlign=$(basename {input.tagalign})
 outfn=$(basename {output.tss})
 
@@ -114,6 +115,7 @@ rule atac_fld:
         script="ccbr_atac_bam2FLD.py",
     container: config["masterdocker"]    
     shell:"""
+unset PYTHONPATH
 python {params.scriptsdir}/{params.script} -i {input.dedupbam} -o {output.fld}
 """
 
@@ -304,6 +306,7 @@ rule multiqc:
     shell:"""
 set -e -x -o pipefail
 if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then TMPDIR="/lscratch/${{SLURM_JOB_ID}}";else TMPDIR="/dev/shm";fi
+unset PYTHONPATH
 if [ "{params.multiqcextraparams}" == "" ];then
 bash {params.scriptsdir}/{params.script} --qcfolder {params.qcdir} --multiqcconfig {params.multiqcconfig}
 else
