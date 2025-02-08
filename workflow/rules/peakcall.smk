@@ -85,6 +85,7 @@ rule atac_macs_peakcalling:
     threads: getthreads("atac_genrich_peakcalling")
     shell:"""
 set -e -x -o pipefail
+unset PYTHONPATH
 nreplicates=0
 for f in {input}
 do 
@@ -228,6 +229,7 @@ rule atac_genrich_peakcalling:
     threads: getthreads("atac_genrich_peakcalling")
     shell:"""
 set -e -x -o pipefail
+unset PYTHONPATH
 nreplicates=0
 for f in {input}
 do 
