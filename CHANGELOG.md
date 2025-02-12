@@ -2,6 +2,24 @@
 
 - ASPEN is now archived on Zenodo, you can cite it with the DOI [10.5281/zenodo.13755867](https://doi.org/10.5281/zenodo.13755867). (#42, @kelly-sovacool)
 
+## ASPEN 1.0.5
+
+- fix #54 ucsc tool version changed requiring newer version of GLIBC
+- using new masterdocker v11
+
+## ASPEN 1.0.4
+
+- `BUYINPARTITIONS` fixed in wrapper for BIOWULF-only
+- fix #46
+- fix #48
+- fix #51
+- fix #52
+
+## ASPEN 1.0.3
+
+- `unset PYTHONPATH` to fix #43
+- jobby command points to the correct location of snakemake.log file 
+
 ## ASPEN 1.0.2
 
 - Set the singularity cache dir if `--singcache` is not provided. (#37, @kelly-sovacool)
