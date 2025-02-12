@@ -286,7 +286,8 @@ function set_snakemake_rerun_triggers() {
     RERUNTRIGGERS=""
   fi
 }
-
+# Force Snakemake to Ignore Software Environment Changes ... like new masterdocker
+# RERUNTRIGGERS="--rerun-triggers mtime"
 ##########################################################################################
 # RECONFIG ... recreate config.yaml and overwrite old version
 ##########################################################################################
