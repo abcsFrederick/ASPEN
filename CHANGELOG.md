@@ -1,7 +1,5 @@
 ## ASPEN development version
 
-- ASPEN is now archived on Zenodo, you can cite it with the DOI [10.5281/zenodo.13755867](https://doi.org/10.5281/zenodo.13755867). (#42, @kelly-sovacool)
-
 ## ASPEN 1.0.5
 
 - fix #54 ucsc tool version changed requiring newer version of GLIBC
@@ -18,7 +16,8 @@
 ## ASPEN 1.0.3
 
 - `unset PYTHONPATH` to fix #43
-- jobby command points to the correct location of snakemake.log file 
+- jobby command points to the correct location of snakemake.log file
+- ASPEN is now archived on Zenodo, you can cite it with the DOI [10.5281/zenodo.13755867](https://doi.org/10.5281/zenodo.13755867). (#42, @kelly-sovacool)
 
 ## ASPEN 1.0.2
 
