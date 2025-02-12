@@ -69,7 +69,7 @@ bash {params.scriptsdir}/{params.script} \
     --scriptsfolder {params.scriptsdir}
 cut -f1-6 {output.roi} > {output.roi_bed}
 bedSort {output.roi_bed} {output.roi_bed}
-${{TMPDIR}}/bedToGenePred {output.roi_bed} /dev/stdout | ${{TMPDIR}}/genePredToGtf file /dev/stdin {output.roi_gtf}
+bedToGenePred {output.roi_bed} /dev/stdout | genePredToGtf file /dev/stdin {output.roi_gtf}
 """
 
 rule get_counts_table:
