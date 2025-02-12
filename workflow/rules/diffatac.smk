@@ -37,13 +37,6 @@ if [ ! -d $TMPDIR ];then
     TMPDIR="/dev/shm"
 fi
 
-# get bedToGenePred genePredToGtf these are missing from the docker
-cd $TMPDIR
-wget -q -O bedToGenePred https://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/bedToGenePred
-chmod a+x bedToGenePred
-wget -q -O genePredToGtf https://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/genePredToGtf
-chmod a+x genePredToGtf
-
 NPS=""
 SAMPLENAMES=""
 count=0
