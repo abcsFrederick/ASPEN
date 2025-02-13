@@ -1,5 +1,9 @@
 ## ASPEN development version
 
+## ASPEN 1.0.6
+
+- hotfix #57 typo in masterdocker
+  
 ## ASPEN 1.0.5
 
 - fix #54 ucsc tool version changed requiring newer version of GLIBC
