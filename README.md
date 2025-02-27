@@ -1,6 +1,8 @@
 # ASPEN
 
-**A**tac **S**eq **P**ip**E**li**N**e
+**A**tac **S**eq **P**ip**E**li**N**e : 
+
+[CCBR](https://bioinformatics.ccr.cancer.gov/ccbr/) recommends ASPEN to effectively analyze ATAC-seq datasets on the [BIOWULF](https://hpc.nih.gov) HPC system at the [NIH](https://www.nih.gov/).
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13755867.svg)](https://doi.org/10.5281/zenodo.13755867)
 [![release](https://img.shields.io/github/v/release/CCBR/ASPEN?color=blue&label=latest%20release)](https://github.com/CCBR/ASPEN/releases/latest)
@@ -13,6 +15,8 @@ module load ccbrpipeliner/7
 ```bash
 aspen --help
 ```
+
+```bash
 ##########################################################################################
 
 Welcome to
