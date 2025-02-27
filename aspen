@@ -135,7 +135,6 @@ Optional Arguments:
 
 --genome|-g     : genome eg. hg38
 --manifest|-s   : absolute path to samples.tsv. This will be copied to output folder                    (--runmode=init only)
---useenvmod|-e  : use "--use-enmodules" option while running Snakemake. This is for using modules on HPC instead of containers(default).
 --help|-h       : print this help
 
 Example commands:
@@ -708,9 +707,6 @@ function main(){
       ;;
       -w=*|--workdir=*)
         WORKDIR="${i#*=}"
-      ;;
-      -e|--useenvmod)
-          USE_ENVMODULES=1
       ;;
       -c=*|--singcache=*)
         SING_CACHE_DIR="${i#*=}"
