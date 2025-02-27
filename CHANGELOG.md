@@ -1,27 +1,31 @@
 ## ASPEN development version
 
+## ASPEN 1.0.6
+
+- fix: dockername typo, [#57](https://github.com/CCBR/ASPEN/issues/57)
+
 ## ASPEN 1.0.5
 
-- fix #54 ucsc tool version changed requiring newer version of GLIBC
+- fix: ucsc tool version changed requiring newer version of GLIBC, [#54](https://github.com/CCBR/ASPEN/issues/54) 
 - using new masterdocker v11
 
 ## ASPEN 1.0.4
 
-- `BUYINPARTITIONS` fixed in wrapper for BIOWULF-only
-- fix #46
-- fix #48
-- fix #51
-- fix #52
+- fix: DiffATAC failure [#46](https://github.com/CCBR/ASPEN/issues/46)
+- fix: last line of `contrasts.tsv` read in correctly; black lines ignored, [#48](https://github.com/CCBR/ASPEN/issues/48)
+- fix: ROI calculation from fixed-width consensus peaks no longer tried to fix the peak width again [#50](https://github.com/CCBR/ASPEN/issues/50)
+- feature: create diffatac results from MACS2 peaks [#51](https://github.com/CCBR/ASPEN/issues/51)
+- fix: `BUYINPARTITIONS` fixed in wrapper for BIOWULF-only [#52](https://github.com/CCBR/ASPEN/issues/52)
 
 ## ASPEN 1.0.3
 
-- `unset PYTHONPATH` to fix #43
-- jobby command points to the correct location of snakemake.log file
-- ASPEN is now archived on Zenodo, you can cite it with the DOI [10.5281/zenodo.13755867](https://doi.org/10.5281/zenodo.13755867). (#42, @kelly-sovacool)
+- fix: No module named 'numpy._core._multiarray_umath' error with`unset PYTHONPATH`, [#43](https://github.com/CCBR/ASPEN/issues/43)
+- fix: jobby command points to the correct location of snakemake.log file
+- ASPEN is now archived on Zenodo, you can cite it with the DOI [10.5281/zenodo.13755867](https://doi.org/10.5281/zenodo.13755867). ([#42](https://github.com/CCBR/ASPEN/issues/42), @kelly-sovacool)
 
 ## ASPEN 1.0.2
 
-- Set the singularity cache dir if `--singcache` is not provided. (#37, @kelly-sovacool)
+- Set the singularity cache dir if `--singcache` is not provided. ([#37](https://github.com/CCBR/ASPEN/pull/37), @kelly-sovacool)
 - ASPEN now has a documentation website: <https://ccbr.github.io/ASPEN>
 
 ## ASPEN 1.0.1
