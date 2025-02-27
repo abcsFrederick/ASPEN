@@ -34,7 +34,7 @@ ASPEN requires a sample manifest file (`samples.tsv`) to identify and organize y
 
 > **Note**: The `replicateName` is used as a prefix for individual peak calls, while the `sampleName` serves as a prefix for consensus peak calls.
 
-> **Note**: For differential ATAC analysis, prepare a contrasts.tsv file with two columns (Group1 and Group2, without headers) and place it in the output directory after initialization.
+> **Note**: For differential ATAC analysis, create a `contrasts.tsv` file with two columns (Group1 and Group2 ... aka Sample1 and Sample2, without headers) and place it in the output directory after initialization. Ensure each group/sample in the contrast has at least two replicates, as DESeq2 requires this for accurate contrast calculations.
 
 [Back to Table of Contents](#table-of-contents)
 
