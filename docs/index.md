@@ -1,5 +1,3 @@
-<!-- the README is inserted here automatically-->
+## Background
 
---8<-- "README.md"
-
-<!--- write additional info that you only want to appear in the docs index here -->
+The Assay for Transposase-Accessible Chromatin using sequencing (ATAC-seq) has revolutionized genomics by providing a rapid and sensitive method to assess chromatin accessibility across the genome. This technique offers profound insights into gene regulation, epigenetic modifications, and the dynamic landscape of the chromatin environment. To facilitate the comprehensive analysis of ATAC-seq data, the Center for Cancer Research (CCR) Collaborative Bioinformatics Resource (CCBR) has developed ASPEN (**A**tac **S**eq **P**ip**E**li**N**e), an automated, robust, reproducible pipeline designed using the Snakemake pipelining framework to streamline the complexities inherent in ATAC-seq data processing.
