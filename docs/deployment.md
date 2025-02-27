@@ -36,8 +36,6 @@ ASPEN requires a sample manifest file (`samples.tsv`) to identify and organize y
 
 > **Note**: For differential ATAC analysis, create a `contrasts.tsv` file with two columns (Group1 and Group2 ... aka Sample1 and Sample2, without headers) and place it in the output directory after initialization. Ensure each group/sample in the contrast has at least two replicates, as DESeq2 requires this for accurate contrast calculations.
 
-[Back to Table of Contents](#table-of-contents)
-
 ## Running the ASPEN Pipeline
 ASPEN operates through a series of modes to facilitate various stages of the analysis.
 

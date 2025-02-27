@@ -76,8 +76,7 @@ Content details:
 
 The `QC` folder contains the `multiqc_report.html` file which provides a comprehensive summary of the quality control metrics across all samples, including read quality, duplication rates, and other relevant statistics. This report aggregates results from various QC tools such as FastQC, FastqScreen, FLD, TSS enrichment, Peak Annotations, and others, presenting them in an easy-to-read format with interactive plots and tables. It helps in quickly identifying any issues with the sequencing data and ensures that the data quality is sufficient for downstream analysis.
 
-!!! note
-BAM files from `dedupBam` can be used for downstream footprinting analysis using [CCBR_TOBIAS](https://github.com/CCBR/CCBR_Tobias) pipeline
+!!! note BAM files from `dedupBam` can be used for downstream footprinting analysis using [CCBR_TOBIAS](https://github.com/CCBR/CCBR_Tobias) pipeline
 
 !!! note
 [bamCompare](https://deeptools.readthedocs.io/en/develop/content/tools/bamCompare.html) from deeptools can be run to compare BAMs from `dedupBam` for comprehensive BAM comparisons.
