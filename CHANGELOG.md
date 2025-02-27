@@ -2,24 +2,24 @@
 
 ## ASPEN 1.0.6
 
-- fix: dockername typo, [#57](https://github.com/CCBR/ASPEN/issues/57)
+- fix: dockername typo ([#57](https://github.com/CCBR/ASPEN/issues/57), @kopardev)
 
 ## ASPEN 1.0.5
 
-- fix: ucsc tool version changed requiring newer version of GLIBC, [#54](https://github.com/CCBR/ASPEN/issues/54) 
+- fix: ucsc tool version changed requiring newer version of GLIBC ([#54](https://github.com/CCBR/ASPEN/issues/54), @kopardev)
 - using new masterdocker v11
 
 ## ASPEN 1.0.4
 
-- fix: DiffATAC failure [#46](https://github.com/CCBR/ASPEN/issues/46)
-- fix: last line of `contrasts.tsv` read in correctly; black lines ignored, [#48](https://github.com/CCBR/ASPEN/issues/48)
-- fix: ROI calculation from fixed-width consensus peaks no longer tried to fix the peak width again [#50](https://github.com/CCBR/ASPEN/issues/50)
-- feature: create diffatac results from MACS2 peaks [#51](https://github.com/CCBR/ASPEN/issues/51)
-- fix: `BUYINPARTITIONS` fixed in wrapper for BIOWULF-only [#52](https://github.com/CCBR/ASPEN/issues/52)
+- fix: DiffATAC failure ([#46](https://github.com/CCBR/ASPEN/issues/46), @kopardev)
+- fix: last line of `contrasts.tsv` read in correctly; black lines ignored ([#48](https://github.com/CCBR/ASPEN/issues/48), @kopardev)
+- fix: ROI calculation from fixed-width consensus peaks no longer tried to fix the peak width again ([#50](https://github.com/CCBR/ASPEN/issues/50), @kopardev)
+- feature: create diffatac results from MACS2 peaks ([#51](https://github.com/CCBR/ASPEN/issues/51), @kopardev)
+- fix: `BUYINPARTITIONS` fixed in wrapper for BIOWULF-only ([#52](https://github.com/CCBR/ASPEN/issues/52), @kopardev)
 
 ## ASPEN 1.0.3
 
-- fix: No module named 'numpy._core._multiarray_umath' error with`unset PYTHONPATH`, [#43](https://github.com/CCBR/ASPEN/issues/43)
+- fix: No module named 'numpy._core._multiarray_umath' error with`unset PYTHONPATH` ([#43](https://github.com/CCBR/ASPEN/issues/43), @kopardev)
 - fix: jobby command points to the correct location of snakemake.log file
 - ASPEN is now archived on Zenodo, you can cite it with the DOI [10.5281/zenodo.13755867](https://doi.org/10.5281/zenodo.13755867). ([#42](https://github.com/CCBR/ASPEN/issues/42), @kelly-sovacool)
 
