@@ -10,7 +10,7 @@ repo_url: https://github.com/CCBR/ASPEN
 edit_uri: https://github.com/CCBR/ASPEN/edit/main/docs/
 
 # Copyright
-copyright: Copyright &copy; 2023 CCBR
+copyright: Copyright &copy; {{ now().year }} CCBR
 
 # Configuration
 theme:
