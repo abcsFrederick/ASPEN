@@ -3,6 +3,7 @@
 ## ASPEN 1.0.6
 
 - fix: dockername typo ([#57](https://github.com/CCBR/ASPEN/issues/57), @kopardev)
+- docs: update documentation, change theme ([#77](https://github.com/CCBR/ASPEN/issues/77), [#78](https://github.com/CCBR/ASPEN/issues/78), @kopardev)
 
 ## ASPEN 1.0.5
 
