@@ -31,13 +31,13 @@ ASPEN requires a sample manifest file (`samples.tsv`) to identify and organize y
 - `path_to_R2_fastq`: Absolute path to the Read 2 FASTQ file (required for paired-end data).
 
 !!! note
-  Symlinks for R1 and R2 files will be created in the results directory, named as <replicateName>.R1.fastq.gz and <replicateName>.R2.fastq.gz, respectively. Therefore, original filenames do not need to be altered.
+    Symlinks for R1 and R2 files will be created in the results directory, named as <replicateName>.R1.fastq.gz and <replicateName>.R2.fastq.gz, respectively. Therefore, original filenames do not need to be altered.
 
 !!! note
-  The `replicateName` is used as a prefix for individual peak calls, while the `sampleName` serves as a prefix for consensus peak calls.
+    The `replicateName` is used as a prefix for individual peak calls, while the `sampleName` serves as a prefix for consensus peak calls.
 
 !!! note
-   For differential ATAC analysis, create a `contrasts.tsv` file with two columns (Group1 and Group2 ... aka Sample1 and Sample2, without headers) and place it in the output directory after initialization. Ensure each group/sample in the contrast has at least two replicates, as DESeq2 requires this for accurate contrast calculations.
+    For differential ATAC analysis, create a `contrasts.tsv` file with two columns (Group1 and Group2 ... aka Sample1 and Sample2, without headers) and place it in the output directory after initialization. Ensure each group/sample in the contrast has at least two replicates, as DESeq2 requires this for accurate contrast calculations.
 
 ## Running the ASPEN Pipeline
 ASPEN operates through a series of modes to facilitate various stages of the analysis.
