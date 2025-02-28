@@ -218,4 +218,5 @@ This file contains the read counts for each Region-Of-Interest (ROI) across all 
 
 Each row represents a specific ROI, and the columns contain the read counts for each sample, allowing for differential accessibility analysis.
 
-> DISCLAIMER: This folder hierarchy is specific to v1.0.6 and is subject to change with version.
+!!! warning
+    DISCLAIMER: This folder hierarchy is specific to v1.0.6 and is subject to change with version.
