@@ -172,4 +172,5 @@ featurecountsdocker: "docker://dsaha0295/featurecounts:latest"
 baser: "docker://nciccbr/ccbr_baser:230531"
 
 # pipeline information
+pipeline: "ASPEN"
 version: "$ASPENVERSION"
