@@ -1,7 +1,5 @@
 ## ASPEN development version
 
-## ASPEN development version
-
 ## ASPEN 1.0.6
 
 - fix: dockername typo ([#57](https://github.com/CCBR/ASPEN/issues/57), @kopardev)
