@@ -53,38 +53,35 @@ rule all:
         expand(join(RESULTSDIR,"peaks","genrich","{sample}.consensus.genrich.peakfiles"),sample=SAMPLES),
         expand(join(RESULTSDIR,"peaks","genrich","{sample}.replicate.genrich.peakfiles"),sample=SAMPLES),
         expand(join(RESULTSDIR,"peaks","genrich","{sample}.genrich.tn5nicksbedfiles"),sample=SAMPLES),
-        # roi gtf 
+        # roi gtf
         expand(join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.gtf"),peakcaller=PEAKCALLERS),
         # counts matrix
         expand(join(RESULTSDIR,"peaks","{peakcaller}","ROI.counts.tsv"),peakcaller=PEAKCALLERS),
         # diffatac
         expand(join(RESULTSDIR, "peaks", "{peakcaller}", "DiffATAC", "all_diff_atacs.tsv"),peakcaller=PEAKCALLERS) if CONTRASTS.shape[0] > 0 else [],
 
-
-# create jobby tables
-jobby_cmd = 'run_jobby_on_snakemake_log snakemake.log | tee logs/snakemake.log.jobby | cut -f2,3,18 > logs/snakemake.log.jobby.short'
-spook_cmd = f'spooker {WORKDIR} ASPEN'
+on_complete = f"""
+for cmd in spooker run_jobby_on_snakemake_log; do
+    if ! command -v $cmd 2>&1 >/dev/null; then
+        export PATH="$PATH:{config['ccbr_tools_path']}"
+    fi
+done
+run_jobby_on_snakemake_log logs/snakemake.log | tee logs/snakemake.log.jobby | cut -f2,3,18 > logs/snakemake.log.jobby.short
+spooker {WORKDIR} {config['pipeline']} {config['version']}
+"""
 
 onsuccess:
     #subprocess.run(shlex.split(jobby_cmd),capture_output=False,shell=False,text=True)
     print("OnSuccess")
     shell("printenv")
     shell("module list")
-    print(jobby_cmd)
-    print("The above command may fail if run_jobby_on_snakemake_log is not in PATH!")
-    shell(jobby_cmd)
-    print(spook_cmd)
-    shell(spook_cmd)
-    print("The above command may fail if spooker is not in PATH or not running on BIOWULF/FRCE!")
+    print(on_complete)
+    shell(on_complete)
 
 onerror:
     #subprocess.run(shlex.split(jobby_cmd),capture_output=False,shell=False,text=True)
     print("OnError")
     shell("printenv")
     shell("module list")
-    print(jobby_cmd)
-    shell(jobby_cmd)
-    print("The above command may fail if run_jobby_on_snakemake_log is not in PATH!")
-    print(spook_cmd)
-    shell(spook_cmd)
-    print("The above command may fail if spooker is not in PATH or not running on BIOWULF/FRCE!")
+    print(on_complete)
+    shell(on_complete)

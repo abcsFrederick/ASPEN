@@ -40,7 +40,7 @@ EOF
 ##########################################################################################
 
 # ## setting PIPELINE_HOME
-PIPELINE_HOME=$(readlink -f $(dirname "$0"))
+export PIPELINE_HOME=$(readlink -f $(dirname "$0"))
 
 # set snakefile
 SNAKEFILE="${PIPELINE_HOME}/workflow/Snakefile"
@@ -58,10 +58,10 @@ PYTHONVERSION="python/3.10"
 SNAKEMAKEVERSION="snakemake"
 #SINGULARITYVERSION="singularity/3.7.4"
 SINGULARITYVERSION="singularity"
-ASPENVERSION=$(head -n1 $VERSIONFILE|awk '{print $1}')
+export ASPENVERSION=$(head -n1 $VERSIONFILE|awk '{print $1}')
 
 # set defaults
-GENOME="hg38"
+export GENOME="hg38"
 SUPPORTED_GENOMES="hg19 hg38 mm10 mmul10 bosTau9 hs1"
 
 # essential files
@@ -193,9 +193,7 @@ mkdir -p $WORKDIR
 f="${PIPELINE_HOME}/config/config.yaml"
 echo "Copying essential file: $f"
 fbn=$(basename $f)
-sed -e "s/PIPELINE_HOME/${PIPELINE_HOME//\//\\/}/g" \
-  -e "s/WORKDIR/${WORKDIR//\//\\/}/g" \
-  -e "s/GENOME/${GENOME}/g" $f > $WORKDIR/$fbn
+cat $f | envsubst '$PIPELINE_HOME $WORKDIR $GENOME $ASPENVERSION' > $WORKDIR/$fbn
 
 for f in ${PIPELINE_HOME}/resources/cluster.json ${PIPELINE_HOME}/resources/tools.yaml
 do
@@ -215,9 +213,7 @@ if [[ "$MANIFEST_SUPPLIED" == "false" ]];then
 f=$MANIFEST
 echo "Copying essential file: $f"
 fbn=$(basename $f)
-sed -e "s/PIPELINE_HOME/${PIPELINE_HOME//\//\\/}/g" \
-  -e "s/WORKDIR/${WORKDIR//\//\\/}/g" \
-  -e "s/GENOME/${GENOME}/g" $f > $WORKDIR/$fbn
+cat $f | envsubst '$PIPELINE_HOME $WORKDIR $GENOME $ASPENVERSION' > $WORKDIR/$fbn
 fi
 
 # copy essential folders
@@ -296,10 +292,9 @@ function reconfig(){
 # this is only for dev purposes when new key-value pairs are being added to the config file
 
   check_essential_files
-  sed -e "s/PIPELINE_HOME/${PIPELINE_HOME//\//\\/}/g" \
-    -e "s/WORKDIR/${WORKDIR//\//\\/}/g" \
-    -e "s/GENOME/${GENOME}/g" \
-    ${PIPELINE_HOME}/config/config.yaml > $WORKDIR/config.yaml
+  cat ${PIPELINE_HOME}/config/config.yaml |\
+    envsubst '$PIPELINE_HOME $WORKDIR $GENOME $ASPENVERSION' \
+    > $WORKDIR/config.yaml
   echo "$WORKDIR/config.yaml has been updated!"
 
 }
@@ -716,7 +711,7 @@ function main(){
         if [ ! -f $MANIFEST ];then err "File $MANIFEST does NOT exist!";fi
       ;;
       -g=*|--genome=*)
-        GENOME="${i#*=}"
+        export GENOME="${i#*=}"
         found=0
         for g in $SUPPORTED_GENOMES;do
           if [[ "$GENOME" == "$g" ]];then
@@ -739,7 +734,7 @@ function main(){
       ;;
   esac
   done
-  WORKDIR=$(readlink -f "$WORKDIR")
+  export WORKDIR=$(readlink -f "$WORKDIR")
   MANIFEST_SUPPLIED="true"
   # if manifest is empty ... aka not supplied at cli
   if [[ -z $MANIFEST ]];then
