@@ -13,7 +13,7 @@ callPeaks(){
         -f BED \
         -n $PREFIX \
         -g $EFFECTIVEGENOMESIZE \
-        -p 0.01 \
+        -p $PVALUE \
         --shift -$SHIFTSIZE \
         --extsize $EXTSIZE \
         --keep-dup all \
@@ -28,15 +28,17 @@ callPeaks(){
     rm -f ${PREFIX}_peaks.narrowPeak.tmp
     mv ${PREFIX}_peaks.narrowPeak ${PREFIX}.narrowPeak
 
-# qvalue filter of 0.1 ... very lenient
+# apply qfilter
     if [ $FILTERPEAKS == "True" ];then
       qvalue=$QFILTER
-      awk -F"\t" -v q=$qvalue '{if ($9>q){print}}' ${PREFIX}.narrowPeak > ${PREFIX}.qfilter.narrowPeak
+      unfilteredpeakfile="${PREFIX}.unfiltered.narrowPeak"
+      mv ${PREFIX}.narrowPeak $unfilteredpeakfile
+      awk -F"\t" -v q=$qvalue '{if ($9>q){print}}' $unfilteredpeakfile > ${PREFIX}.narrowPeak
     fi
 
 # annotate
     if [ "$RUNCHIPSEEKER" == "True" ];then
-    for f in ${PREFIX}.narrowPeak ${PREFIX}.qfilter.narrowPeak;do
+    for f in ${PREFIX}.unfiltered.narrowPeak ${PREFIX}.narrowPeak;do
         npeaks=$(wc -l $f|awk '{print $1}')
         if [ "$npeaks" -gt "0" ];then
             Rscript ${SCRIPTSFOLDER}/ccbr_annotate_peaks.R -n $f  -a ${f}.annotated -g $GENOME -l ${f}.genelist -f ${f}.annotation_summary 
@@ -50,6 +52,7 @@ callPeaks(){
     done
     fi
 
+
 # save bigwig
 # MAY NEED TO BE NORMALIZED FOR GENOME SIZE ... DONT KNOW FOR SURE
 # MACS says
@@ -57,32 +60,33 @@ callPeaks(){
 # MACS will save fragment pileup signal per million reads
 #
 # Genrich normalization is as per 1x genome coverage... and macs2 normalization is per million reads 
-    bedSort ${PREFIX}_treat_pileup.bdg ${PREFIX}_treat_pileup.bdg
-# some coordinates go out of chromosome size in macs2 bam2bw conversion.... using a working around 
-    awk -F"\t" -v OFS="\t" '{print $1,"0",$2}' $GENOMEFILE > /dev/shm/${PREFIX}.genome.bed
-    bedtools intersect -a ${PREFIX}_treat_pileup.bdg -b /dev/shm/${PREFIX}.genome.bed > /dev/shm/${PREFIX}.bg
-    mv /dev/shm/${PREFIX}.bg ${PREFIX}_treat_pileup.bdg
-    rm -f /dev/shm/${PREFIX}.genome.bed
-#
-    bedGraphToBigWig ${PREFIX}_treat_pileup.bdg $GENOMEFILE ${PREFIX}.bw
-    rm -f ${PREFIX}_treat_pileup.bdg
-    rm -f ${PREFIX}_control_lambda.bdg
-    mv ${PREFIX}.bw ${OUTDIR}/bigwig/${PREFIX}.bw
+#     bedSort ${PREFIX}_treat_pileup.bdg ${PREFIX}_treat_pileup.bdg
+# # some coordinates go out of chromosome size in macs2 bam2bw conversion.... using a working around 
+#     awk -F"\t" -v OFS="\t" '{print $1,"0",$2}' $GENOMEFILE > /dev/shm/${PREFIX}.genome.bed
+#     bedtools intersect -a ${PREFIX}_treat_pileup.bdg -b /dev/shm/${PREFIX}.genome.bed > /dev/shm/${PREFIX}.bg
+#     mv /dev/shm/${PREFIX}.bg ${PREFIX}_treat_pileup.bdg
+#     rm -f /dev/shm/${PREFIX}.genome.bed
+# #
+#     bedGraphToBigWig ${PREFIX}_treat_pileup.bdg $GENOMEFILE ${PREFIX}.bw
+#     rm -f ${PREFIX}_treat_pileup.bdg
+#     rm -f ${PREFIX}_control_lambda.bdg
+#     mv ${PREFIX}.bw ${OUTDIR}/bigwig/${PREFIX}.bw
 
 # save nicks bam and bed
-  nicksBED=${PREFIX}.tn5nicks.bed
-  nicksBAM=${PREFIX}.tn5nicks.bam
-  zcat $TAGALIGN|awk -F"\t" -v OFS="\t" '{if ($6=="+") {print $1,$2,$2+1} else {print $1,$3,$3+1}}'> $nicksBED
-  bedSort $nicksBED $nicksBED
-  awk -F"\t" -v OFS="\t" '{print $1,$2,$3,$1":"$2"-"$3}' $nicksBED > ${nicksBED%.*}.tmp.bed
-  bedToBam -i ${nicksBED%.*}.tmp.bed -g $GENOMEFILE > $nicksBAM
-  samtools sort -@4 -o ${nicksBAM%.*}.sorted.bam $nicksBAM
-  mv ${nicksBAM%.*}.sorted.bam $nicksBAM
-  rm -f ${nicksBED%.*}.tmp.bed 
-  pigz -f -p4 $nicksBED
-  mv ${nicksBED}.gz ${OUTDIR}/tn5nicks/${nicksBED}.gz
-  mv ${nicksBAM} ${OUTDIR}/tn5nicks/${nicksBAM}
-  samtools index ${OUTDIR}/tn5nicks/${nicksBAM}
+
+#   nicksBED=${PREFIX}.tn5nicks.bed
+#   nicksBAM=${PREFIX}.tn5nicks.bam
+#   zcat $TAGALIGN|awk -F"\t" -v OFS="\t" '{if ($6=="+") {print $1,$2,$2+1} else {print $1,$3,$3+1}}'> $nicksBED
+#   bedSort $nicksBED $nicksBED
+#   awk -F"\t" -v OFS="\t" '{print $1,$2,$3,$1":"$2"-"$3}' $nicksBED > ${nicksBED%.*}.tmp.bed
+#   bedToBam -i ${nicksBED%.*}.tmp.bed -g $GENOMEFILE > $nicksBAM
+#   samtools sort -@4 -o ${nicksBAM%.*}.sorted.bam $nicksBAM
+#   mv ${nicksBAM%.*}.sorted.bam $nicksBAM
+#   rm -f ${nicksBED%.*}.tmp.bed 
+#   pigz -f -p4 $nicksBED
+#   mv ${nicksBED}.gz ${OUTDIR}/tn5nicks/${nicksBED}.gz
+#   mv ${nicksBAM} ${OUTDIR}/tn5nicks/${nicksBAM}
+#   samtools index ${OUTDIR}/tn5nicks/${nicksBAM}
 }
 
 set -e -x -o pipefail
@@ -117,11 +121,12 @@ parser.add_argument('--genomefile',required=True,help=".genome file")
 
 parser.add_argument('--extsize',required=False, default=200, help='extsize')
 parser.add_argument('--shiftsize',required=False, default=100, help='shiftsize')
+parser.add_argument('--pvalue',required=False, default=0.1, help='pvalue cutoff for peak calling')
 parser.add_argument('--samplename',required=True, help='samplename,i.e., all replicates belong to this sample')
 
 # only required if filtering
 parser.add_argument('--filterpeaks',required=False, default="True", help='filterpeaks by qvalue: True or False')
-parser.add_argument('--qfilter',required=False, default=1, help='default qfiltering value is 1 (-log10 of 0.1) for q=1')
+parser.add_argument('--qfilter',required=False, default=1.301, help='default qfiltering value is 1.301 (-log10 of 0.05) for q=0.05')
 
 parser.add_argument('--scriptsfolder',required=True,  help='folder where the scripts are... probably <path to workflow>/scripts')
 parser.add_argument('--runchipseeker',required=True, default="False", help='annotate peaks with chipseeker')
@@ -149,27 +154,27 @@ if [ "$RUNCHIPSEEKER" == "True" ];then
 fi
 
 
-nreplicates=${#TAGALIGNFILES[@]}
-TAGALIGN1=${TAGALIGNFILES[0]}
+nreplicates=$(echo $TAGALIGNFILES|wc -w)
+TAGALIGN1=$(echo $TAGALIGNFILES|awk '{print $1}')
 REP1NAME=`echo $(basename $TAGALIGN1)|awk -F".tag" '{print $1}'`
 if [ "$nreplicates" -ge 2 ]; then
-    TAGALIGN2=${TAGALIGNFILES[1]}
+    TAGALIGN2=$(echo $TAGALIGNFILES|awk '{print $2}')
     REP2NAME=`echo $(basename $TAGALIGN2)|awk -F".tag" '{print $1}'`
 fi	
 if [ "$nreplicates" -ge 3 ]; then
-    TAGALIGN3=${TAGALIGNFILES[2]}
+    TAGALIGN3=$(echo $TAGALIGNFILES|awk '{print $3}')
     REP3NAME=`echo $(basename $TAGALIGN3)|awk -F".tag" '{print $1}'`
 fi	
 if [ "$nreplicates" -ge 4 ]; then
-    TAGALIGN4=${TAGALIGNFILES[3]}
+    TAGALIGN4=$(echo $TAGALIGNFILES|awk '{print $4}')
     REP4NAME=`echo $(basename $TAGALIGN4)|awk -F".tag" '{print $1}'`
 fi
 if [ "$nreplicates" -ge 5 ]; then
-    TAGALIGN5=${TAGALIGNFILES[4]}
+    TAGALIGN5=$(echo $TAGALIGNFILES|awk '{print $5}')
     REP5NAME=`echo $(basename $TAGALIGN5)|awk -F".tag" '{print $1}'`
 fi
 if [ "$nreplicates" -ge 6 ]; then
-    TAGALIGN6=${TAGALIGNFILES[5]}
+    TAGALIGN6=$(echo $TAGALIGNFILES|awk '{print $6}')
     REP6NAME=`echo $(basename $TAGALIGN6)|awk -F".tag" '{print $1}'`
 fi
 
