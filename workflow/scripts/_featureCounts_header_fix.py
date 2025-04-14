@@ -12,6 +12,8 @@ for l in sys.stdin:
 				x=os.path.basename(s)
 				x=x.replace(".genrich.tn5nicks.bam","")
 				x=x.replace(".macs2.tn5nicks.bam","")
+				x=x.replace(".tn5sites.bam","")
+				x=x.replace(".reads.bam","")
 				outlist.append(x)
 			else:
 				outlist.append(s)
