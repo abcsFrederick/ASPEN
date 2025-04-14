@@ -11,7 +11,7 @@ def get_replicate_tagAlignFiles_for_sample(wildcards):
     replicates=SAMPLE2REPLICATES[wildcards.sample]
     d=dict()
     for i,s in enumerate(replicates):
-        d["tagAlign"+str(i+1)]=join(RESULTSDIR,"tagAlign",s+".tagAlign.gz")
+        d["tagAlign"+str(i+1)]=join(ALIGNDIR,"tagAlign",s+".tagAlign.gz")
     return d
 
 #########################################################
@@ -24,7 +24,7 @@ def get_replicate_qsortedBamFiles_for_sample(wildcards):
     replicates=SAMPLE2REPLICATES[wildcards.sample]
     d=dict()
     for i,s in enumerate(replicates):
-        d["qsortedBam"+str(i+1)]=join(RESULTSDIR,"qsortedBam",s+".qsorted.bam")
+        d["qsortedBam"+str(i+1)]=join(ALIGNDIR,"qsortedBam",s+".qsorted.bam")
     return d
 
 #########################################################
@@ -39,7 +39,7 @@ def get_peakfiles_for_motif_enrichment(wildcards):
     for peakcaller in [ "macs2", "genrich" ]:
     # for peakcaller in wildcards.peakcaller:
         for replicate in replicates:
-            narrowPeak=join(RESULTSDIR,"peaks",peakcaller,replicate+"."+peakcaller+".qfilter.narrowPeak")
+            narrowPeak=join(RESULTSDIR,"peaks",peakcaller,replicate+"."+peakcaller+".narrowPeak")
             count+=1
             d[str(count)]=narrowPeak
         consensusBed=join(RESULTSDIR,"peaks",peakcaller,wildcards.sample+"."+peakcaller+".consensus.bed")
@@ -76,13 +76,14 @@ rule atac_macs_peakcalling:
         macs2_extsize=config["macs2"]["extsize"],
         macs2_shiftsize=config["macs2"]["shiftsize"],
         macs2_annotatePeaks=config["macs2"]["annotatePeaks"],
-        macs2_effectiveGenomeSize=config[GENOME]["effectiveGenomeSize"]
+        macs2_effectiveGenomeSize=config[GENOME]["effectiveGenomeSize"],
+        macs2_p=config["macs2"]["p"],
+        macs2_qfilter=MACS2_QFILTER
     output:
         consensusPeakFileList=join(RESULTSDIR,"peaks","macs2","{sample}.consensus.macs2.peakfiles"),
         replicatePeakFileList=join(RESULTSDIR,"peaks","macs2","{sample}.replicate.macs2.peakfiles"),
-        tn5nicksFileList=join(RESULTSDIR,"peaks","macs2","{sample}.macs2.tn5nicksbedfiles")
     container: config["masterdocker"]    
-    threads: getthreads("atac_genrich_peakcalling")
+    threads: getthreads("atac_macs_peakcalling")
     shell:"""
 set -e -x -o pipefail
 unset PYTHONPATH
@@ -94,21 +95,22 @@ done
 
 cd {params.outdir}
 
-if [ ! -d {params.outdir}/bigwig ];then mkdir -p {params.outdir}/bigwig ;fi
-if [ ! -d {params.outdir}/tn5nicks ];then mkdir -p {params.outdir}/tn5nicks ;fi
 if [ ! -d {params.qcdir}/peak_annotation ];then mkdir -p {params.qcdir}/peak_annotation;fi
 
-bash {params.scriptsdir}/{params.script} \
-    --tagalignfiles {input} \
-    --genome {params.genome} \
-    --genomefile {params.genomefile} \
-    --samplename {params.sample} \
-    --scriptsfolder {params.scriptsdir} \
-    --outdir {params.outdir} \
-    --extsize {params.macs2_extsize} \
-    --shiftsize {params.macs2_shiftsize} \
-    --runchipseeker {params.macs2_annotatePeaks} \
-    --effectivegenomesize {params.macs2_effectiveGenomeSize}
+bash "{params.scriptsdir}/{params.script}" \
+    --tagalignfiles "{input}" \
+    --genome "{params.genome}" \
+    --genomefile "{params.genomefile}" \
+    --samplename "{params.sample}" \
+    --scriptsfolder "{params.scriptsdir}" \
+    --outdir "{params.outdir}" \
+    --extsize "{params.macs2_extsize}" \
+    --shiftsize "{params.macs2_shiftsize}" \
+    --pvalue "{params.macs2_p}" \
+    --runchipseeker "{params.macs2_annotatePeaks}" \
+    --filterpeaks "True" \
+    --qfilter "{params.macs2_qfilter}" \
+    --effectivegenomesize "{params.macs2_effectiveGenomeSize}"
 
 if [ "{params.macs2_annotatePeaks}" == "True" ];then
 for g in "annotated" "genelist" "annotation_summary" "annotation_distribution"
@@ -119,16 +121,14 @@ do
 done
 fi
 
-if [ -f {output.tn5nicksFileList} ];then rm -f {output.tn5nicksFileList};fi
 if [ -f {output.replicatePeakFileList} ];then rm -f {output.replicatePeakFileList};fi
 
 for f in {input}
 do
     repname=`basename $f|awk -F".tagAlign" '{{print $1}}'`
-    echo -ne "${{repname}}\t{params.sample}\t{params.outdir}/tn5nicks/${{repname}}.macs2.tn5nicks.bam\n" >> {output.tn5nicksFileList}
-    echo -ne "${{repname}}\t{params.sample}\t{params.outdir}/${{repname}}.macs2.narrowPeak\n" >> {output.replicatePeakFileList}
+    echo -ne "${{repname}}\\t{params.sample}\\t{params.outdir}/${{repname}}.macs2.narrowPeak\\n" >> {output.replicatePeakFileList}
 done
-echo -ne "{params.sample}\t{params.sample}\t{params.outdir}/{params.sample}.macs2.consensus.bed\n" > {output.consensusPeakFileList}
+echo -ne "{params.sample}\\t{params.sample}\\t{params.outdir}/{params.sample}.macs2.consensus.bed\\n" > {output.consensusPeakFileList}
 
 """
 
@@ -175,17 +175,17 @@ while read repname sample np;do
     fi
 done < {input.replicatePeakFileList}
 
-bash {params.scriptsdir}/{params.script} \
-    --narrowpeaks $NPS \
-    --replicatenames $REPNAMES \
-    --width {params.width} \
-    --samplename {params.sample} \
-    --consensusnp {output.consensusNarrowPeak} \
-    --consensusrenormnp {output.renormalizedConsensusNarrowPeak} \
-    --consensusminrep {params.min_rep} \
-    --consensusminspm {params.min_spm} \
-    --tmpdir $TMPDIR \
-    --scriptsfolder {params.scriptsdir}
+bash "{params.scriptsdir}/{params.script}" \
+    --narrowpeaks "$NPS" \
+    --replicatenames "$REPNAMES" \
+    --width "{params.width}" \
+    --samplename "{params.sample}" \
+    --consensusnp "{output.consensusNarrowPeak}" \
+    --consensusrenormnp "{output.renormalizedConsensusNarrowPeak}" \
+    --consensusminrep "{params.min_rep}" \
+    --consensusminspm "{params.min_spm}" \
+    --tmpdir "$TMPDIR" \
+    --scriptsfolder "{params.scriptsdir}"
 """
 
 #########################################################
@@ -206,6 +206,7 @@ rule atac_genrich_peakcalling:
         unpack(get_replicate_qsortedBamFiles_for_sample)
     params:
         genome=GENOME,
+        genrich_exclude=GENRICH_E,
         genomefile=GENOMEFILE,
         outdir=join(RESULTSDIR,"peaks","genrich"),
         scriptsdir=SCRIPTSDIR,
@@ -219,12 +220,12 @@ rule atac_genrich_peakcalling:
         genrich_l=config["genrich"]["l"],
         genrich_g=config["genrich"]["g"],
         genrich_d=config["genrich"]["d"],
+        genrich_qfilter=GENRICH_QFILTER,
         genrich_annotatePeaks=config["genrich"]["annotatePeaks"],
         genrich_effectiveGenomeSize=config[GENOME]["effectiveGenomeSize"]
     output:
         consensusPeakFileList=join(RESULTSDIR,"peaks","genrich","{sample}.consensus.genrich.peakfiles"),
         replicatePeakFileList=join(RESULTSDIR,"peaks","genrich","{sample}.replicate.genrich.peakfiles"),
-        tn5nicksFileList=join(RESULTSDIR,"peaks","genrich","{sample}.genrich.tn5nicksbedfiles")
     container: config["masterdocker"]    
     threads: getthreads("atac_genrich_peakcalling")
     shell:"""
@@ -238,27 +239,28 @@ done
 
 cd {params.outdir}
 
-if [ ! -d {params.outdir}/bigwig ];then mkdir -p {params.outdir}/bigwig ;fi
-if [ ! -d {params.outdir}/tn5nicks ];then mkdir -p {params.outdir}/tn5nicks ;fi
 if [ ! -d {params.qcdir}/peak_annotation ];then mkdir -p {params.qcdir}/peak_annotation;fi
 if [ ! -d {params.readsbedfolder} ];then mkdir -p {params.readsbedfolder};fi
 
 bash {params.scriptsdir}/{params.script} \
-    --bamfiles {input} \
-    --genome {params.genome} \
-    --genomefile {params.genomefile} \
-    --samplename {params.sample} \
-    --scriptsfolder {params.scriptsdir} \
-    --genrich_s {params.genrich_s} \
-    --genrich_m {params.genrich_m} \
-    --genrich_q {params.genrich_q} \
-    --genrich_l {params.genrich_l} \
-    --genrich_g {params.genrich_g} \
-    --genrich_d {params.genrich_d} \
-    --runchipseeker {params.genrich_annotatePeaks} \
-    --outdir {params.outdir} \
-    --readsbedfolder {params.readsbedfolder} \
-    --effectivegenomesize {params.genrich_effectiveGenomeSize}
+    --bamfiles "{input}" \
+    --genome "{params.genome}" \
+    --genomefile "{params.genomefile}" \
+    --samplename "{params.sample}" \
+    --scriptsfolder "{params.scriptsdir}" \
+    --genrich_s "{params.genrich_s}" \
+    --genrich_m "{params.genrich_m}" \
+    --genrich_l "{params.genrich_l}" \
+    --genrich_g "{params.genrich_g}" \
+    --genrich_q "{params.genrich_q}" \
+    --genrich_d "{params.genrich_d}" \
+    --genrich_exclude "{params.genrich_exclude}" \
+    --runchipseeker "{params.genrich_annotatePeaks}" \
+    --outdir "{params.outdir}" \
+    --readsbedfolder "{params.readsbedfolder}" \
+    --effectivegenomesize "{params.genrich_effectiveGenomeSize}" \
+    --filterpeaks "True" \
+    --qfilter "{params.genrich_qfilter}"
 
 if [ "{params.genrich_annotatePeaks}" == "True" ];then
 for g in "annotated" "genelist" "annotation_summary" "annotation_distribution"
@@ -269,13 +271,11 @@ do
 done
 fi
 
-if [ -f {output.tn5nicksFileList} ];then rm -f {output.tn5nicksFileList};fi
 if [ -f {output.replicatePeakFileList} ];then rm -f {output.replicatePeakFileList};fi
 
 for f in {input}
 do
     repname=`basename $f|awk -F".qsorted.bam" '{{print $1}}'`
-    echo -ne "${{repname}}\t{params.sample}\t{params.outdir}/tn5nicks/${{repname}}.genrich.tn5nicks.bam\n" >> {output.tn5nicksFileList}
     echo -ne "${{repname}}\t{params.sample}\t{params.outdir}/${{repname}}.genrich.narrowPeak\n" >> {output.replicatePeakFileList}
 done
 echo -ne "{params.sample}\t{params.sample}\t{params.outdir}/{params.sample}.genrich.consensus.bed\n" > {output.consensusPeakFileList}
@@ -304,7 +304,7 @@ rule atac_genrich_peakcalling_fixed_width:
         min_spm     = config['consensus_min_spm'],
         script="ccbr_atac_get_fixedwidth_consensus_renormalized_peaks.sh"
     container: config["masterdocker"]    
-    threads: getthreads("atac_macs_peakcalling_fixed_width")
+    threads: getthreads("atac_genrich_peakcalling_fixed_width")
     shell:"""
 set -exo pipefail
 TMPDIR="/lscratch/$SLURM_JOB_ID"
@@ -325,17 +325,17 @@ while read repname sample np;do
     fi
 done < {input.replicatePeakFileList}
 
-bash {params.scriptsdir}/{params.script} \
-    --narrowpeaks $NPS \
-    --replicatenames $REPNAMES \
-    --width {params.width} \
-    --samplename {params.sample} \
-    --consensusnp {output.consensusNarrowPeak} \
-    --consensusrenormnp {output.renormalizedConsensusNarrowPeak} \
-    --consensusminrep {params.min_rep} \
-    --consensusminspm {params.min_spm} \
-    --tmpdir $TMPDIR \
-    --scriptsfolder {params.scriptsdir}
+bash "{params.scriptsdir}/{params.script}" \
+    --narrowpeaks "$NPS" \
+    --replicatenames "$REPNAMES" \
+    --width "{params.width}" \
+    --samplename "{params.sample}" \
+    --consensusnp "{output.consensusNarrowPeak}" \
+    --consensusrenormnp "{output.renormalizedConsensusNarrowPeak}" \
+    --consensusminrep "{params.min_rep}" \
+    --consensusminspm "{params.min_spm}" \
+    --tmpdir "$TMPDIR" \
+    --scriptsfolder "{params.scriptsdir}"
 """
 
 rule motif_enrichment:
@@ -364,17 +364,17 @@ if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then tmpdir="/lscratch/${{SLURM_JOB_ID}}
  
 for narrowPeak in `cat {input}|awk '{{print $NF}}'`;do
     mkdir -p ${{narrowPeak}}_motif_enrichment
-    narrowPeak_bn=$(basename $narrowPeak)
-    ttmpdir="${{tmpdir}}/$narrowPeak_bn"
+    narrowPeak_bn=$(basename ${{narrowPeak}})
+    ttmpdir="${{tmpdir}}/${{narrowPeak_bn}}"
     mkdir -p $ttmpdir
-    bash {params.scriptsdir}/{params.script} \
-        --narrowpeak $narrowPeak \
-        --genomefa {params.genomefa} \
-        --homermotif {params.homermotif} \
-        --mememotif {params.mememotif} \
-        --threads {threads} \
-        --outdir ${{narrowPeak}}_motif_enrichment \
-        --tmpdir $ttmpdir
+    bash "{params.scriptsdir}/{params.script}" \
+        --narrowpeak "${{narrowPeak}}" \
+        --genomefa "{params.genomefa}" \
+        --homermotif "{params.homermotif}" \
+        --mememotif "{params.mememotif}" \
+        --threads "{threads}" \
+        --outdir "${{narrowPeak}}_motif_enrichment" \
+        --tmpdir "$ttmpdir"
 done
 
 touch {output.dummy}

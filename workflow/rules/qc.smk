@@ -66,7 +66,7 @@ rule atac_tss:
 # * per-replicate "tss.txt" file is generated --> read by MultiQC later
 # """
     input:
-        tagalign=join(RESULTSDIR,"tagAlign","{replicate}.tagAlign.gz")
+        tagalign=join(ALIGNDIR,"tagAlign","{replicate}.tagAlign.gz")
     output:
         tss=join(QCDIR,"tss","{replicate}.tss.txt")
     params:
@@ -106,7 +106,7 @@ rule atac_fld:
 # Output: "fld.txt" file per-replicate --> used by MultiQC later
 # """
     input:
-        dedupbam=rules.align.output.dedupbam
+        dedupbam=rules.align.output.dedupBam
     output:
         fld=join(QCDIR,"fld","{replicate}.fld.txt")
     params:
@@ -218,42 +218,34 @@ done
 
 #########################################################
 
+
 rule frip:
-# """
-# Create a file to run frip on ... collect all the data needed into a flat file which can then be 
-# looped through
-# Output:
-# * "to_frip.txt"
-# """
     input:
-        genrich_replicatePeakFileList=join(RESULTSDIR,"peaks","genrich","{sample}.replicate.genrich.peakfiles"),   
-        macs2_replicatePeakFileList=join(RESULTSDIR,"peaks","macs2","{sample}.replicate.macs2.peakfiles"),
+        genrich_replicatePeakFileList=join(PEAKSDIR,"genrich","{sample}.replicate.genrich.peakfiles"),   
+        macs2_replicatePeakFileList=join(PEAKSDIR,"macs2","{sample}.replicate.macs2.peakfiles"),
     output:
-        fripout=join(RESULTSDIR,"QC","frip","{sample}.frip")
+        fripout=join(QCDIR,"frip","{sample}.frip")
     params:
         workdir=RESULTSDIR,
-        qcdir=QCDIR,
-        indexdir=INDEXDIR,
         scriptsdir=SCRIPTSDIR,
-        tagAlignDir=join(RESULTSDIR,"tagAlign"),
-        readsbedfolder=join(RESULTSDIR,"tmp","genrichReads"),
-        genome=GENOME,
         fripextra=FRIPEXTRA,
         dhsbed=DHSBED,
         promoterbed=PROMOTERBED,
         enhancerbed=ENHANCERBED,
         script="ccbr_frip.bash",
+        dedupBamDir=join(ALIGNDIR,"dedupBam"),
     container: config["masterdocker"]
     threads: getthreads("frip")
     shell:"""
 set -e -x -o pipefail
 if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then TMPDIR="/lscratch/${{SLURM_JOB_ID}}";else TMPDIR="/dev/shm";fi
 fripout_dir=$(dirname {output.fripout})
+
 while read replicateName sampleName peakfile;do
     if [ "{params.fripextra}" == "True" ];then
         cmd="bash {params.scriptsdir}/{params.script}"
         cmd="$cmd --narrowpeak $peakfile"
-        cmd="$cmd --tagalign {params.tagAlignDir}/${{replicateName}}.tagAlign.gz"
+        cmd="$cmd --dedupbam {params.dedupBamDir}/${{replicateName}}.dedup.bam"
         cmd="$cmd --samplename $replicateName"
         if [ "{params.dhsbed}" != "" ];then cmd="$cmd --dhsbed {params.dhsbed}";fi
         if [ "{params.promoterbed}" != "" ];then cmd="$cmd --promoterbed {params.promoterbed}";fi
@@ -263,19 +255,34 @@ while read replicateName sampleName peakfile;do
     else
         bash {params.scriptsdir}/{params.script} \
         --narrowpeak $peakfile \
-        --tagalign {params.tagAlignDir}/${{replicateName}}.tagAlign.gz \
+        --dedupbam {params.dedupBamDir}/${{replicateName}}.dedup.bam \
         --samplename $replicateName \
         --peakcaller "Genrich"
     fi 
 done < {input.genrich_replicatePeakFileList} > $TMPDIR/$(basename {output.fripout})
+
 while read replicateName sampleName peakfile;do
-    bash {params.scriptsdir}/{params.script} \
-    --narrowpeak $peakfile \
-    --tagalign {params.tagAlignDir}/${{replicateName}}.tagAlign.gz \
-    --samplename $replicateName \
-    --peakcaller "MACS2"
+    if [ "{params.fripextra}" == "True" ];then
+        cmd="bash {params.scriptsdir}/{params.script}"
+        cmd="$cmd --narrowpeak $peakfile"
+        cmd="$cmd --dedupbam {params.dedupBamDir}/${{replicateName}}.dedup.bam"
+        cmd="$cmd --samplename $replicateName"
+        if [ "{params.dhsbed}" != "" ];then cmd="$cmd --dhsbed {params.dhsbed}";fi
+        if [ "{params.promoterbed}" != "" ];then cmd="$cmd --promoterbed {params.promoterbed}";fi
+        if [ "{params.enhancerbed}" != "" ];then cmd="$cmd --enhancerbed {params.enhancerbed}";fi
+        cmd="$cmd --peakcaller \"MACS2\""
+        eval "$cmd"
+    else
+        bash {params.scriptsdir}/{params.script} \
+        --narrowpeak $peakfile \
+        --dedupbam {params.dedupBamDir}/${{replicateName}}.dedup.bam \
+        --samplename $replicateName \
+        --peakcaller "MACS2"
+    fi 
 done < {input.macs2_replicatePeakFileList} >> $TMPDIR/$(basename {output.fripout})
+
 sort -k1,1 -k2,2 $TMPDIR/$(basename {output.fripout}) > {output.fripout} && rm -f $TMPDIR/$(basename {output.fripout})
+
 """
 
 #########################################################
