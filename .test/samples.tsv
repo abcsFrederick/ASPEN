@@ -1,0 +1,5 @@
+replicateName	sampleName	path_to_R1_fastq	path_to_R2_fastq
+DMSO_1	DMSO	/data/CCBR/rawdata/hpcdme/share_data/01_IMR32_DMSO_R1_S1_R1.fastq.gz	/data/CCBR/rawdata/hpcdme/share_data/01_IMR32_DMSO_R1_S1_R2.fastq.gz
+AU_1	AU	/data/CCBR/rawdata/hpcdme/share_data/02_IMR32_AU_R1_S2_R1.fastq.gz	/data/CCBR/rawdata/hpcdme/share_data/02_IMR32_AU_R1_S2_R2.fastq.gz
+DMSO_2	DMSO	/data/CCBR/rawdata/hpcdme/share_data/07_IMR32_DMSO_R2_S7_R1.fastq.gz	/data/CCBR/rawdata/hpcdme/share_data/07_IMR32_DMSO_R2_S7_R2.fastq.gz
+AU_2	AU	/data/CCBR/rawdata/hpcdme/share_data/08_IMR32_AU_R2_S8_R1.fastq.gz	/data/CCBR/rawdata/hpcdme/share_data/08_IMR32_AU_R2_S8_R2.fastq.gz
