@@ -83,7 +83,7 @@ rule annotate_roi:
     input:
         roi_bed = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed"),
     output:
-        roi_annotated = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed.annotated"),
+        roi_annotated = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed.annotated.gz"),
         roi_genelist = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed.genelist"),
         roi_annotation_summary = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed.annotation_summary"),
         roi_annotation_distribution = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed.annotation_distribution"),
@@ -96,6 +96,7 @@ rule annotate_roi:
 set -exo pipefail
 Rscript {params.scriptsdir}/{params.annotatescript} -b {input.roi_bed} -a {output.roi_annotated} -g {params.genome} -l {output.roi_genelist} -f {output.roi_annotation_summary}
 cut -f1,2 {output.roi_annotation_summary} > {output.roi_annotation_distribution}
+gzip -n -f {output.roi_annotated}
 """ 
 
 #########################################################

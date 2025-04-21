@@ -116,9 +116,13 @@ bash "{params.scriptsdir}/{params.script}" \
 if [ "{params.macs2_annotatePeaks}" == "True" ];then
 for g in "annotated" "genelist" "annotation_summary" "annotation_distribution"
 do
-    for f in `ls *.${{g}} | grep "{params.sample}.macs2"`;do
+    for f in `ls *.${{g}}`;do
         rsync -az --progress  --remove-source-files $f {params.qcdir}/peak_annotation/
     done
+done
+# gzip annotated files
+for f in `ls {params.qcdir}/peak_annotation/*.annotated`;do
+    gzip -f -n "$f""
 done
 fi
 
@@ -188,6 +192,7 @@ bash "{params.scriptsdir}/{params.script}" \
     --tmpdir "$TMPDIR" \
     --scriptsfolder "{params.scriptsdir}"
 """
+
 
 #########################################################
 
@@ -266,9 +271,13 @@ bash {params.scriptsdir}/{params.script} \
 if [ "{params.genrich_annotatePeaks}" == "True" ];then
 for g in "annotated" "genelist" "annotation_summary" "annotation_distribution"
 do
-    for f in `ls *.${{g}} | grep "{params.sample}.genrich"`;do
+    for f in `ls *.${{g}}`;do
         rsync -az --progress  --remove-source-files $f {params.qcdir}/peak_annotation/
     done
+done
+# gzip annotated files
+for f in `ls {params.qcdir}/peak_annotation/*.annotated`;do
+    gzip -f -n "$f""
 done
 fi
 
@@ -339,6 +348,9 @@ bash "{params.scriptsdir}/{params.script}" \
     --scriptsfolder "{params.scriptsdir}"
 """
 
+
+#########################################################
+
 rule motif_enrichment:
 # """
 # Calculate motif enrichment for replicate (narrowPeak) and sample (consensus.bed) files 
@@ -380,5 +392,29 @@ done
 
 touch {output.dummy}
 """
+
+#########################################################
+
+
+rule atac_annotate_fixed_width_consensus_peaks:
+    input:
+        consensus_narrowPeak = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","{sample}.renormalized.fixed_width.consensus.narrowPeak"),
+    output:
+        consensus_annotated = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "{sample}.renormalized.fixed_width.consensus.narrowPeak.annotated"),
+        consensus_genelist = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "{sample}.renormalized.fixed_width.consensus.narrowPeak.genelist"),
+        consensus_annotation_summary = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "{sample}.renormalized.fixed_width.consensus.narrowPeak.annotation_summary"),
+        consensus_annotation_distribution = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "{sample}.renormalized.fixed_width.consensus.narrowPeak.annotation_distribution"),
+    params:
+        genome = config['genome'],
+        scriptsdir = SCRIPTSDIR,
+        annotatescript = "ccbr_annotate_peaks.R"
+    container: config['masterdocker']
+    shell:"""
+set -exo pipefail
+Rscript {params.scriptsdir}/{params.annotatescript} -b {input.consensus_narrowPeak} -a {output.consensus_annotated} -g {params.genome} -l {output.consensus_genelist} -f {output.consensus_annotation_summary}
+cut -f1,2 {output.consensus_annotation_summary} > {output.consensus_annotation_distribution}
+gzip -f -n {output.consensus_annotated}
+""" 
+
 
 #########################################################

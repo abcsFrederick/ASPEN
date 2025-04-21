@@ -10,65 +10,67 @@ include: join("rules/diffatac.smk")
 rule all:
     input:
         #trim
-        expand(join(RESULTSDIR,"tmp","trim","{replicate}.R1.trim.fastq.gz"),replicate=REPLICATES),
+        expand(join(RESULTSDIR, "tmp", "trim", "{replicate}.R1.trim.fastq.gz"), replicate=REPLICATES),
         #removeBL
-        expand(join(RESULTSDIR,"tmp","trim","{replicate}.R1.noBL.fastq.gz"),replicate=REPLICATES),
+        expand(join(RESULTSDIR, "tmp", "trim", "{replicate}.R1.noBL.fastq.gz"), replicate=REPLICATES),
         #align
-        expand(join(ALIGNDIR,"tagAlign","{replicate}.tagAlign.gz"),replicate=REPLICATES),
-        expand(join(ALIGNDIR,"filteredBam","{replicate}.filtered.bam"),replicate=REPLICATES),
-        expand(join(ALIGNDIR,"qsortedBam","{replicate}.qsorted.bam"),replicate=REPLICATES),
-        expand(join(ALIGNDIR,"dedupBam","{replicate}.dedup.bam"),replicate=REPLICATES),
-        expand(join(QCDIR,"{replicate}.bowtie2.bam.flagstat"),replicate=REPLICATES),
-        expand(join(QCDIR,"{replicate}.dedup.bam.flagstat"),replicate=REPLICATES),
-        expand(join(QCDIR,"{replicate}.filtered.bam.flagstat"),replicate=REPLICATES),
-        expand(join(QCDIR,"{replicate}.dupmetric"),replicate=REPLICATES),
-        expand(join(QCDIR,"preseq","{replicate}.nrf"),replicate=REPLICATES),
+        expand(join(ALIGNDIR, "tagAlign", "{replicate}.tagAlign.gz"), replicate=REPLICATES),
+        expand(join(ALIGNDIR, "filteredBam", "{replicate}.filtered.bam"), replicate=REPLICATES),
+        expand(join(ALIGNDIR, "qsortedBam", "{replicate}.qsorted.bam"), replicate=REPLICATES),
+        expand(join(ALIGNDIR, "dedupBam", "{replicate}.dedup.bam"), replicate=REPLICATES),
+        expand(join(QCDIR, "{replicate}.bowtie2.bam.flagstat"), replicate=REPLICATES),
+        expand(join(QCDIR, "{replicate}.dedup.bam.flagstat"), replicate=REPLICATES),
+        expand(join(QCDIR, "{replicate}.filtered.bam.flagstat"), replicate=REPLICATES),
+        expand(join(QCDIR, "{replicate}.dupmetric"), replicate=REPLICATES),
+        expand(join(QCDIR, "preseq", "{replicate}.nrf"), replicate=REPLICATES),
 
         #nreads stats
-        expand(join(QCDIR,"{replicate}.nreads.txt"),replicate=REPLICATES),
+        expand(join(QCDIR, "{replicate}.nreads.txt"), replicate=REPLICATES),
         #fastqc
-        expand(join(QCDIR,"fastqc","{replicate}.R1_fastqc.zip"), replicate=REPLICATES),
-        expand(join(QCDIR,"fastqc","{replicate}.R2_fastqc.zip"), replicate=REPLICATES),
-        expand(join(QCDIR,"fastqc","{replicate}.R1.noBL_fastqc.zip"), replicate=REPLICATES),
-        expand(join(QCDIR,"fastqc","{replicate}.R2.noBL_fastqc.zip"), replicate=REPLICATES),
+        expand(join(QCDIR, "fastqc", "{replicate}.R1_fastqc.zip"), replicate=REPLICATES),
+        expand(join(QCDIR, "fastqc", "{replicate}.R2_fastqc.zip"), replicate=REPLICATES),
+        expand(join(QCDIR, "fastqc", "{replicate}.R1.noBL_fastqc.zip"), replicate=REPLICATES),
+        expand(join(QCDIR, "fastqc", "{replicate}.R2.noBL_fastqc.zip"), replicate=REPLICATES),
         #fastqscreen
-        expand(join(QCDIR,"FQscreen","{replicate}.R1.noBL_screen.txt"), replicate=REPLICATES),
-        expand(join(QCDIR,"FQscreen","{replicate}.R1.noBL_screen.png"), replicate=REPLICATES),
-        expand(join(QCDIR,"FQscreen","{replicate}.R2.noBL_screen.txt"), replicate=REPLICATES),
-        expand(join(QCDIR,"FQscreen","{replicate}.R2.noBL_screen.png"), replicate=REPLICATES),
+        expand(join(QCDIR, "FQscreen", "{replicate}.R1.noBL_screen.txt"), replicate=REPLICATES),
+        expand(join(QCDIR, "FQscreen", "{replicate}.R1.noBL_screen.png"), replicate=REPLICATES),
+        expand(join(QCDIR, "FQscreen", "{replicate}.R2.noBL_screen.txt"), replicate=REPLICATES),
+        expand(join(QCDIR, "FQscreen", "{replicate}.R2.noBL_screen.png"), replicate=REPLICATES),
         # #tss
-        expand(join(QCDIR,"tss","{replicate}.tss.txt"),replicate=REPLICATES),
+        expand(join(QCDIR, "tss", "{replicate}.tss.txt"), replicate=REPLICATES),
         # #fld
-        expand(join(QCDIR,"fld","{replicate}.fld.txt"),replicate=REPLICATES),
+        expand(join(QCDIR, "fld", "{replicate}.fld.txt"), replicate=REPLICATES),
         #motif enrichment
-        expand(join(QCDIR,"{sample}.motif_enrichment"),sample=SAMPLES) if config["motif_enrichment"] == True else [],
+        expand(join(QCDIR, "{sample}.motif_enrichment"), sample=SAMPLES) if config["motif_enrichment"] == True else [],
         #frip
-        expand(join(QCDIR,"frip","{sample}.frip"),sample=SAMPLES),
+        expand(join(QCDIR, "frip", "{sample}.frip"), sample=SAMPLES),
         #multiqc
-        join(QCDIR,"multiqc_report.html"),
-        join(QCDIR,"QCStats.tsv"),
+        join(QCDIR, "multiqc_report.html"),
+        join(QCDIR, "QCStats.tsv"),
         #macs2 peaks
-        expand(join(PEAKSDIR,"macs2","{sample}.consensus.macs2.peakfiles"),sample=SAMPLES),
-        expand(join(PEAKSDIR,"macs2","{sample}.replicate.macs2.peakfiles"),sample=SAMPLES),
+        expand(join(PEAKSDIR, "macs2", "{sample}.consensus.macs2.peakfiles"), sample=SAMPLES),
+        expand(join(PEAKSDIR, "macs2", "{sample}.replicate.macs2.peakfiles"), sample=SAMPLES),
         #genrich peaks
-        expand(join(PEAKSDIR,"genrich","{sample}.consensus.genrich.peakfiles"),sample=SAMPLES),
-        expand(join(PEAKSDIR,"genrich","{sample}.replicate.genrich.peakfiles"),sample=SAMPLES),
+        expand(join(PEAKSDIR, "genrich", "{sample}.consensus.genrich.peakfiles"), sample=SAMPLES),
+        expand(join(PEAKSDIR, "genrich", "{sample}.replicate.genrich.peakfiles"), sample=SAMPLES),
+        # consensus peaks
+        expand(join(PEAKSDIR, "{peakcaller}", "fixed_width", "{sample}.renormalized.fixed_width.consensus.narrowPeak.annotated"), peakcaller=PEAKCALLERS, sample=SAMPLES),
         # spikein counts and scaling factors
-        expand(join(RESULTSDIR,"spikein","{replicate}","{replicate}.counts"),replicate=REPLICATES),
-        join(RESULTSDIR,"spikein","scaling_factors.tsv"),
+        expand(join(RESULTSDIR, "spikein", "{replicate}", "{replicate}.counts"), replicate=REPLICATES),
+        join(RESULTSDIR, "spikein", "scaling_factors.tsv"),
         # visualizations
-        expand(join(RESULTSDIR,"visualization","{method}_bam","{replicate}.{method}.bam"),method=COUNTING_METHODS,replicate=REPLICATES),
-        expand(join(RESULTSDIR,"visualization","{method}_bigwig","{replicate}.{method}.bw"),method=COUNTING_METHODS,replicate=REPLICATES),
-        expand(join(RESULTSDIR,"visualization","reads_bed","{replicate}.reads.bed.gz"), replicate=REPLICATES), # these will be used by chromVar
+        expand(join(RESULTSDIR, "visualization", "{method}_bam", "{replicate}.{method}.bam"), method=COUNTING_METHODS, replicate=REPLICATES),
+        expand(join(RESULTSDIR, "visualization", "{method}_bigwig", "{replicate}.{method}.bw"), method=COUNTING_METHODS, replicate=REPLICATES),
+        expand(join(RESULTSDIR, "visualization", "reads_bed", "{replicate}.reads.bed.gz"), replicate=REPLICATES), # these will be used by chromVar
         # regions of interest (ROI) gtf 
-        expand(join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.{peakcaller}.gtf"),peakcaller=PEAKCALLERS),
-        expand(join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed.annotated"),peakcaller=PEAKCALLERS),
+        expand(join(PEAKSDIR, "{peakcaller}", "fixed_width", "ROI.{peakcaller}.gtf"), peakcaller=PEAKCALLERS),
+        expand(join(PEAKSDIR, "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed.annotated.gz"), peakcaller=PEAKCALLERS),
         # ROI counts matrix using both tn5sites and reads for each peakcaller
-        expand(join(PEAKSDIR,"{peakcaller}","fixed_width", "counts", "ROI.{peakcaller}.{method}_counts.tsv"),method=COUNTING_METHODS,peakcaller=PEAKCALLERS),
+        expand(join(PEAKSDIR, "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_counts.tsv"), method=COUNTING_METHODS, peakcaller=PEAKCALLERS),
         # diffatac
-        expand(join(PEAKSDIR, "{peakcaller}", "DiffATAC", "{method}", "degs.done"),method=COUNTING_METHODS,peakcaller=PEAKCALLERS) if CONTRASTS.shape[0] > 0 else [],
+        expand(join(PEAKSDIR, "{peakcaller}", "DiffATAC", "{method}", "degs.done"), method=COUNTING_METHODS, peakcaller=PEAKCALLERS) if CONTRASTS.shape[0] > 0 else [],
         # aggregated diffatac results
-        expand(join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","{method}","all_diff_atacs.tsv"),method=COUNTING_METHODS,peakcaller=PEAKCALLERS) if CONTRASTS.shape[0] > 0 else [],
+        expand(join(PEAKSDIR, "{peakcaller}", "DiffATAC", "{method}", "all_diff_atacs.tsv"), method=COUNTING_METHODS, peakcaller=PEAKCALLERS) if CONTRASTS.shape[0] > 0 else [],
 
 
 # create jobby tables
