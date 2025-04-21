@@ -68,7 +68,7 @@ rule atac_macs_peakcalling:
     params:
         genome=GENOME,
         genomefile=GENOMEFILE,
-        outdir=join(RESULTSDIR,"peaks","macs2"),
+        outdir=join(RESULTSDIR, "peaks", "macs2", "{sample}"),
         scriptsdir=SCRIPTSDIR,
         qcdir=QCDIR,
         script="ccbr_atac_macs2_peak_calling.bash",
@@ -93,6 +93,7 @@ do
     nreplicates=$((nreplicates+1))
 done
 
+if [ ! -d {params.outdir} ];then mkdir -p {params.outdir};fi
 cd {params.outdir}
 
 if [ ! -d {params.qcdir}/peak_annotation ];then mkdir -p {params.qcdir}/peak_annotation;fi
@@ -208,7 +209,7 @@ rule atac_genrich_peakcalling:
         genome=GENOME,
         genrich_exclude=GENRICH_E,
         genomefile=GENOMEFILE,
-        outdir=join(RESULTSDIR,"peaks","genrich"),
+        outdir=join(RESULTSDIR, "peaks", "genrich", "{sample}"),
         scriptsdir=SCRIPTSDIR,
         qcdir=QCDIR,
         script="ccbr_atac_genrich_peak_calling.bash",
