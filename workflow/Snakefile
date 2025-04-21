@@ -61,10 +61,10 @@ rule all:
         expand(join(RESULTSDIR,"visualization","{method}_bigwig","{replicate}.{method}.bw"),method=COUNTING_METHODS,replicate=REPLICATES),
         expand(join(RESULTSDIR,"visualization","reads_bed","{replicate}.reads.bed.gz"), replicate=REPLICATES), # these will be used by chromVar
         # regions of interest (ROI) gtf 
-        expand(join(PEAKSDIR,"{peakcaller}","fixed_width","ROI.gtf"),peakcaller=PEAKCALLERS),
-        expand(join(PEAKSDIR,"{peakcaller}","fixed_width","ROI.bed.annotated"),peakcaller=PEAKCALLERS),
+        expand(join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.{peakcaller}.gtf"),peakcaller=PEAKCALLERS),
+        expand(join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed.annotated"),peakcaller=PEAKCALLERS),
         # ROI counts matrix using both tn5sites and reads for each peakcaller
-        expand(join(PEAKSDIR,"{peakcaller}","ROI.{method}_scaled_counts.tsv"),method=COUNTING_METHODS,peakcaller=PEAKCALLERS),
+        expand(join(PEAKSDIR,"{peakcaller}","fixed_width", "counts", "ROI.{peakcaller}.{method}_counts.tsv"),method=COUNTING_METHODS,peakcaller=PEAKCALLERS),
         # diffatac
         expand(join(PEAKSDIR, "{peakcaller}", "DiffATAC", "{method}", "degs.done"),method=COUNTING_METHODS,peakcaller=PEAKCALLERS) if CONTRASTS.shape[0] > 0 else [],
         # aggregated diffatac results

@@ -103,17 +103,17 @@ cut -f1,2 {output.roi_annotation_summary} > {output.roi_annotation_distribution}
 
 rule get_counts_table:
     input:
-        bam_files=lambda wildcards: expand(
+        bam_files = lambda wildcards: expand(
             join(RESULTSDIR, "visualization", "{method}_bam", "{replicate}.{method}.bam"),
             method=wildcards.method,
             replicate=REPLICATES
         ),
-        gtf=join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.gtf"),
+        gtf = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.{peakcaller}.gtf"),
     output:
-        counts=join(RESULTSDIR, "peaks", "{peakcaller}", "ROI.{method}_counts.tsv"),
+        counts = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_counts.tsv"),
     params:
-        scriptsdir=SCRIPTSDIR,
-        script="_featureCounts_header_fix.py"
+        scriptsdir = SCRIPTSDIR,
+        script = "_featureCounts_header_fix.py"
     threads: getthreads("get_counts_table")
     container: config['featurecountsdocker']
     shell:
@@ -125,6 +125,11 @@ rule get_counts_table:
         fi
         cd $TMPDIR
         unset PYTHONPATH
+        # Create output directory if it doesn't exist
+        outdir=$(dirname {output.counts})
+        if [ ! -d $outdir ]; then
+            mkdir -p $outdir
+        fi
 
         # Run featureCounts
         featureCounts -a {input.gtf} -o $TMPDIR/$(basename {output.counts}) -s 0 -t transcript -g transcript_id -T {threads} {input.bam_files} > featureCounts.log 2>&1
@@ -138,10 +143,10 @@ rule get_counts_table:
 localrules: scale_counts_table
 rule scale_counts_table:
     input:
-        scaling_factors=rules.compute_scaling_factors.output.scaling_factors,
-        counts=join(RESULTSDIR, "peaks", "{peakcaller}", "ROI.{method}_counts.tsv"),
+        scaling_factors = rules.compute_scaling_factors.output.scaling_factors,
+        counts = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_counts.tsv"),
     output:
-        scaledcounts=join(RESULTSDIR, "peaks", "{peakcaller}", "ROI.{method}_scaled_counts.tsv")
+        scaledcounts = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_scaled_counts.tsv")
     params:
         scriptsdir=SCRIPTSDIR,
         script="_scale_counts.py",
@@ -158,7 +163,7 @@ python {params.scriptsdir}/{params.script} --counts {input.counts} --scaling_fac
 
 rule diffatac:
     input:
-        counts = join(PEAKSDIR, "{peakcaller}", "ROI.{method}_scaled_counts.tsv")
+        counts = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_counts.tsv")
     output:
         degsdone = join(PEAKSDIR, "{peakcaller}", "DiffATAC", "{method}", "degs.done")
     params:
@@ -234,7 +239,7 @@ touch {output.degsdone}
 
 rule diffatac_aggregate:
     input:
-        counts      = join(RESULTSDIR,"peaks","{peakcaller}","ROI.{method}_scaled_counts.tsv"),
+        counts      = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_counts.tsv")
         degsdone    = join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","{method}","degs.done"),
     output:
         alldegshtml = join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","{method}","all_diff_atacs.html"),
