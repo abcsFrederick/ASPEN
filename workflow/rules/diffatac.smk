@@ -21,10 +21,10 @@ rule atac_calculate_regions_of_interest_for_diffatac:
     input:
         expand(join(RESULTSDIR,"peaks","{{peakcaller}}","fixed_width","{sample}.renormalized.fixed_width.consensus.narrowPeak"),sample=SAMPLES)
     output:
-        roi              = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.narrowPeak"),
-        roi_bed          = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.bed"),
-        roi_gtf          = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.gtf"),
-        roi_renormalized = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.renormalized.narrowPeak")
+        roi              = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.{peakcaller}.narrowPeak"),
+        roi_bed          = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.{peakcaller}.bed"),
+        roi_gtf          = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.{peakcaller}.gtf"),
+        roi_renormalized = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.{peakcaller}.renormalized.narrowPeak")
     params:
         script      =   "ccbr_atac_get_fixedwidth_consensus_renormalized_peaks.sh",
         annotatescript = "ccbr_annotate_bed.R",
@@ -81,12 +81,12 @@ bedToGenePred {output.roi_bed} /dev/stdout | genePredToGtf file /dev/stdin {outp
 
 rule annotate_roi:
     input:
-        roi_bed = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.bed"),
+        roi_bed = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed"),
     output:
-        roi_annotated = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.bed.annotated"),
-        roi_genelist = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.genelist"),
-        roi_annotation_summary = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.annotation_summary"),
-        roi_annotation_distribution = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.annotation_distribution"),
+        roi_annotated = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed.annotated"),
+        roi_genelist = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed.genelist"),
+        roi_annotation_summary = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed.annotation_summary"),
+        roi_annotation_distribution = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed.annotation_distribution"),
     params:
         genome = config['genome'],
         scriptsdir = SCRIPTSDIR,
