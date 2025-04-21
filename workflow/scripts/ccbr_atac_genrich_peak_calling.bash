@@ -106,6 +106,8 @@ parser.add_argument('--filterpeaks',required=False, default="True", help='filter
 parser.add_argument('--qfilter',required=False, default=1.301, help='default qfiltering value is 1.301 (-log10 of 0.05) for q=0.05')
 
 parser.add_argument('--scriptsfolder',required=True, help='folder where the scripts are ... usually workflow/scripts')
+
+parser.add_argument('--cleanup',required=False, default="True", help='cleanup unwanted intermediate files')
 EOF
 
 cd $OUTDIR
@@ -283,4 +285,9 @@ if [ $FILTERPEAKS == "True" ];then
         fi
     fi
   done
+fi
+
+# cleanup
+if [ "$CLEANUP" == "True" ];then
+    rm -f *.reads.bed
 fi

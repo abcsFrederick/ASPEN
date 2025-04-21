@@ -130,6 +130,10 @@ parser.add_argument('--qfilter',required=False, default=1.301, help='default qfi
 
 parser.add_argument('--scriptsfolder',required=True,  help='folder where the scripts are... probably <path to workflow>/scripts')
 parser.add_argument('--runchipseeker',required=True, default="False", help='annotate peaks with chipseeker')
+parser.add_argument('--cleanupbdg',required=False, default="True", help='remove unwanted bdg files')
+parser.add_argument('--cleanuppooled',required=False, default="True", help='remove unwanted pooled.tagAlign.gz files')
+parser.add_argument('--cleanupxls',required=False, default="True", help='remove unwanted xls files')
+parser.add_argument('--cleanupsummits',required=False, default="True", help='remove unwanted summits files')
 EOF
 
 cd $OUTDIR
@@ -275,4 +279,18 @@ if [ "$RUNCHIPSEEKER" == "True" ];then
         touch ${f}.annotation_summary
         touch ${f}.annotation_distribution
     fi
+fi
+
+# cleanup
+if [ "$CLEANUPBDG" == "True" ];then
+    rm -f *.bdg
+fi
+if [ "$CLEANUPXLS" == "True" ];then
+    rm -f *.xls
+fi
+if [ "$CLEANUPSUMMITS" == "True" ];then
+    rm -f *macs2_summits.bed
+fi
+if [ "$CLEANUPPOOLED" == "True" ];then
+    rm -f ${pooled}.gz
 fi

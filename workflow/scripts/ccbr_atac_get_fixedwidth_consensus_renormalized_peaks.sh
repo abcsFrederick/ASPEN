@@ -63,3 +63,9 @@ Rscript ${SCRIPTSFOLDER}/fixed_width_peakSets_to_consensus_peakSet.R \
 Rscript ${SCRIPTSFOLDER}/narrowPeak_normalize_pvalues.R \
     -i $CONSENSUSNP \
     -o $CONSENSUSRENORMNP
+
+# move the replicate-level narrowPeak files to the output directory
+outdir=$(dirname $CONSENSUSRENORMNP)
+for np in $OUTNPS;do
+    mv $np $outdir/$(basename $np)
+done
