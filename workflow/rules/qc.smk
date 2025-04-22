@@ -22,7 +22,7 @@ rule fastqc:
     container: config["masterdocker"]
     shell: """
     fastqc {input} -t {threads} -o {params.outdir};
-    """      
+    """
 
 #########################################################
 
@@ -48,7 +48,7 @@ rule fastq_screen:
     params:
         outdir = join(QCDIR,"FQscreen"),
         fastq_screen_config=FASTQ_SCREEN_CONFIG,
-    threads: getthreads("fastq_screen")  
+    threads: getthreads("fastq_screen")
     container: config["fastqscreendocker"]
     shell: """
 fastq_screen --conf {params.fastq_screen_config} --outdir {params.outdir} \
@@ -61,7 +61,7 @@ fastq_screen --conf {params.fastq_screen_config} --outdir {params.outdir} \
 rule atac_tss:
 # """
 # * Creates read density profile near known TSS sites.
-# * hg38/hg19/mm10 are the genomes supported, ie., TSS information 
+# * hg38/hg19/mm10 are the genomes supported, ie., TSS information
 # is deposited in the resources/db folder of the pipeline
 # * per-replicate "tss.txt" file is generated --> read by MultiQC later
 # """
@@ -79,7 +79,7 @@ rule atac_tss:
         scriptsdir=SCRIPTSDIR,
         script="ccbr_atac_tagAlign2TSS.bash",
     container: config["masterdocker"]
-    threads: getthreads("atac_tss")    
+    threads: getthreads("atac_tss")
     shell:"""
 if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then cd /lscratch/${{SLURM_JOB_ID}};else cd /dev/shm;fi
 unset PYTHONPATH
@@ -113,7 +113,7 @@ rule atac_fld:
         replicate="{replicate}",
         scriptsdir=SCRIPTSDIR,
         script="ccbr_atac_bam2FLD.py",
-    container: config["masterdocker"]    
+    container: config["masterdocker"]
     shell:"""
 unset PYTHONPATH
 python {params.scriptsdir}/{params.script} -i {input.dedupbam} -o {output.fld}
@@ -221,7 +221,7 @@ done
 
 rule frip:
     input:
-        genrich_replicatePeakFileList=join(PEAKSDIR,"genrich","{sample}.replicate.genrich.peakfiles"),   
+        genrich_replicatePeakFileList=join(PEAKSDIR,"genrich","{sample}.replicate.genrich.peakfiles"),
         macs2_replicatePeakFileList=join(PEAKSDIR,"macs2","{sample}.replicate.macs2.peakfiles"),
     output:
         fripout=join(QCDIR,"frip","{sample}.frip")
@@ -258,7 +258,7 @@ while read replicateName sampleName peakfile;do
         --dedupbam {params.dedupBamDir}/${{replicateName}}.dedup.bam \
         --samplename $replicateName \
         --peakcaller "Genrich"
-    fi 
+    fi
 done < {input.genrich_replicatePeakFileList} > $TMPDIR/$(basename {output.fripout})
 
 while read replicateName sampleName peakfile;do
@@ -278,7 +278,7 @@ while read replicateName sampleName peakfile;do
         --dedupbam {params.dedupBamDir}/${{replicateName}}.dedup.bam \
         --samplename $replicateName \
         --peakcaller "MACS2"
-    fi 
+    fi
 done < {input.macs2_replicatePeakFileList} >> $TMPDIR/$(basename {output.fripout})
 
 sort -k1,1 -k2,2 $TMPDIR/$(basename {output.fripout}) > {output.fripout} && rm -f $TMPDIR/$(basename {output.fripout})

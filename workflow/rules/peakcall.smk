@@ -53,7 +53,7 @@ def get_peakfiles_for_motif_enrichment(wildcards):
 
 rule atac_macs_peakcalling:
 # """
-# Calling ATACseq peaks using MACS2 
+# Calling ATACseq peaks using MACS2
 # This is based off of ENCODEs MACS2 peak calling for ATACseq data
 # Input: Tn5 shifted TagAlign files for each sample (multiple replicates mean multiple tagalign files)
 # Output:
@@ -82,14 +82,14 @@ rule atac_macs_peakcalling:
     output:
         consensusPeakFileList=join(RESULTSDIR,"peaks","macs2","{sample}.consensus.macs2.peakfiles"),
         replicatePeakFileList=join(RESULTSDIR,"peaks","macs2","{sample}.replicate.macs2.peakfiles"),
-    container: config["masterdocker"]    
+    container: config["masterdocker"]
     threads: getthreads("atac_macs_peakcalling")
     shell:"""
 set -e -x -o pipefail
 unset PYTHONPATH
 nreplicates=0
 for f in {input}
-do 
+do
     nreplicates=$((nreplicates+1))
 done
 
@@ -158,7 +158,7 @@ rule atac_macs_peakcalling_fixed_width:
         min_rep     = config['consensus_min_replicates'],
         min_spm     = config['consensus_min_spm'],
         script="ccbr_atac_get_fixedwidth_consensus_renormalized_peaks.sh"
-    container: config["masterdocker"]    
+    container: config["masterdocker"]
     threads: getthreads("atac_macs_peakcalling_fixed_width")
     shell:"""
 set -exo pipefail
@@ -198,7 +198,7 @@ bash "{params.scriptsdir}/{params.script}" \
 
 rule atac_genrich_peakcalling:
 # """
-# Calling ATACseq peaks using Genrich 
+# Calling ATACseq peaks using Genrich
 # This is based off of Harvard peak calling for ATACseq data
 # Input: Tn5 shifted TagAlign files for each sample (multiple replicates mean multiple tagalign files)
 # Output:
@@ -232,14 +232,14 @@ rule atac_genrich_peakcalling:
     output:
         consensusPeakFileList=join(RESULTSDIR,"peaks","genrich","{sample}.consensus.genrich.peakfiles"),
         replicatePeakFileList=join(RESULTSDIR,"peaks","genrich","{sample}.replicate.genrich.peakfiles"),
-    container: config["masterdocker"]    
+    container: config["masterdocker"]
     threads: getthreads("atac_genrich_peakcalling")
     shell:"""
 set -e -x -o pipefail
 unset PYTHONPATH
 nreplicates=0
 for f in {input}
-do 
+do
     nreplicates=$((nreplicates+1))
 done
 
@@ -313,7 +313,7 @@ rule atac_genrich_peakcalling_fixed_width:
         min_rep     = config['consensus_min_replicates'],
         min_spm     = config['consensus_min_spm'],
         script="ccbr_atac_get_fixedwidth_consensus_renormalized_peaks.sh"
-    container: config["masterdocker"]    
+    container: config["masterdocker"]
     threads: getthreads("atac_genrich_peakcalling_fixed_width")
     shell:"""
 set -exo pipefail
@@ -353,7 +353,7 @@ bash "{params.scriptsdir}/{params.script}" \
 
 rule motif_enrichment:
 # """
-# Calculate motif enrichment for replicate (narrowPeak) and sample (consensus.bed) files 
+# Calculate motif enrichment for replicate (narrowPeak) and sample (consensus.bed) files
 # using HOMER and AME
 # """
     input:
@@ -370,11 +370,11 @@ rule motif_enrichment:
         mememotif=config[GENOME]["mememotif"]
     output:
         dummy=join(RESULTSDIR,"QC","{sample}.motif_enrichment"),
-    container: config["masterdocker"]    
+    container: config["masterdocker"]
     threads: getthreads("motif_enrichment")
     shell:"""
 if [ -w "/lscratch/${{SLURM_JOB_ID}}" ];then tmpdir="/lscratch/${{SLURM_JOB_ID}}";else tmpdir="/dev/shm";fi
- 
+
 for narrowPeak in `cat {input}|awk '{{print $NF}}'`;do
     mkdir -p ${{narrowPeak}}_motif_enrichment
     narrowPeak_bn=$(basename ${{narrowPeak}})
@@ -414,7 +414,7 @@ set -exo pipefail
 Rscript {params.scriptsdir}/{params.annotatescript} -b {input.consensus_narrowPeak} -a {output.consensus_annotated} -g {params.genome} -l {output.consensus_genelist} -f {output.consensus_annotation_summary}
 cut -f1,2 {output.consensus_annotation_summary} > {output.consensus_annotation_distribution}
 gzip -f -n {output.consensus_annotated}
-""" 
+"""
 
 
 #########################################################

@@ -277,7 +277,7 @@ if config["spikein"] == True:
     except KeyError:
         print("# spikein_genome not provided in config file!")
         exit()
-    try:    
+    try:
         SPIKEINDEXDIR=config[SPIKEINGENOME]["indexdir"]
         print("# Spike-in indexdir :",SPIKEINDEXDIR)
     except KeyError:
@@ -291,7 +291,7 @@ print("# Spike-in :",SPIKEIN)
 print("# Spike-in Genome :",SPIKEINGENOME) if SPIKEIN else None
 
 # get the Genrich -E parameter
-NsBed = join(INDEXDIR,GENOME+".Ns.bed.gz") 
+NsBed = join(INDEXDIR,GENOME+".Ns.bed.gz")
 excludeBed = join(INDEXDIR,GENOME+".blacklist.bed.gz")
 if os.path.exists(NsBed) and os.path.exists(excludeBed):
     GENRICH_E = "-E " + NsBed + "," + excludeBed

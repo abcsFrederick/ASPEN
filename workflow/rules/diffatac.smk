@@ -97,7 +97,7 @@ set -exo pipefail
 Rscript {params.scriptsdir}/{params.annotatescript} -b {input.roi_bed} -a {output.roi_annotated} -g {params.genome} -l {output.roi_genelist} -f {output.roi_annotation_summary}
 cut -f1,2 {output.roi_annotation_summary} > {output.roi_annotation_distribution}
 gzip -n -f {output.roi_annotated}
-""" 
+"""
 
 #########################################################
 
@@ -189,7 +189,7 @@ fi
 cd $outdir
 
 echo "Contrast file:"
-cat "{params.contrasts}" 
+cat "{params.contrasts}"
 
 # Ensure contrasts file is not empty
 if [ ! -s "{params.contrasts}" ]; then
@@ -209,7 +209,7 @@ fi
 # Process each contrast line
 for line in "${{lines[@]}}"; do
     IFS=$'\\t' read -r g1 g2 <<< "$line"
-    
+
     if [ -z "$g1" ] || [ -z "$g2" ]; then
         echo "Error: Invalid contrast line: '$line'"
         continue
@@ -240,7 +240,7 @@ touch {output.degsdone}
 
 rule diffatac_aggregate:
     input:
-        counts      = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_counts.tsv")
+        counts      = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_counts.tsv"),
         degsdone    = join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","{method}","degs.done"),
     output:
         alldegshtml = join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","{method}","all_diff_atacs.html"),
@@ -276,5 +276,3 @@ Rscript "{params.scriptsdir}/aggregate_results_runner.R" \\
 
 
 #########################################################
-
-

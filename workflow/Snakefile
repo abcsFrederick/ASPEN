@@ -62,7 +62,7 @@ rule all:
         expand(join(RESULTSDIR, "visualization", "{method}_bam", "{replicate}.{method}.bam"), method=COUNTING_METHODS, replicate=REPLICATES),
         expand(join(RESULTSDIR, "visualization", "{method}_bigwig", "{replicate}.{method}.bw"), method=COUNTING_METHODS, replicate=REPLICATES),
         expand(join(RESULTSDIR, "visualization", "reads_bed", "{replicate}.reads.bed.gz"), replicate=REPLICATES), # these will be used by chromVar
-        # regions of interest (ROI) gtf 
+        # regions of interest (ROI) gtf
         expand(join(PEAKSDIR, "{peakcaller}", "fixed_width", "ROI.{peakcaller}.gtf"), peakcaller=PEAKCALLERS),
         expand(join(PEAKSDIR, "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed.annotated.gz"), peakcaller=PEAKCALLERS),
         # ROI counts matrix using both tn5sites and reads for each peakcaller
