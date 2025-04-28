@@ -67,5 +67,10 @@ Rscript ${SCRIPTSFOLDER}/narrowPeak_normalize_pvalues.R \
 # move the replicate-level narrowPeak files to the output directory
 outdir=$(dirname $CONSENSUSRENORMNP)
 for np in `echo $OUTNPS | sed "s/,/ /g"`;do
-    mv $np $outdir/$(basename $np)
+    src="$np"
+    dest="${{outdir}}/$(basename $np)"
+    if [[ "$src" != "$dest" ]]; then # avoid moving the consensus file to itself
+        echo "Moving $src to $dest"
+        mv $src $dest
+    fi
 done
