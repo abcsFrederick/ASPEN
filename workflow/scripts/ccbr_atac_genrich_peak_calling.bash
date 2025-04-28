@@ -24,16 +24,16 @@ Genrich -t $BAM \
 
 callGenrichPeaksProcessReadsBed(){
 BAM=$1
-REPNAME=$2 
+REPNAME=$2
 PEAKFILE=$3
 EXCLUDELIST=$4
 
 READSBEDFILE=${REPNAME}.reads.bed
 READSBWFILE=${REPNAME}.bw
 NICKSBEDFILE=${REPNAME}.genrich.tn5nicks.bed
-NICKSBAMFILE=${REPNAME}.genrich.tn5nicks.bam 
+NICKSBAMFILE=${REPNAME}.genrich.tn5nicks.bam
 #Genrich -t $BAM -o $PEAKFILE -j -r -e $EXCLUDELIST -v -s 5 -m 6 -b $READSBEDFILE -q 1 -l 200 -g 200
-callGenrichPeaks $BAM $PEAKFILE $EXCLUDELIST $READSBEDFILE 
+callGenrichPeaks $BAM $PEAKFILE $EXCLUDELIST $READSBEDFILE
 # processReadsBed $READSBEDFILE $READSBWFILE $NICKSBEDFILE $NICKSBAMFILE
 }
 
@@ -75,7 +75,7 @@ mv $NICKSBAM ${OUTDIR}/tn5nicks/
 samtools index ${OUTDIR}/tn5nicks/${NICKSBAM}
 }
 
-ARGPARSE_DESCRIPTION="call atac-seq peaks using genrich v0.6 with 2 replicates" 
+ARGPARSE_DESCRIPTION="call atac-seq peaks using genrich v0.6 with 2 replicates"
 source /opt2/argparse.bash || exit 1
 argparse "$@" <<EOF || exit 1
 parser.add_argument('--bamfiles',required=True, nargs = '+', help = 'space separated list of BAM files')
@@ -124,12 +124,12 @@ if [ "$nreplicates" -ge 2 ]; then
     BAMREP2=$(echo $BAMFILES|awk '{print $2}')
     REP2NAME=`echo $(basename $BAMREP2)|awk -F".qsorted.bam" '{print $1}'`
     PEAKFILE2="${REP2NAME}.genrich.narrowPeak"
-fi	
+fi
 if [ "$nreplicates" -ge 3 ]; then
     BAMREP3=$(echo $BAMFILES|awk '{print $3}')
     REP3NAME=`echo $(basename $BAMREP3)|awk -F".qsorted.bam" '{print $1}'`
     PEAKFILE3="${REP3NAME}.genrich.narrowPeak"
-fi	
+fi
 if [ "$nreplicates" -ge 4 ]; then
     BAMREP4=$(echo $BAMFILES|awk '{print $4}')
     REP4NAME=`echo $(basename $BAMREP4)|awk -F".qsorted.bam" '{print $1}'`
@@ -291,3 +291,5 @@ fi
 if [ "$CLEANUP" == "True" ];then
     rm -f *.reads.bed
 fi
+
+echo "Done with Genrich peak calling"
