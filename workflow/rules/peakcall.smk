@@ -122,7 +122,7 @@ do
 done
 # gzip annotated files
 for f in `ls {params.qcdir}/peak_annotation/*.annotated`;do
-    gzip -f -n "$f""
+    gzip -f -n "$f"
 done
 fi
 
@@ -243,6 +243,7 @@ do
     nreplicates=$((nreplicates+1))
 done
 
+if [ ! -d {params.outdir} ];then mkdir -p {params.outdir};fi
 cd {params.outdir}
 
 if [ ! -d {params.qcdir}/peak_annotation ];then mkdir -p {params.qcdir}/peak_annotation;fi
@@ -277,7 +278,7 @@ do
 done
 # gzip annotated files
 for f in `ls {params.qcdir}/peak_annotation/*.annotated`;do
-    gzip -f -n "$f""
+    gzip -f -n "$f"
 done
 fi
 
@@ -411,7 +412,7 @@ rule atac_annotate_fixed_width_consensus_peaks:
     container: config['masterdocker']
     shell:"""
 set -exo pipefail
-Rscript {params.scriptsdir}/{params.annotatescript} -b {input.consensus_narrowPeak} -a {output.consensus_annotated} -g {params.genome} -l {output.consensus_genelist} -f {output.consensus_annotation_summary}
+Rscript {params.scriptsdir}/{params.annotatescript} -n {input.consensus_narrowPeak} -a {output.consensus_annotated} -g {params.genome} -l {output.consensus_genelist} -f {output.consensus_annotation_summary}
 cut -f1,2 {output.consensus_annotation_summary} > {output.consensus_annotation_distribution}
 gzip -f -n {output.consensus_annotated}
 """
