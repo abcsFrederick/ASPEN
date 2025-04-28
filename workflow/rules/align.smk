@@ -262,8 +262,13 @@ unset PYTHONPATH
 
 echo -ne "{params.replicate}\\t" > {output.counts}
 if [[ "{params.spikein}" == "true" ]];then
-bwa-mem2 mem -t {threads} {params.spikein_indexdir}/{params.spikein_genome} {input.R1} {input.R2} | \
-    samtools view -f 2 -q 30 | wc -l | awk '{{printf "%d\\n", $1/2}}' >> {output.counts}
+# getting this errors
+# Please verify that both the operating system and the processor support Intel(R) X87, CMOV, MMX, FXSAVE, SSE, SSE2, SSE3, SSSE3, SSE4_1, SSE4_2, MOVBE, POPCNT, F16C, AVX, FMA, BMI, LZCNT, AVX2, AVX512DQ, AVX512F, ADX, AVX512CD, AVX512BW, AVX512VL and CLWB instructions.
+# hence changing the following line
+for bwa_bin in bwa-mem2.avx512bw bwa-mem2.avx2 bwa-mem2.sse41; do
+${{bwa_bin}} mem -t {threads} {params.spikein_indexdir}/{params.spikein_genome} {input.R1} {input.R2} | samtools view -@ {threads} -bS - > ${{TMPDIR}}/{params.replicate}.bam && break
+done
+samtools view -@ {threads} -f 2 -q 30 ${{TMPDIR}}/{params.replicate}.bam | wc -l | awk '{{printf "%d\\n", $1/2}}' >> {output.counts}
 else
 echo -ne "0\\n" >> {output.counts}
 fi
