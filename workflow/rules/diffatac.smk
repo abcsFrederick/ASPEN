@@ -94,9 +94,11 @@ rule annotate_roi:
     container: config['masterdocker']
     shell:"""
 set -exo pipefail
-Rscript {params.scriptsdir}/{params.annotatescript} -b {input.roi_bed} -a {output.roi_annotated} -g {params.genome} -l {output.roi_genelist} -f {output.roi_annotation_summary}
+annotated=$(echo {output.roi_annotated} | awk -F'.gz' '{{print $1}}')
+Rscript {params.scriptsdir}/{params.annotatescript} -b {input.roi_bed} -a $annotated -g {params.genome} -l {output.roi_genelist} -f {output.roi_annotation_summary}
 cut -f1,2 {output.roi_annotation_summary} > {output.roi_annotation_distribution}
-gzip -n -f {output.roi_annotated}
+gzip -n -f $annotated
+ls -alrth $(dirname {output.roi_annotated})
 """
 
 #########################################################
