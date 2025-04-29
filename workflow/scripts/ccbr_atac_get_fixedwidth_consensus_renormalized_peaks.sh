@@ -68,7 +68,7 @@ Rscript ${SCRIPTSFOLDER}/narrowPeak_normalize_pvalues.R \
 outdir=$(dirname $CONSENSUSRENORMNP)
 for np in `echo $OUTNPS | sed "s/,/ /g"`;do
     src="$np"
-    dest="${{outdir}}/$(basename $np)"
+    dest="${outdir}/$(basename $np)"
     if [[ "$src" != "$dest" ]]; then # avoid moving the consensus file to itself
         echo "Moving $src to $dest"
         mv $src $dest
