@@ -412,7 +412,7 @@ rule atac_annotate_fixed_width_consensus_peaks:
     container: config['masterdocker']
     shell:"""
 set -exo pipefail
-annotated="{params.consensus_annotated}"
+annotated="{output.consensus_annotated}"
 annotated=$(basename ${{annotated}}|awk -F".gz" '{{print $1}}')
 Rscript {params.scriptsdir}/{params.annotatescript} -n {input.consensus_narrowPeak} -a $annotated -g {params.genome} -l {output.consensus_genelist} -f {output.consensus_annotation_summary}
 cut -f1,2 {output.consensus_annotation_summary} > {output.consensus_annotation_distribution}
