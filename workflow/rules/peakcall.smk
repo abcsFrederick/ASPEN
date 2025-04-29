@@ -401,7 +401,7 @@ rule atac_annotate_fixed_width_consensus_peaks:
     input:
         consensus_narrowPeak = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","{sample}.renormalized.fixed_width.consensus.narrowPeak"),
     output:
-        consensus_annotated = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "{sample}.renormalized.fixed_width.consensus.narrowPeak.annotated"),
+        consensus_annotated = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "{sample}.renormalized.fixed_width.consensus.narrowPeak.annotated.gz"),
         consensus_genelist = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "{sample}.renormalized.fixed_width.consensus.narrowPeak.genelist"),
         consensus_annotation_summary = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "{sample}.renormalized.fixed_width.consensus.narrowPeak.annotation_summary"),
         consensus_annotation_distribution = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "{sample}.renormalized.fixed_width.consensus.narrowPeak.annotation_distribution"),
@@ -412,9 +412,11 @@ rule atac_annotate_fixed_width_consensus_peaks:
     container: config['masterdocker']
     shell:"""
 set -exo pipefail
-Rscript {params.scriptsdir}/{params.annotatescript} -n {input.consensus_narrowPeak} -a {output.consensus_annotated} -g {params.genome} -l {output.consensus_genelist} -f {output.consensus_annotation_summary}
+annotated="{params.consensus_annotated}"
+annotated=$(basename ${{annotated}}|awk -F".gz" '{{print $1}}')
+Rscript {params.scriptsdir}/{params.annotatescript} -n {input.consensus_narrowPeak} -a $annotated -g {params.genome} -l {output.consensus_genelist} -f {output.consensus_annotation_summary}
 cut -f1,2 {output.consensus_annotation_summary} > {output.consensus_annotation_distribution}
-gzip -f -n {output.consensus_annotated}
+gzip -f -n $annotated
 """
 
 
