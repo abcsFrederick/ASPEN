@@ -1,31 +1,38 @@
 #!/bin/bash
 
-TEST_BASE_DIR="/data/Boufraqech_group/github/.temp/aspen_testing"
+# Validate minimum number of arguments
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 <test_base_dir> <init|dryrun|run|reconfig|unlock> [test_dir (default: today's date)]"
+  exit 1
+fi
+
+TEST_BASE_DIR="$1"
+MODE="$2"
+
+# Check if base dir exists and is writable
+if [ ! -d "$TEST_BASE_DIR" ]; then
+  echo "❌ ERROR: Test base directory '$TEST_BASE_DIR' does not exist."
+  exit 1
+elif [ ! -w "$TEST_BASE_DIR" ]; then
+  echo "❌ ERROR: Test base directory '$TEST_BASE_DIR' is not writable."
+  exit 1
+fi
+
+VALID_MODES=("init" "dryrun" "run" "reconfig" "unlock")
+if [[ ! " ${VALID_MODES[@]} " =~ " ${MODE} " ]]; then
+  echo "❌ ERROR: Second argument must be one of: init, dryrun, run, reconfig, unlock"
+  echo "Usage: $0 <test_base_dir> <init|dryrun|run|reconfig|unlock> [test_dir (default: today's date)]"
+  exit 1
+fi
 
 # Detect directory of this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PARENT_DIR="$(dirname "$SCRIPT_DIR")"
 ASPEN_CMD="${PARENT_DIR}/aspen"
 
-# Validate at least one argument
-if [ -z "$1" ]; then
-  echo "Usage: $0 <init|dryrun|run|reconfig|unlock> [test_dir (default: today's date)]"
-  exit 1
-fi
-
-# First argument: mode
-MODE="$1"
-VALID_MODES=("init" "dryrun" "run" "reconfig" "unlock")
-
-if [[ ! " ${VALID_MODES[@]} " =~ " ${MODE} " ]]; then
-  echo "❌ Error: First argument must be one of: init, dryrun, run, reconfig"
-  echo "Usage: $0 <init|dryrun|run|reconfig|unlock> [test_dir (default: today's date)]"
-  exit 1
-fi
-
-# Second argument: test directory (optional)
-if [ -n "$2" ]; then
-  DT="$2"
+# Third argument: test directory (optional)
+if [ -n "$3" ]; then
+  DT="$3"
 else
   DT=$(date +%y%m%d)
 fi
