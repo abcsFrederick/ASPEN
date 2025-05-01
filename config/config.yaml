@@ -33,7 +33,7 @@ genome: "$GENOME"
 # genome: "mmul10"
 # genome: "bosTau9" # this is same as ARS-UCD1.2
 
-# 
+#
 spikein: False
 # spikein: True
 spikein_genome: "dmelr6.32" # Drosophila mel.
@@ -41,15 +41,6 @@ spikein_genome: "dmelr6.32" # Drosophila mel.
 
 # motif_enrichment: True
 motif_enrichment: False
-
-
-
-
-
-
-
-
-
 
 ##################################################################################################
 ##################################################################################################
@@ -144,7 +135,6 @@ bosTau9:
   fripextra:
     promoterbed: "$PIPELINE_HOME/resources/frip/bosTau9.promoters.bed.gz"
 
-
 # spikein genomes:
 dmelr6.32:
   indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/dmelr6.32/indexes"
@@ -212,8 +202,8 @@ fastqscreendocker: "docker://nciccbr/ccbr_fastq_screen_0.14.1:v1.0"
 featurecountsdocker: "docker://dsaha0295/featurecounts:latest"
 ucscdocker: "docker://nciccbr/ccbr_ucsc_v385:v2-feat"
 
-
 # pipeline information
 pipeline: "ASPEN"
 version: "$ASPENVERSION"
 
+ccbr_tools_path: "/data/CCBR_Pipeliner/Tools/ccbr_tools/v0.2/bin/"
