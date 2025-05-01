@@ -1,6 +1,5 @@
 ## ASPEN development version
 
-## ASPEN 1.1.0
 
 ### General Changes
 
