@@ -14,23 +14,27 @@
 
 ### Alignment Changes
 
-- Added spike-in alignment (`align2spikein`) and scaling factor computation rules.
+- Added spike-in alignment (`align2spikein`) and scaling factor computation rules. ([#69](https://github.com/CCBR/ASPEN/issues/69), @kopardev)
 - Updated `align.smk` to simplify alignment steps and add spike-in-related logic.
 - Added the `chromosomes` parameter in alignment and replaced the hardcoded chromosome names.
 
 ### Peak Calling Changes
 
 - Updated MACS2 and Genrich peak calling rules to add spike-in-related logic.
-- Simplified peak filtering by applying a lenient q-value filter (default 0.1) directly in the peak calling scripts.
+- Simplified peak filtering by applying a lenient q-value filter (default 0.1) directly in the peak calling scripts. ([#90](https://github.com/CCBR/ASPEN/issues/90), @kopardev)
 - Peak called narrowPeak files are now default q-value filtered. Unfiltered files are still available for users who want to apply their own filters.
-- Removed redundant peak annotation steps and streamlined the output structure for peak calling.
+- Removed redundant peak annotation steps and streamlined the output structure for peak calling. ([#92](https://github.com/CCBR/ASPEN/issues/92), @kopardev)
+- peakcaller added to ROI filenames ([#86](https://github.com/CCBR/ASPEN/issues/86), @kopardev)
+- missing annotations added ([#79](https://github.com/CCBR/ASPEN/issues/79), @kopardev)
 
-### Differential Accessibility Changes
+### Differential Accessibility Changes ([#68](https://github.com/CCBR/ASPEN/issues/68), @kopardev)
 
 - Add new rules for scaling counts and annotating regions of interest.
 - DiffATAC analysis is now run for both MACS2 and Genrich peak calls, with results stored in separate directories.
 - Updated the `diffatac.smk` file to include spike-in scaling factors in the differential analysis.
 - Removed redundant steps in the differential accessibility analysis to streamline the process.
+- create Tn5-based and reads-based counts matrices ([#67](https://github.com/CCBR/ASPEN/issues/67), @kopardev)
+- create spike-in scaled counts matrices ([#62](https://github.com/CCBR/ASPEN/issues/62), @kopardev)
 
 ### Quality Control Changes
 
@@ -40,7 +44,7 @@
 
 ### Documentation Changes
 
-- Updated all documentation files to reflect the addition of spike-in normalization and related features.
+- Updated all documentation files to reflect the addition of spike-in normalization and related features. ([#93](https://github.com/CCBR/ASPEN/issues/93), @kopardev)
 - Simplified the documentation to focus on the core functionalities of the pipeline.
 - Added references to spike-in genomes, scaling factors, and related analyses.
 
@@ -52,14 +56,15 @@
 
 ### Output Structure Changes
 
-- Simplified the output directory structure.
-- Consolidated peak calling outputs into a single directory for each peak caller.
+- Simplified the output directory structure. ([#92](https://github.com/CCBR/ASPEN/issues/92), @kopardev)
+- Consolidated peak calling outputs into a single directory for each peak caller. ([#91](https://github.com/CCBR/ASPEN/issues/91), @kopardev)
 - Updated the `results` folder structure to align with the simplified pipeline.
 
 ### Miscellaneous Changes
 
 - Updated all rules and scripts to use consistent naming conventions and file paths.
 - Improved readability and maintainability of the codebase by removing redundant logic and comments.
+- Decreased output digital footprint by removing unwanted intermediate files, gzipping annotated files, etc. ([#87](https://github.com/CCBR/ASPEN/issues/87), @kopardev)
 
 ## ASPEN 1.0.6
 
