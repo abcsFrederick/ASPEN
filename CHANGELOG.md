@@ -1,5 +1,66 @@
 ## ASPEN development version
 
+## ASPEN 1.1.0
+
+### General Changes
+
+- Simplified the pipeline by removing unused or redundant rules, scripts, and parameters.
+- Updated the pipeline to focus on core functionalities, including alignment, peak calling, differential accessibility, and quality control.
+
+### Configuration Changes
+
+- Added `spikein` and `spikein_genome` parameters to `config.yaml`.
+- Updated `cluster.json` to increase the number of threads for most rules and removed unused rules.
+
+### Alignment Changes
+
+- Added spike-in alignment (`align2spikein`) and scaling factor computation rules.
+- Updated `align.smk` to simplify alignment steps and add spike-in-related logic.
+- Added the `chromosomes` parameter in alignment and replaced the hardcoded chromosome names.
+
+### Peak Calling Changes
+
+- Updated MACS2 and Genrich peak calling rules to add spike-in-related logic.
+- Simplified peak filtering by applying a lenient q-value filter (default 0.1) directly in the peak calling scripts.
+- Peak called narrowPeak files are now default q-value filtered. Unfiltered files are still available for users who want to apply their own filters.
+- Removed redundant peak annotation steps and streamlined the output structure for peak calling.
+
+### Differential Accessibility Changes
+
+- Add new rules for scaling counts and annotating regions of interest.
+- DiffATAC analysis is now run for both MACS2 and Genrich peak calls, with results stored in separate directories.
+- Updated the `diffatac.smk` file to include spike-in scaling factors in the differential analysis.
+- Removed redundant steps in the differential accessibility analysis to streamline the process.
+
+### Quality Control Changes
+
+- Updated FRiP calculation to use `tagAlign.gz` files instead of deduplicated BAM files.
+- Removed unnecessary QC metrics and simplified the QC workflow.
+- Updated TSS enrichment and fragment length distribution rules to align with the simplified pipeline structure.
+
+### Documentation Changes
+
+- Updated all documentation files to reflect the addition of spike-in normalization and related features.
+- Simplified the documentation to focus on the core functionalities of the pipeline.
+- Added references to spike-in genomes, scaling factors, and related analyses.
+
+### Script Changes
+
+- Appended scripts related to spike-in normalization, scaling factors, and Tn5 BAM generation.
+- Updated peak calling scripts (`ccbr_atac_macs2_peak_calling.bash` and `ccbr_atac_genrich_peak_calling.bash`) to simplify logic and remove redundant steps.
+- Updated featureCounts header fix script to remove references to spike-in-specific file naming.
+
+### Output Structure Changes
+
+- Simplified the output directory structure.
+- Consolidated peak calling outputs into a single directory for each peak caller.
+- Updated the `results` folder structure to align with the simplified pipeline.
+
+### Miscellaneous Changes
+
+- Updated all rules and scripts to use consistent naming conventions and file paths.
+- Improved readability and maintainability of the codebase by removing redundant logic and comments.
+
 ## ASPEN 1.0.6
 
 - fix: dockername typo ([#57](https://github.com/CCBR/ASPEN/issues/57), @kopardev)
@@ -19,7 +80,7 @@
 
 ## ASPEN 1.0.3
 
-- fix: No module named 'numpy._core._multiarray_umath' error with`unset PYTHONPATH` ([#43](https://github.com/CCBR/ASPEN/issues/43), @kopardev)
+- fix: No module named 'numpy.\_core.\_multiarray_umath' error with`unset PYTHONPATH` ([#43](https://github.com/CCBR/ASPEN/issues/43), @kopardev)
 - fix: jobby command points to the correct location of snakemake.log file
 - ASPEN is now archived on Zenodo, you can cite it with the DOI [10.5281/zenodo.13755867](https://doi.org/10.5281/zenodo.13755867). ([#42](https://github.com/CCBR/ASPEN/issues/42), @kelly-sovacool)
 
