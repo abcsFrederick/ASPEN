@@ -1,20 +1,20 @@
 ## you probably need to change or comment or uncomment some of these
 #
 # The working dir... output will be in the results subfolder of the workdir
-workdir: "WORKDIR"
+workdir: "$WORKDIR"
 
 # tools scriptsdir resourcesdir
 # to use the workdir version of tools.yaml comment out the following line
-tools: "PIPELINE_HOME/resources/tools.yaml"
+tools: "$PIPELINE_HOME/resources/tools.yaml"
 
 # to use the workdir version of cluster.json comment out the following line
-# clusterjson: "PIPELINE_HOME/resources/cluster.json"
+# clusterjson: "$PIPELINE_HOME/resources/cluster.json"
 
 # to use the workdir version of scriptsdir comment out the following line
-# scriptsdir: "PIPELINE_HOME/workflow/scripts"
-scriptsdir: "WORKDIR/scripts"
+# scriptsdir: "$PIPELINE_HOME/workflow/scripts"
+scriptsdir: "$WORKDIR/scripts"
 
-resourcesdir: "PIPELINE_HOME/resources"
+resourcesdir: "$PIPELINE_HOME/resources"
 
 # tab delimited samples file ... should have the following 4 columns
 #
@@ -23,10 +23,10 @@ resourcesdir: "PIPELINE_HOME/resources"
 # multiple replicates may belong to the same sample
 # PE data is required!
 #
-samplemanifest: "WORKDIR/samples.tsv"
+samplemanifest: "$WORKDIR/samples.tsv"
 
 # uncomment the genome of interest
-genome: "GENOME"
+genome: "$GENOME"
 # genome: "hg38"
 # genome: "hg19"
 # genome: "mm10"
@@ -64,7 +64,7 @@ multimapping: 4
 fixed_width: 500
 
 # contrasts info
-contrasts: "WORKDIR/contrasts.tsv"
+contrasts: "$WORKDIR/contrasts.tsv"
 contrasts_fc_cutoff: 2
 contrasts_fdr_cutoff: 0.05
 
@@ -72,77 +72,77 @@ contrasts_fdr_cutoff: 0.05
 
 hs1:
   indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/hs1/indexes"
-  blacklistFa: "PIPELINE_HOME/resources/blacklistFa/hs1.blacklist.fa.gz"
-  chroms: "PIPELINE_HOME/resources/chroms/hs1.chroms"
-  tssBed: "PIPELINE_HOME/resources/tssBed/hs1_tssbeds.tar.gz"
-  homermotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_HUMAN_mono_homer_format_0.001.motif"
-  mememotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_HUMAN_mono_meme_format.tar.gz"
+  blacklistFa: "$PIPELINE_HOME/resources/blacklistFa/hs1.blacklist.fa.gz"
+  chroms: "$PIPELINE_HOME/resources/chroms/hs1.chroms"
+  tssBed: "$PIPELINE_HOME/resources/tssBed/hs1_tssbeds.tar.gz"
+  homermotif: "$PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_HUMAN_mono_homer_format_0.001.motif"
+  mememotif: "$PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_HUMAN_mono_meme_format.tar.gz"
   effectiveGenomeSize: 3000000000
   fripextra:
-    dhsbed: "PIPELINE_HOME/resources/frip/hs1.DHS.bed.gz"
-    promoterbed: "PIPELINE_HOME/resources/frip/hs1.promoters.bed.gz"
-    enhancerbed: "PIPELINE_HOME/resources/frip/hs1.enhancers.bed.gz"
+    dhsbed: "$PIPELINE_HOME/resources/frip/hs1.DHS.bed.gz"
+    promoterbed: "$PIPELINE_HOME/resources/frip/hs1.promoters.bed.gz"
+    enhancerbed: "$PIPELINE_HOME/resources/frip/hs1.enhancers.bed.gz"
 
 hg38:
   indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/hg38_basic/indexes"
-  blacklistFa: "PIPELINE_HOME/resources/blacklistFa/hg38.blacklist.fa.gz"
-  chroms: "PIPELINE_HOME/resources/chroms/hg38.chroms"
-  tssBed: "PIPELINE_HOME/resources/tssBed/hg38_tssbeds.tar.gz"
-  homermotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_HUMAN_mono_homer_format_0.001.motif"
-  mememotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_HUMAN_mono_meme_format.tar.gz"
+  blacklistFa: "$PIPELINE_HOME/resources/blacklistFa/hg38.blacklist.fa.gz"
+  chroms: "$PIPELINE_HOME/resources/chroms/hg38.chroms"
+  tssBed: "$PIPELINE_HOME/resources/tssBed/hg38_tssbeds.tar.gz"
+  homermotif: "$PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_HUMAN_mono_homer_format_0.001.motif"
+  mememotif: "$PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_HUMAN_mono_meme_format.tar.gz"
   effectiveGenomeSize: 2700000000
   fripextra:
-    dhsbed: "PIPELINE_HOME/resources/frip/hg38.DHS.bed.gz"
-    promoterbed: "PIPELINE_HOME/resources/frip/hg38.promoters.bed.gz"
-    enhancerbed: "PIPELINE_HOME/resources/frip/hg38.enhancers.bed.gz"
+    dhsbed: "$PIPELINE_HOME/resources/frip/hg38.DHS.bed.gz"
+    promoterbed: "$PIPELINE_HOME/resources/frip/hg38.promoters.bed.gz"
+    enhancerbed: "$PIPELINE_HOME/resources/frip/hg38.enhancers.bed.gz"
 
 hg19:
   indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/hg19_basic/indexes"
-  blacklistFa: "PIPELINE_HOME/resources/blacklistFa/hg19.blacklist.fa.gz"
-  chroms: "PIPELINE_HOME/resources/chroms/hg19.chroms"
-  tssBed: "PIPELINE_HOME/resources/tssBed/hg19_tssbeds.tar.gz"
-  homermotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_HUMAN_mono_homer_format_0.001.motif"
-  mememotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_HUMAN_mono_meme_format.tar.gz"
+  blacklistFa: "$PIPELINE_HOME/resources/blacklistFa/hg19.blacklist.fa.gz"
+  chroms: "$PIPELINE_HOME/resources/chroms/hg19.chroms"
+  tssBed: "$PIPELINE_HOME/resources/tssBed/hg19_tssbeds.tar.gz"
+  homermotif: "$PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_HUMAN_mono_homer_format_0.001.motif"
+  mememotif: "$PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_HUMAN_mono_meme_format.tar.gz"
   effectiveGenomeSize: 2700000000
   fripextra:
-    dhsbed: "PIPELINE_HOME/resources/frip/hg19.DHS.bed.gz"
-    promoterbed: "PIPELINE_HOME/resources/frip/hg19.promoters.bed.gz"
-    enhancerbed: "PIPELINE_HOME/resources/frip/hg19.enhancers.bed.gz"
+    dhsbed: "$PIPELINE_HOME/resources/frip/hg19.DHS.bed.gz"
+    promoterbed: "$PIPELINE_HOME/resources/frip/hg19.promoters.bed.gz"
+    enhancerbed: "$PIPELINE_HOME/resources/frip/hg19.enhancers.bed.gz"
 
 mm10:
   indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/mm10_basic/indexes"
-  blacklistFa: "PIPELINE_HOME/resources/blacklistFa/mm10.blacklist.fa.gz"
-  chroms: "PIPELINE_HOME/resources/chroms/mm10.chroms"
-  tssBed: "PIPELINE_HOME/resources/tssBed/mm10_tssbeds.tar.gz"
-  homermotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_MOUSE_mono_homer_format_0.001.motif"
-  mememotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_MOUSE_mono_meme_format.tar.gz"
+  blacklistFa: "$PIPELINE_HOME/resources/blacklistFa/mm10.blacklist.fa.gz"
+  chroms: "$PIPELINE_HOME/resources/chroms/mm10.chroms"
+  tssBed: "$PIPELINE_HOME/resources/tssBed/mm10_tssbeds.tar.gz"
+  homermotif: "$PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_MOUSE_mono_homer_format_0.001.motif"
+  mememotif: "$PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_MOUSE_mono_meme_format.tar.gz"
   effectiveGenomeSize: 1870000000
   fripextra:
-    dhsbed: "PIPELINE_HOME/resources/frip/mm10.DHS.bed.gz"
-    promoterbed: "PIPELINE_HOME/resources/frip/mm10.promoters.bed.gz"
-    enhancerbed: "PIPELINE_HOME/resources/frip/mm10.enhancers.bed.gz"
+    dhsbed: "$PIPELINE_HOME/resources/frip/mm10.DHS.bed.gz"
+    promoterbed: "$PIPELINE_HOME/resources/frip/mm10.promoters.bed.gz"
+    enhancerbed: "$PIPELINE_HOME/resources/frip/mm10.enhancers.bed.gz"
 
 mmul10:
   indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/mmul10"
-  blacklistFa: "PIPELINE_HOME/resources/blacklistFa/mmul10.blacklist.fa.gz"
-  chroms: "PIPELINE_HOME/resources/chroms/mmul10.chroms"
-  tssBed: "PIPELINE_HOME/resources/tssBed/mmul10_v108_tssbeds.tar.gz"
-  homermotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_HUMAN_MOUSE_mono_homer_format_0.001.motif"
-  mememotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_HUMAN_MOUSE_mono_meme_format.tar.gz"
+  blacklistFa: "$PIPELINE_HOME/resources/blacklistFa/mmul10.blacklist.fa.gz"
+  chroms: "$PIPELINE_HOME/resources/chroms/mmul10.chroms"
+  tssBed: "$PIPELINE_HOME/resources/tssBed/mmul10_v108_tssbeds.tar.gz"
+  homermotif: "$PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_HUMAN_MOUSE_mono_homer_format_0.001.motif"
+  mememotif: "$PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_HUMAN_MOUSE_mono_meme_format.tar.gz"
   effectiveGenomeSize: 2000000000
   fripextra:
-    promoterbed: "PIPELINE_HOME/resources/frip/mmul10.promoters.bed.gz"
+    promoterbed: "$PIPELINE_HOME/resources/frip/mmul10.promoters.bed.gz"
 
 bosTau9:
   indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/bosTau9"
-  blacklistFa: "PIPELINE_HOME/resources/blacklistFa/bosTau9.blacklist.fa.gz"
-  chroms: "PIPELINE_HOME/resources/chroms/bosTau9.chroms"
-  tssBed: "PIPELINE_HOME/resources/tssBed/bosTau9_v108_tssbeds.tar.gz"
-  homermotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_HUMAN_MOUSE_mono_homer_format_0.001.motif"
-  mememotif: "PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_HUMAN_MOUSE_mono_meme_format.tar.gz"
+  blacklistFa: "$PIPELINE_HOME/resources/blacklistFa/bosTau9.blacklist.fa.gz"
+  chroms: "$PIPELINE_HOME/resources/chroms/bosTau9.chroms"
+  tssBed: "$PIPELINE_HOME/resources/tssBed/bosTau9_v108_tssbeds.tar.gz"
+  homermotif: "$PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_HUMAN_MOUSE_mono_homer_format_0.001.motif"
+  mememotif: "$PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_HUMAN_MOUSE_mono_meme_format.tar.gz"
   effectiveGenomeSize: 2000000000
   fripextra:
-    promoterbed: "PIPELINE_HOME/resources/frip/bosTau9.promoters.bed.gz"
+    promoterbed: "$PIPELINE_HOME/resources/frip/bosTau9.promoters.bed.gz"
 
 
 # spikein genomes:
@@ -192,18 +192,17 @@ roi_min_spm: 2
 # report customized using multiqc_atacseq_config.yaml
 multiqc:
   extraparams: ""
-  configfile: "PIPELINE_HOME/config/multiqc_atacseq_config.yaml"
+  configfile: "$PIPELINE_HOME/config/multiqc_atacseq_config.yaml"
 
 # set min peaks to use for jaccard calculations
 jaccard_min_peaks: 1000
 
 # fastq screen configuration file
-fastqscreen_config: "PIPELINE_HOME/config/fastq_screen_config.txt"
+fastqscreen_config: "$PIPELINE_HOME/config/fastq_screen_config.txt"
 
-# URLs for containers
+# Containers
 # masterdocker: "docker://nciccbr/ccbr_atacseq:v0.1.29"
 masterdocker: "docker://nciccbr/ccbr_atacseq:v11-feat"
-
 baser: "docker://nciccbr/ccbr_baser:230531"
 bwadocker: "docker://nciccbr/ccbr_bwa_mem2_2.2.1:v1-feat"
 deeptoolsdocker: "docker://nciccbr/ccbr_deeptools_3.5.6:v1-feat"
@@ -212,3 +211,9 @@ fastqscreendocker: "docker://nciccbr/ccbr_fastq_screen_0.14.1:v1.0"
 # featurecounts: "docker://genomicpariscentre/featurecounts:1.5.3"
 featurecountsdocker: "docker://dsaha0295/featurecounts:latest"
 ucscdocker: "docker://nciccbr/ccbr_ucsc_v385:v2-feat"
+
+
+# pipeline information
+pipeline: "ASPEN"
+version: "$ASPENVERSION"
+
