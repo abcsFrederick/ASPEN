@@ -8,10 +8,17 @@
 
 - **Genomes supported**: Genomes supported is limited to:
 
-| Genome Assembly | Organism    | Scientific Name |
-|-----------------|-----------------|-----------------|
-| hg38            | Human           | Homo sapiens    |
-| hg19            | Human           | Homo sapiens    |
-| mm10            | Mouse           | Mus musculus    |
-| mmul10          | House Mouse     | Mus musculus    |
-| bosTau9         | Domestic Cattle | Bos taurus      |
+| Genome Assembly | Organism        | Scientific Name       |
+|-----------------|-----------------|-----------------------|
+| hg38            | Human           | *Homo sapiens*        |
+| hg19            | Human           | *Homo sapiens*        |
+| mm10            | Mouse           | *Mus musculus*        |
+| mmul10          | Rhesus Monkey   | *Macaca mulatta*      |
+| bosTau9         | Domestic Cattle | *Bos taurus*          |
+
+- **Spike-in genomes supported**: Spike-in genomes supported is limited to:
+
+| Genome Assembly | Organism        | Scientific Name             |
+|-----------------|-----------------|-----------------------------|
+| dmelr6.32       | Fruit Fly       | *Drosophila melanogaster*   |
+| ecoli_k12       | E. coli         | *Escherichia coli*          |

@@ -6,6 +6,7 @@ import os
 import pandas as pd
 import yaml
 import json
+import math
 # import glob
 # import shutil
 #########################################################
@@ -153,6 +154,7 @@ except KeyError:
     print("# No contrast file provided in config. No contrasts will be run!")
 
 PEAKCALLERS = ["genrich", "macs2"]
+COUNTING_METHODS = ["tn5sites", "reads"]
 if contrastsfileexists:
     check_readaccess(config["contrasts"])
     try:
@@ -177,7 +179,7 @@ if contrastsfileexists:
                     exit()
                 nreplicates = len(SAMPLE2REPLICATES[g])
                 if nreplicates < 2:
-                    print("Group: " + g + " has " + str(nreplicates) + " replicates. Only 2 or more replicates per group is supported as we are using DESeq2 for differential analysis.")
+                    print("Group: " + g + " has " + str(nreplicates) + " replicates. Only 2 or more replicates per group is supported as we are using DESeq2 for differential analysis. If you only have 1 replicate, please use MANorm outside of ASPEN.")
                     exit()
 
             ncontrasts = CONTRASTS.shape[0]
@@ -191,7 +193,6 @@ if contrastsfileexists:
 else:
     CONTRASTS = pd.DataFrame()
     print(contrastsfile + " is absent. No contrasts will be run.")
-
 
 # print(REPLICATESDF.columns)
 # print(REPLICATESDF.sampleName)
@@ -251,6 +252,10 @@ print("# Cluster JSON :",CLUSTERJSON)
 GENOME=config["genome"]
 INDEXDIR=config[GENOME]["indexdir"]
 print("# Bowtie index dir:",INDEXDIR)
+CHROMSFILE=config[GENOME]["chroms"]
+check_readaccess(CHROMSFILE)
+with open(CHROMSFILE) as f:
+    CHROMS = f.readline().strip()
 
 GENOMEFILE=join(INDEXDIR,GENOME+".genome") # genome file is required by macs2 peak calling
 check_readaccess(GENOMEFILE)
@@ -261,11 +266,54 @@ GENOMEFA=join(INDEXDIR,GENOME+".fa") # genome file is required by motif enrichme
 check_readaccess(GENOMEFA)
 print("# Genome fasta:",GENOMEFA)
 
+SPIKEINDEXDIR=""
+SPIKEINGENOME=""
+# check if spikein is set
+if config["spikein"] == True:
+    SPIKEIN=True
+    try:
+        SPIKEINGENOME=config["spikein_genome"]
+        print("# Spike-in Genome :",SPIKEINGENOME)
+    except KeyError:
+        print("# spikein_genome not provided in config file!")
+        exit()
+    try:
+        SPIKEINDEXDIR=config[SPIKEINGENOME]["indexdir"]
+        print("# Spike-in indexdir :",SPIKEINDEXDIR)
+    except KeyError:
+        print(f"# indexdir not provided for spikein_genome ({SPIKEINGENOME}) in config file!")
+        exit()
+    pacfile=join(SPIKEINDEXDIR,SPIKEINGENOME+".pac")
+    check_readaccess(pacfile)
+else:
+    SPIKEIN=False
+print("# Spike-in :",SPIKEIN)
+print("# Spike-in Genome :",SPIKEINGENOME) if SPIKEIN else None
+
+# get the Genrich -E parameter
+NsBed = join(INDEXDIR,GENOME+".Ns.bed.gz")
+excludeBed = join(INDEXDIR,GENOME+".blacklist.bed.gz")
+if os.path.exists(NsBed) and os.path.exists(excludeBed):
+    GENRICH_E = "-E " + NsBed + "," + excludeBed
+elif os.path.exists(excludeBed):
+    GENRICH_E = "-E " + excludeBed
+elif os.path.exists(NsBed):
+    GENRICH_E = "-E " + NsBed
+else:
+    GENRICH_E = ""
+
+genrich_qfilter = -math.log10(float(config["genrich"]["qfilter"]))
+GENRICH_QFILTER = f"{genrich_qfilter:.5f}"
+macs2_qfilter = -math.log10(float(config["macs2"]["qfilter"]))
+MACS2_QFILTER = f"{macs2_qfilter:.5f}"
+
 BLACKLISTFA=config[GENOME]['blacklistFa']
 check_readaccess(BLACKLISTFA)
 print("# Blacklist fasta:",BLACKLISTFA)
 
 QCDIR=join(RESULTSDIR,"QC")
+ALIGNDIR=join(RESULTSDIR,"alignment")
+PEAKSDIR=join(RESULTSDIR,"peaks")
 
 TSSBED=config[GENOME]["tssBed"]
 check_readaccess(TSSBED)

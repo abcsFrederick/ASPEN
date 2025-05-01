@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e -x -o pipefail
 
-ARGPARSE_DESCRIPTION="convert a set of narrowpeaks files to fixed width narrowpeak files, then call consensus peaks on those narrowpeak files, and finally normalize the p-values" 
+ARGPARSE_DESCRIPTION="convert a set of narrowpeaks files to fixed width narrowpeak files, then call consensus peaks on those narrowpeak files, and finally normalize the p-values"
 source /opt2/argparse.bash || exit 1
 argparse "$@" <<EOF || exit 1
 parser.add_argument('--narrowpeaks',required=True, nargs = '+', help = 'comma separated list of narrowPeak files')
@@ -63,3 +63,14 @@ Rscript ${SCRIPTSFOLDER}/fixed_width_peakSets_to_consensus_peakSet.R \
 Rscript ${SCRIPTSFOLDER}/narrowPeak_normalize_pvalues.R \
     -i $CONSENSUSNP \
     -o $CONSENSUSRENORMNP
+
+# move the replicate-level narrowPeak files to the output directory
+outdir=$(dirname $CONSENSUSRENORMNP)
+for np in `echo $OUTNPS | sed "s/,/ /g"`;do
+    src="$np"
+    dest="${outdir}/$(basename $np)"
+    if [[ "$src" != "$dest" ]]; then # avoid moving the consensus file to itself
+        echo "Moving $src to $dest"
+        mv $src $dest
+    fi
+done

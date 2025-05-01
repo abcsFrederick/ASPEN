@@ -1,6 +1,6 @@
-# ASPEN Outputs
+# 🚀 ASPEN Outputs
 
-## Workdir
+## 📂 Workdir
 
 The workdir which is supplied as `-w` while running aspen `init`, `dryrun` and `run` commands will contain the following files:
 
@@ -9,16 +9,16 @@ WORKDIR
 ├── cluster.json
 ├── config.yaml
 ├── contrasts.tsv
-├── dryrun_git_commit.txt
 ├── dryrun.log
 ├── fastqs
 ├── logs
 ├── results
 ├── runinfo.yaml
+├── runslurm_snakemake_report.html
 ├── sampleinfo.txt
 ├── samples.tsv
 ├── scripts
-├── slurm-48768339.out
+├── slurm-XXXXXXX.out
 ├── snakemake.log
 ├── snakemake.stats
 ├── stats
@@ -28,53 +28,97 @@ WORKDIR
 
 Here are more details about these files:
 
-| File | File Type | Mode (`-m`) When This File is Created/Overwritten | Description |
-|------|----------|--------------------------------------|-------------|
-| cluster.json | JSON | init | Defines cluster resources per snakemake rule |
-| config.yaml | YAML | init; can be edited later | Configurable parameters for this specific run |
-| contrasts.tsv | TSV | Needs to be added in after init | List of contrasts to run, one per line; has no header |
-| dryrun_git_commit.txt | TXT | dryrun | The git commit hash of the version of ASPEN used at dryrun |
-| dryrun.log | TXT | dryrun | Log from `-m=dryrun` |
-| fastqs | FOLDER | dryrun | Folder containing symlinks to raw data |
-| logs | FOLDER | dryrun | Folder containing all logs including Slurm `.out` and `.err` files |
-| results | FOLDER | Created at dryrun but populated during run | Main outputs folder |
-| runinfo.yaml | YAML | After completion of run | Metadata about the run executor, etc. |
-| sampleinfo.txt | TXT | dryrun, run | Tab-delimited mappings between `replicateNames` and `sampleNames` |
-| samples.tsv | TSV | init; can be edited later | Tab-delimited manifest with `replicateName`, `sampleName`, `path_to_R1_fastq`, `path_to_R2_fastq`. This file has a header. |
-| scripts | FOLDER | init | Folder keeps local copy of scripts called by various rules |
-| slurm-49051815.out | TXT | run | Slurm `.out` file for the master job |
-| snakemake.log | TXT | run | Snakemake `.log` file for the master job; older copies timestamped and moved into `logs` folder |
-| stats | FOLDER | Created at dryrun but populated during run | Contains older timestamped `runinfo.yaml` files |
-| submit_script.sbatch | TXT | run | Slurm script to kickstart the main Snakemake job |
-| tools.yaml | YAML | run | YAML containing the version of tools used in the pipeline (obsolete; was used to load specific module versions prior to moving over to Docker/Singularity containers) |
+| **File**                         | **File Type** | **Mode (`-m`) When This File is Created/Overwritten** | **Description**                                                                                                                                                       |
+| -------------------------------- | ------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cluster.json`                   | JSON          | init                                                  | Defines cluster resources per snakemake rule; this file can be edited to override default computate resource allocations per snakemake rule                           |
+| `config.yaml`                    | YAML          | init; can be edited later                             | Configurable parameters for this specific run                                                                                                                         |
+| `contrasts.tsv`                  | TSV           | Needs to be added in after init                       | List of contrasts to run, one per line; has no header                                                                                                                 |
+| `dryrun_git_commit.txt`          | TXT           | dryrun                                                | The git commit hash of the version of ASPEN used at dryrun                                                                                                            |
+| `dryrun.log`                     | TXT           | dryrun                                                | Log from `-m=dryrun`                                                                                                                                                  |
+| `fastqs`                         | FOLDER        | dryrun                                                | Folder containing symlinks to raw data                                                                                                                                |
+| `logs`                           | FOLDER        | dryrun                                                | Folder containing all logs including Slurm `.out` and `.err` files                                                                                                    |
+| `results`                        | FOLDER        | Created at dryrun but populated during run            | Main outputs folder                                                                                                                                                   |
+| `runinfo.yaml`                   | YAML          | After completion of run                               | Metadata about the run executor, etc.                                                                                                                                 |
+| `runslurm_snakemake_report.html` | HTML          | After completion of run                               | HTML report including DAG and resource utilization                                                                                                                    |
+| `sampleinfo.txt`                 | TXT           | dryrun, run                                           | Tab-delimited mappings between `replicateNames` and `sampleNames`                                                                                                     |
+| `samples.tsv`                    | TSV           | init; can be edited later                             | Tab-delimited manifest with `replicateName`, `sampleName`, `path_to_R1_fastq`, `path_to_R2_fastq`. This file has a header.                                            |
+| `scripts`                        | FOLDER        | init                                                  | Folder keeps local copy of scripts called by various rules                                                                                                            |
+| `slurm-XXXXXXX.out`              | TXT           | run                                                   | Slurm `.out` file for the master job                                                                                                                                  |
+| `snakemake.log`                  | TXT           | run                                                   | Snakemake `.log` file for the master job; older copies timestamped and moved into `logs` folder                                                                       |
+| `snakemake.stats`                | JSON          | run                                                   | per rule runtime stats                                                                                                                                                |
+| `stats`                          | FOLDER        | Created at dryrun but populated during run            | Contains older timestamped `runinfo.yaml` and `snakemake.stats` files                                                                                                 |
+| `submit_script.sbatch`           | TXT           | run                                                   | Slurm script to kickstart the main Snakemake job                                                                                                                      |
+| `tools.yaml`                     | YAML          | run                                                   | YAML containing the version of tools used in the pipeline (obsolete; was used to load specific module versions prior to moving over to Docker/Singularity containers) |
 
-## Resultsdir
+## 📊 `results` folder
 
 The results directory contains the actual output files. Below are the folders that you may find within it.
 
 ```bash
 WORKDIR
 ├── results
-    ├── dedupBam
+    ├── alignment
+    │   ├── dedupBam
+    │   ├── filteredBam
+    │   ├── qsortedBam
+    │   └── tagAlign
     ├── peaks
+    │   ├── genrich
+    │   │   ├── DiffATAC
+    │   │   │   ├── reads
+    │   │   │   └── tn5sites
+    │   │   └── fixed_width
+    │   └── macs2
+    │       ├── DiffATAC
+    │       │   ├── reads
+    │       │   └── tn5sites
+    │       └── fixed_width
     ├── QC
-    ├── qsortedBam
-    ├── tagAlign
-    └── tmp
+    │   ├── fastqc
+    │   ├── fld
+    │   ├── FQscreen
+    │   ├── frip
+    │   ├── multiqc_data
+    │   ├── peak_annotation
+    │   ├── preseq
+    │   └── tss
+    ├── spikein
+    │   ├── <sample_1>
+    │   ├── <sample_2>
+    │   ├── <sample_3>
+    │   │ ...
+    │   └── <sample_n>
+    ├── tmp
+    │   ├── BL
+    │   ├── genrichReads
+    │   └── trim
+    └── visualization
+        ├── reads_bam
+        ├── reads_bed
+        ├── reads_bigwig
+        ├── tn5sites_bam
+        └── tn5sites_bigwig
 ```
 
 Content details:
 
-| Folder       | Description |
-|-------------|------------|
-| `dedupBam`    | Deduplicated filtered BAM files; can be used for visualization. |
-| `peaks`    | Genrich/MACS2 peak calls (raw, consensus, fixed-width); also contains ROI files with Diff-ATAC results if `contrasts.tsv` is provided; motif enrichments using HOMER and AME; bigwigs for visualization. |
-| `QC`          | Flagstats; dupmetrics; read counts; motif enrichments; FLD stats; Fqscreen; FRiP; ChIPSeeker results; TSS enrichments; Preseq; MultiQC. |
-| `qsortedBam`  | Query name sorted BAM files; used for Genrich peak calling (includes multimappers). |
-| `tagAlign`    | `tagAlign.gz` files; deduplicated; used for MACS2 peak calling. |
-| `tmp`         | Can be deleted; blacklist index; intermediate FASTQs; Genrich output reads. |
+| Folder        | SubFolder           | Description                                                                                                                                                                                                                                         |
+| ------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| alignment     | qsortedBam          | - Query sorted Bowtie2 alignments in BAM format. <br> - Excludes unmapped and platform/vendor quality failing reads. <br> - Used for Genrich peak calling.                                                                                          |
+| alignment     | filteredBam         | - Filtered BAM files after excluding non-primary, supplementary, and MAPQ <=5 alignments. <br> - Used for counting reads/tn5 nicks. <br> - Derived from `qsortedBam`.                                                                               |
+| alignment     | dedupBam            | - Deduplicated filtered BAM files. <br> - PCR or optical duplicates marked with PicardTools and excluded. <br> - Can be used downstream with CCBR_TOBIAS pipeline. <br> - Derived from `filteredBam`.                                               |
+| alignment     | tagAlign            | - `tagAlign.gz` files used for MACS2 peak calling. <br> - Derived from `dedupBam`.                                                                                                                                                                  |
+| peaks         | genrich & macs      | - Genrich/MACS2 peak calls (raw, consensus, fixed-width). <br> - Contains ROI files with Diff-ATAC results if `contrasts.tsv` is provided. <br> - Calculated with DESeq2 using both read counts and tn5 nicking sites in ROI.                       |
+| QC            | various             | - Flagstats. <br> - Dupmetrics. <br> - Read counts. <br> - Motif enrichments. <br> - FLD stats. <br> - Fqscreen. <br> - FRiP. <br> - ChIPSeeker results. <br> - TSS enrichments. <br> - Preseq. <br> - Homer/AME motif enrichments. <br> - MultiQC. |
+| QC            | peak_annotation     | detailed peak annotations described below                                                                                                                                                                                                           |
+| spikein       | 1 folder per sample | - Per sample spike-in counts. <br> - Overall scaling factors table.                                                                                                                                                                                 |
+| tmp           | various             | - Can be deleted. <br> - Blacklist index. <br> - Intermediate FASTQs. <br> - Genrich output reads.                                                                                                                                                  |
+| visualization | reads_bam           | - Tn5 nick adjusted reads in BAM format. <br> - Derived from `filteredBam`.                                                                                                                                                                         |
+| visualization | reads_bed           | - Tn5 nick adjusted reads in BED format. <br> - Derived from `reads_bam`. <br> - Can be used by ChromVar.                                                                                                                                           |
+| visualization | reads_bigwig        | - Tn5 nick adjusted reads in BIGWIG format. <br> - Scaled using spike-in scaling factors if present. <br> - Derived from `reads_bam`.                                                                                                               |
+| visualization | tn5sites_bam        | - Tn5 nicking sites in BAM format. <br> - Derived from `filteredBam`.                                                                                                                                                                               |
+| visualization | tn5sites_bigwig     | - Tn5 nicking sites in BIGWIG format. <br> - Scaled using spike-in scaling factors if present. <br> - Derived from `tn5sites_bam`.                                                                                                                  |
 
-The `QC` folder contains the `multiqc_report.html` file which provides a comprehensive summary of the quality control metrics across all samples, including read quality, duplication rates, and other relevant statistics. This report aggregates results from various QC tools such as FastQC, FastqScreen, FLD, TSS enrichment, Peak Annotations, and others, presenting them in an easy-to-read format with interactive plots and tables. It helps in quickly identifying any issues with the sequencing data and ensures that the data quality is sufficient for downstream analysis.
 
 !!! note
     BAM files from `dedupBam` can be used for downstream footprinting analysis using [CCBR_TOBIAS](https://github.com/CCBR/CCBR_Tobias) pipeline
@@ -85,138 +129,178 @@ The `QC` folder contains the `multiqc_report.html` file which provides a compreh
 !!! note
     BAM files from `dedupBam` can also be converted to BED format and processed with [chromVAR](https://github.com/GreenleafLab/chromVAR) to identify variability in motif accessibility across samples and assess differentially active transcription factors from the JASPAR database.
 
-Most of the above folders are self-explanatory. The `peaks` folder has this hierarchy:
+
+#### Peak Annotation folder
+
+This folder will contain ChIPseeker results for:
+
+- individual replicate `*.narrowPeak` files
+- `*.consensus.bed` files
+- `*.fixed_width.consensus.narrowPeak` files
+
+The `QC` folder contains the `multiqc_report.html` file which provides a comprehensive summary of the quality control metrics across all samples, including read quality, duplication rates, and other relevant statistics. This report aggregates results from various QC tools such as FastQC, FastqScreen, FLD, TSS enrichment, Peak Annotations, and others, presenting them in an easy-to-read format with interactive plots and tables. It helps in quickly identifying any issues with the sequencing data and ensures that the data quality is sufficient for downstream analysis.
+
+| File                                  | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `*.narrowPeak.annotated.gz`           | peak calls annotated using ChIPseeker, gzipped                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `*.narrowPeak.annotated.distribution` | annotation bins : <br> - **3'UTR**: No. of peaks in the 3' untranslated region. <br> - **5'UTR**: No. of peaks in the 5' untranslated region. <br> - **Distal Intergenic**: No. of peaks in distal intergenic regions. <br> - **Downstream (<1kb)**: No. of peaks annotated downstream within 1kb. <br> - **Downstream (1-2kb)**: No. of peaks annotated downstream between 1-2kb. <br> - **Downstream (2-3kb)**: No. of peaks annotated downstream between 2-3kb. <br> - **Promoter (<=1kb)**: No. of peaks in promoters within 1kb. <br> - **Promoter (1-2kb)**: No. of peaks in promoters between 1-2kb. <br> - **Exon**: No. of peaks in exonic regions. |
+| `*.narrowPeak.annotated_summary`      | More stats on each of the above bins .. like: <br> - medianWidth <br> - medianpValue <br> - medianqValue                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `*.narrowPeak.genelist`               | ensemblID and gene symbols of genes with peaks in their promoter regions (including 5' UTR)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+
+### MACS2 output folder
+
+For a typical 2 sample analysis with 2 replicates each this folder should look like this:
 
 ```bash
 WORKDIR
 ├── results
     ├── peaks
-        ├── genrich
-        │   ├── <replicateName>.genrich.narrowPeak
-        │   ├── <replicateName>.genrich.narrowPeak.annotated
-        │   ├── <replicateName>.genrich.narrowPeak.genelist
-        │   ├── <replicateName>.genrich.narrowPeak.annotation_summary
-        │   ├── <replicateName>.genrich.narrowPeak.annotation_distribution
-        │   ├── <sampleName>.genrich.pooled.narrowPeak
-        │   ├── <sampleName>.genrich.consensus.bed
-        │   ├── ROI.counts.tsv
-        │   ├── bigwig
-        │   ├── <replicateName>.genrich.narrowPeak_motif_enrichment
-        │   │   └── knownResults
-        │   ├── DiffATAC
-        │   ├── <replicateName>.genrich.consensus.bed_motif_enrichment
-        │   └── tn5nicks
         └── macs2
-        │   ├── <replicateName>.macs2.narrowPeak
-        │   ├── <replicateName>.macs2.narrowPeak.annotated
-        │   ├── <replicateName>.macs2.narrowPeak.genelist
-        │   ├── <replicateName>.macs2.narrowPeak.annotation_summary
-        │   ├── <replicateName>.macs2.narrowPeak.annotation_distribution
-        │   ├── <sampleName>.macs2.pooled.narrowPeak
-        │   ├── <sampleName>.macs2.consensus.bed
-        │   ├── ROI.counts.tsv
-            ├── bigwig
-            ├── <replicateName>.macs2.narrowPeak_motif_enrichment
-            │   └── knownResults
+            ├── sample1
+            │   ├── sample1_replicate1.macs2.narrowPeak
+            │   ├── sample1_replicate1.macs2.narrowPeak_motif_enrichment
+            │   │   ├── ame_results.txt
+            │   │   ├── background.fa
+            │   │   ├── knownResults
+            │   │   ├── knownResults.html
+            │   │   ├── knownResults.txt
+            │   │   ├── motifFindingParameters.txt
+            │   │   ├── seq.autonorm.tsv
+            │   │   └── target.fa
+            │   ├── sample1_replicate1.macs2.unfiltered.narrowPeak
+            │   ├── sample1_replicate2.macs2.narrowPeak
+            │   ├── sample1_replicate2.macs2.narrowPeak_motif_enrichment
+            │   │   ├── ame_results.txt
+            │   │   ├── background.fa
+            │   │   ├── knownResults
+            │   │   ├── knownResults.html
+            │   │   ├── knownResults.txt
+            │   │   ├── motifFindingParameters.txt
+            │   │   ├── seq.autonorm.tsv
+            │   │   └── target.fa
+            │   ├── sample1_replicate2.macs2.unfiltered.narrowPeak
+            │   ├── sample1.macs2.consensus.bed
+            │   ├── sample1.macs2.consensus.bed_motif_enrichment
+            │   │   ├── ame_results.txt
+            │   │   ├── background.fa
+            │   │   ├── knownResults
+            │   │   ├── knownResults.html
+            │   │   ├── knownResults.txt
+            │   │   ├── motifFindingParameters.txt
+            │   │   ├── seq.autonorm.tsv
+            │   │   └── target.fa
+            │   ├── sample1.macs2.pooled.narrowPeak
+            │   ├── sample1.macs2.pooled_summits.bed
+            │   └── sample1.macs2.pooled.unfiltered.narrowPeak
+            ├── sample1.consensus.macs2.peakfiles
+            ├── sample1.replicate.macs2.peakfiles
             ├── DiffATAC
-        │   ├── <replicateName>.macs2.consensus.bed_motif_enrichment
-            ├── fixed_width
-            └── tn5nicks
+            │   ├── reads
+            │   │   ├── all_diff_atacs.html
+            │   │   ├── all_diff_atacs.tsv
+            │   │   ├── degs.done
+            │   │   ├── sample2_vs_sample1.html
+            │   │   └── sample2_vs_sample1.tsv
+            │   └── tn5sites
+            │       ├── all_diff_atacs.html
+            │       ├── all_diff_atacs.tsv
+            │       ├── degs.done
+            │       ├── sample2_vs_sample1.html
+            │       └── sample2_vs_sample1.tsv
+            ├── sample2
+            │   ├── sample2_replicate1.macs2.narrowPeak
+            │   ├── sample2_replicate1.macs2.narrowPeak_motif_enrichment
+            │   │   ├── ame_results.txt
+            │   │   ├── background.fa
+            │   │   ├── knownResults
+            │   │   ├── knownResults.html
+            │   │   ├── knownResults.txt
+            │   │   ├── motifFindingParameters.txt
+            │   │   ├── seq.autonorm.tsv
+            │   │   └── target.fa
+            │   ├── sample2_replicate1.macs2.unfiltered.narrowPeak
+            │   ├── sample2_replicate2.macs2.narrowPeak
+            │   ├── sample2_replicate2.macs2.narrowPeak_motif_enrichment
+            │   │   ├── ame_results.txt
+            │   │   ├── background.fa
+            │   │   ├── knownResults
+            │   │   ├── knownResults.html
+            │   │   ├── knownResults.txt
+            │   │   ├── motifFindingParameters.txt
+            │   │   ├── seq.autonorm.tsv
+            │   │   └── target.fa
+            │   ├── sample2_replicate2.macs2.unfiltered.narrowPeak
+            │   ├── sample2.macs2.consensus.bed
+            │   ├── sample2.macs2.consensus.bed_motif_enrichment
+            │   │   ├── ame_results.txt
+            │   │   ├── background.fa
+            │   │   ├── knownResults
+            │   │   ├── knownResults.html
+            │   │   ├── knownResults.txt
+            │   │   ├── motifFindingParameters.txt
+            │   │   ├── seq.autonorm.tsv
+            │   │   └── target.fa
+            │   ├── sample2.macs2.pooled.narrowPeak
+            │   ├── sample2.macs2.pooled_summits.bed
+            │   └── sample2.macs2.pooled.unfiltered.narrowPeak
+            ├── sample2.consensus.macs2.peakfiles
+            ├── sample2.replicate.macs2.peakfiles
+            └── fixed_width
+                ├── sample1_replicate1.macs2.fixed_width.narrowPeak
+                ├── sample1_replicate2.macs2.fixed_width.narrowPeak
+                ├── sample1.fixed_width.consensus.narrowPeak
+                ├── sample1.renormalized.fixed_width.consensus.narrowPeak
+                ├── sample1.renormalized.fixed_width.consensus.narrowPeak.annotated.gz
+                ├── counts
+                │   ├── ROI.macs2.reads_counts.tsv
+                │   └── ROI.macs2.tn5sites_counts.tsv
+                ├── sample2_replicate1.macs2.fixed_width.narrowPeak
+                ├── sample2_replicate2.macs2.fixed_width.narrowPeak
+                ├── sample2.fixed_width.consensus.narrowPeak
+                ├── sample2.renormalized.fixed_width.consensus.narrowPeak
+                ├── sample2.renormalized.fixed_width.consensus.narrowPeak.annotated.gz
+                ├── ROI.macs2.bed
+                ├── ROI.macs2.bed.annotated.gz
+                ├── ROI.macs2.bed.annotated.gz.gz
+                ├── ROI.macs2.bed.annotation_distribution
+                ├── ROI.macs2.bed.annotation_summary
+                ├── ROI.macs2.bed.genelist
+                ├── ROI.macs2.gtf
+                ├── ROI.macs2.narrowPeak
+                ├── ROI.macs2.renormalized.narrowPeak
+                └── Rplots.pdf
 ```
 
-Some of the important folders and files are highlighted below:
+Some of the key output files are:
 
-### Folders
+| File                                                | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `*.macs2.narrowPeak`                                | peak calls from MACS2 filtered by q-value for each samples each replicate                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `*.macs2.unfiltered.narrowPeak`                     | peak calls from MACS2 (unfiltered) for each samples each replicate                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `*.narrowPeak_motif_enrichment/ame_results.txt`     | motif enrichment results from AME tool from MEME suite using HOCOMOCO v11 database                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `*.narrowPeak_motif_enrichment/knownResults.txt`    | motif enrichment results using HOMER with HOCOMOCO v11 database                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `*.macs2.consensus.bed`                             | consensus peak call between multiple replicates of each sample. **Note:** consensus bed annotations are located in `QC/peak_annotations`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `DiffATAC/reads`                                    | folder containing differential open chromatin results: <br> - computated using read counts in MACS2 regions of interest (ROIs) <br> - `all_diff_atacs.html` HTML report aggregated across all contrasts from `contrasts.tsv` <br> - `all_diff_atacs.tsv` DESeq2 results in TSV format aggregated across all contrasts from `contrasts.tsv` <br> - HTML and TSV file each per contrast in `contrasts.tsv`                                                                                                                                                                                                                                   |
+| `DiffATAC/tn5sites`                                 | folder containing differential open chromatin results: <br> - computated using Tn5 nicking site counts in MACS2 regions of interest (ROIs) <br> - `all_diff_atacs.html` HTML report aggregated across all contrasts from `contrasts.tsv` <br> - `all_diff_atacs.tsv` DESeq2 results in TSV format aggregated across all contrasts from `contrasts.tsv` <br> - HTML and TSV file each per contrast in `contrasts.tsv`                                                                                                                                                                                                                       |
+| `fixed_width`                                       | `fixed_width` can be set in `config.yaml` to create peaks of a user defined fixed width (default 500bp). This folder contains: <br> - individual replicate `*.fixed_width.narrowPeak` files <br> - `*.renormalized.fixed_width.consensus.narrowPeak` per sample; [_Corces et. al._](https://doi.org/10.1038/nmeth.4396) method is used for consensus calling; used to generate MACS2 regions of interest (ROI) peaks which are used to generate a reads or Tn5 sites counts matrix for DESeq2 <br> - ROI related files: `ROI.macs2.bed`, `ROI.macs2.bed.annotated.gz`, `ROI.macs2.annotation_summary`, `ROI.macs2.annotation_distribution` |
+| `fixed_width/counts/ROI.macs2.read_counts.tsv`      | read counts in MACS2 ROIs using featureCounts                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `fixed_width/counts/ROI.reads_scaled_counts.tsv`    | `ROI.macs2.read_counts.tsv` scaled using spike-in scaling factors                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `fixed_width/counts/ROI.tn5sites_counts.tsv`        | Tn5 nicking site counts in MACS2 ROIs using featureCounts                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `fixed_width/counts/ROI.tn5sites_scaled_counts.tsv` | `ROI.macs2.tn5sites_counts.tsv` scaled using spike-in scaling factors                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 
-- `bigwig`: 
+### Genrich output folder
 
-For easy visualization, they are converted to bigWig format and saved in respective `bigwig` folders. The bigWig files can be directly loaded into [UCSC Browser](https://genome.ucsc.edu/) or [IGV](https://igv.org/doc/desktop/).
+For a typical 2 sample analysis with 2 replicates each this folder should look like very similar to the MACS2 output structure described above.
 
-- `tn5nicks`: 
+## `logs` folder
 
-This folder host the per-replicate BAM files containing the Tn5 nicking sites in Genrich or MACS2 "peakcalling" reads, respectively. 
+This directory contains all .err and .out log files generated by SLURM for jobs submitted via Snakemake. Each file follows a consistent naming convention:
 
-- `DiffATAC`: 
+```bash
+<SLURM_JOB_ID of master/head job>.<SLURM_JOB_ID of child job>.<Snakemake Rule Name>.<wildcard1_name=wildcard1_value,wildcard2_name=wildcard2_value>.<out or err>
+```
 
-Contains the DESeq2 differential accessiblity results, both per-contrast and aggregated accross all contrasts in `contrasts.tsv`. These results are solely based on tn5 nick counts.
+This structure is particularly useful for troubleshooting and debugging, especially when the SLURM job IDs of failed jobs are known. By examining the corresponding .err or .out files, users can efficiently identify the source of errors within specific Snakemake rules and wildcards.
 
-- `fixed_width`: 
+> DISCLAIMER: This folder hierarchy is significantly different than v1.0.6 and is subject to change with subsequent versions.
 
-This folder contains fixed-width consensus peaks across replicates and samples, represented in the "Regions-Of-Interest" files. The `ROI.bed` file lists genomic regions where chromatin accessibility is analyzed using DESeq2, with results stored in the `DiffATAC` folder.
-
-- `<replicateName>.macs2.narrowPeak_motif_enrichment`;`<replicateName>.genrich.narrowPeak_motif_enrichment`;`<replicateName>.macs2.consensus.bed_motif_enrichment`;`<replicateName>.genrich.consensus.bed_motif_enrichment`:
-
-Contains the motif enrichments calculated using HOMER and AME for peaks called for each replicate, sample consensus peaks using both MACS2 and Genrich. Specifically, two types of motif enrichments are performed:
-  
-  - Enrichment of known [HOCOMOCO](https://hocomoco11.autosome.org/) (version 11) motifs for HUMAN or MOUSE or BOTH using [HOMER](http://homer.ucsd.edu/homer/ngs/peaks.html). See file `knownResults.html`.
-
-  - _de novo_ motif enrichment using [AME](https://meme-suite.org/meme/doc/ame.html) from MEME suite. See file `ame_results.txt`. Custom parallelization is used to optimize AME based enrichment analysis.
-
-### Files
-
-- `*.narrowPeak`:
-
-Called peaks from Genrich or MACS2
-
-- Annotated peak files:
-
-Peaks are annotated with ChIPSeeker and results are saved in the following files:
-
-  - `.annotated`
-
-    Tab-delimited txt file with the following columns:
-
-| Column Number | Field Name | Description |
-|--------------|------------|-------------|
-| 1  | #peakID        | Peak identifier |
-| 2  | chrom         | Peak chromosome |
-| 3  | chromStart    | Peak start coordinate |
-| 4  | chromEnd      | Peak end coordinate |
-| 5  | width         | Peak width |
-| 6  | annotation    | Peak annotation (Promoter; 3' or 5' UTR; Distal; Downstream; Exon; Intron) |
-| 7  | geneChr       | Gene chromosome |
-| 8  | geneStart     | Gene start coordinate |
-| 9  | geneEnd       | Gene end coordinate |
-| 10 | geneLength    | Gene length (including introns) |
-| 11 | geneStrand    | Gene strand |
-| 12 | geneId        | Gene identifier |
-| 13 | transcriptId  | Transcript identifier |
-| 14 | distanceToTSS | Distance of peak from the Transcription Start Site |
-| 15 | ENSEMBL       | Gene Ensembl ID |
-| 16 | SYMBOL        | Gene symbol |
-| 17 | GENENAME      | Gene description |
-| 18 | score         | Score from `.narrowPeak` file |
-| 19 | signalValue   | Signal from `.narrowPeak` file |
-| 20 | pValue        | p-value from `.narrowPeak` file |
-| 21 | qValue        | q-value from `.narrowPeak` file |
-| 22 | peak          | Distance of peak summit from peak start coordinate |
-
-  - `.genelist`
-
-This is a tab-delimited file with names (Ensembl ID, gene symbol) of genes which have ATAC-seq peaks in their promotor regions. This file can be used downstream for gene enrichment analysis (ORA or over-representation analysis).
-
-  - `.annotation_summary`; `.annotation_distribution`
-
-Tab-delimited files that provide statistics on peak annotations, quantifying the number of peaks found in Promoters, Exonic regions, Distal Intergenic regions, etc. The `.annotation_distribution` is use to create visualization of these annotation-distributions in the MultiQC report.
-
-- `ROI.counts.tsv`
-
-This file contains the read counts for each Region-Of-Interest (ROI) across all replicates of all samples. It is a tab-delimited file with the following columns:
-
-| Column Number | Field Name | Description |
-|---------------|------------|-------------|
-| 1             | Geneid       | Region-Of-Interest identifier |
-| 2             | Chr      | Chromosome of the ROI |
-| 3             | Start      | Start coordinate of the ROI |
-| 4             | End        | End coordinate of the ROI |
-| 5             | Strand        | "." |
-| 6             | Length     | Length of the ROI |
-| 7             | sample1_replicate1    | Tn5 nicking site counts in this ROI for replicate1 of sample1 |
-| 8             | sample1_replicate2    | Tn5 nicking site counts in this ROI for replicate2 of sample1 |
-| ...           | ...        | ... |
-| n             | sampleN_replicateM    | Tn5 nicking site counts in this ROI for replicateM of sampleN|
-
-Each row represents a specific ROI, and the columns contain the read counts for each sample, allowing for differential accessibility analysis.
-
-!!! warning
-    DISCLAIMER: This folder hierarchy is specific to v1.0.6 and is subject to change with version.

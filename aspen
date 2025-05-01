@@ -282,7 +282,7 @@ function set_snakemake_rerun_triggers() {
   fi
 }
 # Force Snakemake to Ignore Software Environment Changes ... like new masterdocker
-# RERUNTRIGGERS="--rerun-triggers mtime"
+RERUNTRIGGERS="--rerun-triggers mtime"
 ##########################################################################################
 # RECONFIG ... recreate config.yaml and overwrite old version
 ##########################################################################################
@@ -316,7 +316,8 @@ function set_singularity_binds(){
   rm -f ${WORKDIR}/tmp?
   binds=$(echo $binds | awk '{print substr($1,1,length($1)-1)}')
   SINGULARITY_BINDS="-B $EXTRA_SINGULARITY_BINDS,$binds"
-  SINGULARITY_STR="--use-singularity --singularity-args \"${SINGULARITY_BINDS}\""
+  SINGULARITY_STR="--use-singularity --singularity-args \"${SINGULARITY_BINDS}\" --singularity-prefix \"${SING_CACHE_DIR}\" "
+  echo "Singularity Extra string : $SINGULARITY_STR"
 }
 
 
@@ -751,16 +752,20 @@ function main(){
   # CLUSTERSTATUSCMD="${PIPELINE_HOME}/resources/cluster_status.sh"
 
   if [[ -z "$SING_CACHE_DIR" ]]; then
-    if [[ -d "/data/$USER" ]]; then
-      SING_CACHE_DIR="/data/$USER/.singularity"
+    if [[ -n "$SIFCACHE" && -d "$SIFCACHE" ]]; then
+      SING_CACHE_DIR="$SIFCACHE"
+      echo "Using SIFCACHE directory for singularity cache: ${SING_CACHE_DIR}"
     else
-      SING_CACHE_DIR="${WORKDIR}/.singularity"
+      if [[ -d "/data/$USER" ]]; then
+        SING_CACHE_DIR="/data/$USER/.singularity"
+      else
+        SING_CACHE_DIR="${WORKDIR}/.singularity"
+      fi
+      echo "singularity cache dir (--singcache) is not set, using ${SING_CACHE_DIR}"
+      mkdir -p "$SING_CACHE_DIR"
     fi
-    echo "singularity cache dir (--singcache) is not set, using ${SING_CACHE_DIR}"
   fi
-  mkdir -p $SING_CACHE_DIR
   EXPORT_SING_CACHE_DIR_CMD="export SINGULARITY_CACHEDIR=\"${SING_CACHE_DIR}\""
-
   case $RUNMODE in
     init)     init      && exit 0;;
     dag)      dag       && exit 0;;

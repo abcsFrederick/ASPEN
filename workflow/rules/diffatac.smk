@@ -11,6 +11,8 @@ def get_diffatac_input():
     return expected_filelist
 
 
+#########################################################
+
 
 rule atac_calculate_regions_of_interest_for_diffatac:
 # """
@@ -19,13 +21,15 @@ rule atac_calculate_regions_of_interest_for_diffatac:
     input:
         expand(join(RESULTSDIR,"peaks","{{peakcaller}}","fixed_width","{sample}.renormalized.fixed_width.consensus.narrowPeak"),sample=SAMPLES)
     output:
-        roi              = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.narrowPeak"),
-        roi_bed          = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.bed"),
-        roi_gtf          = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.gtf"),
-        roi_renormalized = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.renormalized.narrowPeak")
+        roi              = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.{peakcaller}.narrowPeak"),
+        roi_bed          = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.{peakcaller}.bed"),
+        roi_gtf          = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.{peakcaller}.gtf"),
+        roi_renormalized = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.{peakcaller}.renormalized.narrowPeak")
     params:
         script      =   "ccbr_atac_get_fixedwidth_consensus_renormalized_peaks.sh",
+        annotatescript = "ccbr_annotate_bed.R",
         scriptsdir  =   SCRIPTSDIR,
+        genome      =   GENOME,
         width       =   config["fixed_width"],
         roi_min_rep =   config['roi_min_replicates'],
         roi_min_spm =   config['roi_min_spm'],
@@ -72,48 +76,99 @@ bedSort {output.roi_bed} {output.roi_bed}
 bedToGenePred {output.roi_bed} /dev/stdout | genePredToGtf file /dev/stdin {output.roi_gtf}
 """
 
-rule get_counts_table:
+
+#########################################################
+
+rule annotate_roi:
     input:
-        files   =   expand(join(RESULTSDIR,"peaks","{{peakcaller}}","{sample}.{{peakcaller}}.tn5nicksbedfiles"),sample=SAMPLES),
-        gtf     =   join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.gtf")
+        roi_bed = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed"),
     output:
-        counts  =   join(RESULTSDIR,"peaks","{peakcaller}","ROI.counts.tsv")
+        roi_annotated = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed.annotated.gz"),
+        roi_genelist = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed.genelist"),
+        roi_annotation_summary = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed.annotation_summary"),
+        roi_annotation_distribution = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "ROI.{peakcaller}.bed.annotation_distribution"),
     params:
-        scriptsdir  =   SCRIPTSDIR,
-    threads: getthreads("get_counts_table")
-    container: config['featurecountsdocker']
+        genome = config['genome'],
+        scriptsdir = SCRIPTSDIR,
+        annotatescript = "ccbr_annotate_bed.R"
+    container: config['masterdocker']
     shell:"""
 set -exo pipefail
-TMPDIR="/lscratch/$SLURM_JOB_ID"
-if [ ! -d $TMPDIR ];then
-    TMPDIR="/dev/shm"
-fi
-cd $TMPDIR
-unset PYTHONPATH
-
-bams=""
-count=0
-for f in {input.files}
-do
-while read a b c;do
-    count=$((count+1))
-    if [ "$count" == "1" ];then
-        bams="$c"
-    else
-        bams="$bams $c"
-    fi
-done < $f
-done
-
-featureCounts -a {input.gtf} -o ${{TMPDIR}}/`basename {output.counts}` -s 0 -t transcript -g transcript_id -T {threads} $bams > featureCounts.log 2>&1
-cat ${{TMPDIR}}/`basename {output.counts}` | python {params.scriptsdir}/_featureCounts_header_fix.py - > {output.counts}
+annotated=$(echo {output.roi_annotated} | awk -F'.gz' '{{print $1}}')
+Rscript {params.scriptsdir}/{params.annotatescript} -b {input.roi_bed} -a $annotated -g {params.genome} -l {output.roi_genelist} -f {output.roi_annotation_summary}
+cut -f1,2 {output.roi_annotation_summary} > {output.roi_annotation_distribution}
+gzip -n -f $annotated
+ls -alrth $(dirname {output.roi_annotated})
 """
+
+#########################################################
+
+
+rule get_counts_table:
+    input:
+        bam_files = lambda wildcards: expand(
+            join(RESULTSDIR, "visualization", "{method}_bam", "{replicate}.{method}.bam"),
+            method=wildcards.method,
+            replicate=REPLICATES
+        ),
+        gtf = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.{peakcaller}.gtf"),
+    output:
+        counts = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_counts.tsv"),
+    params:
+        scriptsdir = SCRIPTSDIR,
+        script = "_featureCounts_header_fix.py"
+    threads: getthreads("get_counts_table")
+    container: config['featurecountsdocker']
+    shell:
+        """
+        set -exo pipefail
+        TMPDIR="/lscratch/$SLURM_JOB_ID"
+        if [ ! -d $TMPDIR ]; then
+            TMPDIR="/dev/shm"
+        fi
+        cd $TMPDIR
+        unset PYTHONPATH
+        # Create output directory if it doesn't exist
+        outdir=$(dirname {output.counts})
+        if [ ! -d $outdir ]; then
+            mkdir -p $outdir
+        fi
+
+        # Run featureCounts
+        featureCounts -a {input.gtf} -o $TMPDIR/$(basename {output.counts}) -s 0 -t transcript -g transcript_id -T {threads} {input.bam_files} > featureCounts.log 2>&1
+        cat $TMPDIR/$(basename {output.counts}) | python {params.scriptsdir}/{params.script} - > {output.counts}
+        """
+
+
+#########################################################
+
+
+localrules: scale_counts_table
+rule scale_counts_table:
+    input:
+        scaling_factors = rules.compute_scaling_factors.output.scaling_factors,
+        counts = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_counts.tsv"),
+    output:
+        scaledcounts = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_scaled_counts.tsv")
+    params:
+        scriptsdir=SCRIPTSDIR,
+        script="_scale_counts.py",
+    container: config['masterdocker']
+    shell:"""
+set -exo pipefail
+unset PYTHONPATH
+python {params.scriptsdir}/{params.script} --counts {input.counts} --scaling_factors {input.scaling_factors} --output {output.scaledcounts}
+"""
+
+
+#########################################################
+
 
 rule diffatac:
     input:
-        counts      = join(RESULTSDIR,"peaks","{peakcaller}","ROI.counts.tsv"),
+        counts = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_counts.tsv")
     output:
-        degsdone    = join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","degs.done"),
+        degsdone = join(PEAKSDIR, "{peakcaller}", "DiffATAC", "{method}", "degs.done")
     params:
         contrasts   = config['contrasts'],
         scriptsdir  = SCRIPTSDIR,
@@ -136,7 +191,7 @@ fi
 cd $outdir
 
 echo "Contrast file:"
-cat "{params.contrasts}" 
+cat "{params.contrasts}"
 
 # Ensure contrasts file is not empty
 if [ ! -s "{params.contrasts}" ]; then
@@ -156,38 +211,42 @@ fi
 # Process each contrast line
 for line in "${{lines[@]}}"; do
     IFS=$'\\t' read -r g1 g2 <<< "$line"
-    
+
     if [ -z "$g1" ] || [ -z "$g2" ]; then
         echo "Error: Invalid contrast line: '$line'"
         continue
     fi
 
     echo "Processing contrast: g1=$g1, g2=$g2"
-    Rscript {params.scriptsdir}/DESeq2_runner.R \\
-        --countsmatrix {input.counts} \\
-        --genome {params.genome} \\
-        --coldata {params.sampleinfo} \\
-        --contrastnumerator $g1 \\
-        --contrastdenominator $g2 \\
-        --foldchange {params.fc_cutoff} \\
-        --fdr {params.fdr_cutoff} \\
-        --indexcols Geneid \\
-        --excludecols Chr,Start,End,Strand,Length \\
-        --outdir $outdir \\
-        --tmpdir $TMPDIR \\
-        --scriptsdir {params.scriptsdir}
+    Rscript "{params.scriptsdir}/DESeq2_runner.R" \\
+        --countsmatrix "{input.counts}" \\
+        --genome "{params.genome}" \\
+        --coldata "{params.sampleinfo}" \\
+        --contrastnumerator "$g1" \\
+        --contrastdenominator "$g2" \\
+        --foldchange "{params.fc_cutoff}" \\
+        --fdr "{params.fdr_cutoff}" \\
+        --indexcols "Geneid" \\
+        --excludecols "Chr,Start,End,Strand,Length" \\
+        --outdir "$outdir" \\
+        --tmpdir "$TMPDIR" \\
+        --scriptsdir "{params.scriptsdir}"
 done && \
 touch {output.degsdone}
 
 """
 
+
+#########################################################
+
+
 rule diffatac_aggregate:
     input:
-        counts      = join(RESULTSDIR,"peaks","{peakcaller}","ROI.counts.tsv"),
-        degsdone    = join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","degs.done"),
+        counts      = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_counts.tsv"),
+        degsdone    = join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","{method}","degs.done"),
     output:
-        alldegshtml = join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","all_diff_atacs.html"),
-        alldegstsv  = join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","all_diff_atacs.tsv"),
+        alldegshtml = join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","{method}","all_diff_atacs.html"),
+        alldegstsv  = join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","{method}","all_diff_atacs.tsv"),
     params:
         contrasts   = config['contrasts'],
         scriptsdir  = SCRIPTSDIR,
@@ -204,15 +263,18 @@ if [ ! -d $TMPDIR ];then
 fi
 outdir=$(dirname {input.degsdone})
 cd $outdir
-Rscript {params.scriptsdir}/aggregate_results_runner.R \\
-    --countsmatrix {input.counts} \\
-    --diffatacdir $outdir \\
-    --coldata {params.sampleinfo} \\
-    --foldchange {params.fc_cutoff} \\
-    --fdr {params.fdr_cutoff} \\
-    --indexcols Geneid \\
-    --excludecols Chr,Start,End,Strand,Length \\
-    --diffatacdir $outdir \\
-    --tmpdir $TMPDIR \\
-    --scriptsdir {params.scriptsdir}
+Rscript "{params.scriptsdir}/aggregate_results_runner.R" \\
+    --countsmatrix "{input.counts}" \\
+    --diffatacdir "$outdir" \\
+    --coldata "{params.sampleinfo}" \\
+    --foldchange "{params.fc_cutoff}" \\
+    --fdr "{params.fdr_cutoff}" \\
+    --indexcols "Geneid" \\
+    --excludecols "Chr,Start,End,Strand,Length" \\
+    --diffatacdir "$outdir" \\
+    --tmpdir "$TMPDIR" \\
+    --scriptsdir "{params.scriptsdir}"
 """
+
+
+#########################################################

@@ -1,4 +1,4 @@
-### Communications About ASPEN:
+### 📢 Communications About ASPEN:
 
 To facilitate effective interaction and support for ASPEN (ATAC-Seq PipEliNe) users, we have established the following communication channels:
 
