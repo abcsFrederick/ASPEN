@@ -62,7 +62,7 @@ Here is what help looks like:
 Welcome to
 ____ ____ ___  ____ _  _
 |__| [__  |__] |___ |\ |
-|  | ___] |    |___ | \|    v1.0.6-dev-spikeins
+|  | ___] |    |___ | \|
 
 A_TAC_S_eq A_nalysis P_ip_E_li_N_e
 
