@@ -1,7 +1,6 @@
 from os.path import join
 
 include: join("rules/init.smk")
-# include: join("rules/spikein.smk")
 include: join("rules/align.smk")
 include: join("rules/qc.smk")
 include: join("rules/peakcall.smk")
@@ -54,10 +53,11 @@ rule all:
         expand(join(PEAKSDIR, "genrich", "{sample}.consensus.genrich.peakfiles"), sample=SAMPLES),
         expand(join(PEAKSDIR, "genrich", "{sample}.replicate.genrich.peakfiles"), sample=SAMPLES),
         # consensus peaks
-        expand(join(PEAKSDIR, "{peakcaller}", "fixed_width", "{sample}.renormalized.fixed_width.consensus.narrowPeak.annotated.gz"), peakcaller=PEAKCALLERS, sample=SAMPLES),
+        expand(join(PEAKSDIR, "{peakcaller}", "fixed_width", "{sample}.{peakcaller}.renormalized.fixed_width.consensus.narrowPeak.annotated.gz"), peakcaller=PEAKCALLERS, sample=SAMPLES),
         # spikein counts and scaling factors
         expand(join(RESULTSDIR, "spikein", "{replicate}", "{replicate}.counts"), replicate=REPLICATES),
         join(RESULTSDIR, "spikein", "scaling_factors.tsv"),
+        # expand(join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_scaled_counts.tsv"), method=COUNTING_METHODS, peakcaller=PEAKCALLERS),
         # visualizations
         expand(join(RESULTSDIR, "visualization", "{method}_bam", "{replicate}.{method}.bam"), method=COUNTING_METHODS, replicate=REPLICATES),
         expand(join(RESULTSDIR, "visualization", "{method}_bigwig", "{replicate}.{method}.bw"), method=COUNTING_METHODS, replicate=REPLICATES),

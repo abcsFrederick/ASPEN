@@ -148,8 +148,8 @@ rule atac_macs_peakcalling_fixed_width:
     input:
         replicatePeakFileList=join(RESULTSDIR,"peaks","macs2","{sample}.replicate.macs2.peakfiles"),
     output:
-        consensusNarrowPeak=join(RESULTSDIR,"peaks","macs2","fixed_width","{sample}.fixed_width.consensus.narrowPeak"),
-        renormalizedConsensusNarrowPeak=join(RESULTSDIR,"peaks","macs2","fixed_width","{sample}.renormalized.fixed_width.consensus.narrowPeak")
+        consensusNarrowPeak=join(RESULTSDIR,"peaks","macs2","fixed_width","{sample}.macs2.fixed_width.consensus.narrowPeak"),
+        renormalizedConsensusNarrowPeak=join(RESULTSDIR,"peaks","macs2","fixed_width","{sample}.macs2.renormalized.fixed_width.consensus.narrowPeak")
     params:
         sample="{sample}",
         outdir=join(RESULTSDIR,"peaks","macs2","fixed_width"),
@@ -304,8 +304,8 @@ rule atac_genrich_peakcalling_fixed_width:
     input:
         replicatePeakFileList=rules.atac_genrich_peakcalling.output.replicatePeakFileList,
     output:
-        consensusNarrowPeak=join(RESULTSDIR,"peaks","genrich","fixed_width","{sample}.fixed_width.consensus.narrowPeak"),
-        renormalizedConsensusNarrowPeak=join(RESULTSDIR,"peaks","genrich","fixed_width","{sample}.renormalized.fixed_width.consensus.narrowPeak")
+        consensusNarrowPeak=join(RESULTSDIR,"peaks","genrich","fixed_width","{sample}.genrich.fixed_width.consensus.narrowPeak"),
+        renormalizedConsensusNarrowPeak=join(RESULTSDIR,"peaks","genrich","fixed_width","{sample}.genrich.renormalized.fixed_width.consensus.narrowPeak")
     params:
         sample      = "{sample}",
         outdir      = join(RESULTSDIR,"peaks","genrich","fixed_width"),
@@ -399,12 +399,12 @@ touch {output.dummy}
 
 rule atac_annotate_fixed_width_consensus_peaks:
     input:
-        consensus_narrowPeak = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","{sample}.renormalized.fixed_width.consensus.narrowPeak"),
+        consensus_narrowPeak = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","{sample}.{peakcaller}.renormalized.fixed_width.consensus.narrowPeak"),
     output:
-        consensus_annotated = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "{sample}.renormalized.fixed_width.consensus.narrowPeak.annotated.gz"),
-        consensus_genelist = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "{sample}.renormalized.fixed_width.consensus.narrowPeak.genelist"),
-        consensus_annotation_summary = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "{sample}.renormalized.fixed_width.consensus.narrowPeak.annotation_summary"),
-        consensus_annotation_distribution = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "{sample}.renormalized.fixed_width.consensus.narrowPeak.annotation_distribution"),
+        consensus_annotated = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "{sample}.{peakcaller}.renormalized.fixed_width.consensus.narrowPeak.annotated.gz"),
+        consensus_genelist = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "{sample}.{peakcaller}.renormalized.fixed_width.consensus.narrowPeak.genelist"),
+        consensus_annotation_summary = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "{sample}.{peakcaller}.renormalized.fixed_width.consensus.narrowPeak.annotation_summary"),
+        consensus_annotation_distribution = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "{sample}.{peakcaller}.renormalized.fixed_width.consensus.narrowPeak.annotation_distribution"),
     params:
         genome = config['genome'],
         scriptsdir = SCRIPTSDIR,
