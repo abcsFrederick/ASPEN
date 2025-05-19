@@ -1,4 +1,4 @@
-## ASPEN development version
+## ASPEN 1.1.0
 
 This version features a major overhaul of the pipeline with changes in the following areas:
 
