@@ -252,10 +252,21 @@ EnhancedVolcano::EnhancedVolcano(resdf_w_anno,
 ## Open ROIs
 
 ```{r updown,include=TRUE,echo=FALSE,cache=FALSE,warning=FALSE}
+# sometimes FC and FDR are too strict and up_roi/down_roi can be zero 
+# to work with that scenario without errors:
 x=as.data.frame(rbind(table(up_roi$shortAnno),table(down_roi$shortAnno)))
-rownames(x)=c(paste("Open in",params$contrast_numerator),paste("Open in",params$contrast_denominator))
-x$Total=rowSums(x)
-DT::datatable(x,rownames = TRUE)
-heatmap_matrix=assay(rld2)
+if (nrow(x) == 2) {
+  rownames(x) <- c(paste("Open in", params$contrast_numerator),
+                   paste("Open in", params$contrast_denominator))
+  x$Total <- rowSums(x)
+  DT::datatable(x, rownames = TRUE)
+} else if (nrow(x) > 0) {
+  rownames(x) <- paste("Group", seq_len(nrow(x)))
+  x$Total <- rowSums(x)
+  DT::datatable(x, rownames = TRUE)
+} else {
+  cat("No significant up/down regions to summarize.\n")
+}
+# heatmap_matrix=assay(rld2)
 ```
 
