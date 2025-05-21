@@ -19,3 +19,4 @@ when referring to the issue.
 - [ ] This comment contains a description of changes with justifications, with any relevant issues linked.
 - [ ] Update docs if there are any API changes.
 - [ ] Update `CHANGELOG.md` with a short description of any user-facing changes and reference the PR number. Guidelines: https://keepachangelog.com/en/1.1.0/
+- [ ] Test run completes successfully on biowulf.
