@@ -180,7 +180,7 @@ function init() {
 # This function initializes the workdir by:
 # 1. creating the working dir
 # 2. copying essential files like config.yaml and samples.tsv into the workdir
-# 3. setting up logs and stats folders
+# 3. setting up logs folder
 
 printbanner $ASPENVERSION
 
@@ -224,9 +224,8 @@ done
 
 cd ${WORKDIR}
 
-#create log and stats folders
+#create log folder
 if [ ! -d $WORKDIR/logs ]; then mkdir -p $WORKDIR/logs;echo "Logs Dir: $WORKDIR/logs";fi
-if [ ! -d $WORKDIR/stats ];then mkdir -p $WORKDIR/stats;echo "Stats Dir: $WORKDIR/stats";fi
 
 cat << EOF
 Done Initializing   : $WORKDIR
@@ -440,7 +439,7 @@ function create_runinfo {
    modtime=$(stat ${WORKDIR}/runinfo.yaml 2>/dev/null|grep Modify|awk '{print $2,$3}'|awk -F"." '{print $1}'|sed "s/ //g"|sed "s/-//g"|sed "s/://g")
   fi
   if [ -f ${WORKDIR}/runinfo.yaml ];then
-    mv ${WORKDIR}/runinfo.yaml ${WORKDIR}/stats/runinfo.${modtime}.yaml
+    mv ${WORKDIR}/runinfo.yaml ${WORKDIR}/logs/runinfo.${modtime}.yaml
   fi
   echo "Pipeline Dir: $PIPELINE_HOME" > ${WORKDIR}/runinfo.yaml
   echo "Git Commit/Tag: $GIT_COMMIT_TAG" >> ${WORKDIR}/runinfo.yaml
@@ -459,7 +458,7 @@ function create_runinfo {
 }
 
 ##########################################################################################
-# PRERUN CLEANUP ... get ready to run .. park old logs/stats etc.
+# PRERUN CLEANUP ... get ready to run .. park old logs
 ##########################################################################################
 
 function preruncleanup() {
@@ -475,12 +474,14 @@ function preruncleanup() {
   if [ -f ${WORKDIR}/snakemake.log ];then
     modtime=$(stat ${WORKDIR}/snakemake.log |grep Modify|awk '{print $2,$3}'|awk -F"." '{print $1}'|sed "s/ //g"|sed "s/-//g"|sed "s/://g")
     mv ${WORKDIR}/snakemake.log ${WORKDIR}/logs/snakemake.${modtime}.log
-    if [ -f ${WORKDIR}/snakemake.log.HPC_summary.txt ];then
-      mv ${WORKDIR}/snakemake.log.HPC_summary.txt ${WORKDIR}/stats/snakemake.${modtime}.log.HPC_summary.txt
+    if [ -f ${WORKDIR}/snakemake.log.jobby ];then
+      mv ${WORKDIR}/snakemake.log.jobby ${WORKDIR}/logs/snakemake.${modtime}.log.jobby
     fi
-    if [ -f ${WORKDIR}/snakemake.stats ];then
-      mv ${WORKDIR}/snakemake.stats ${WORKDIR}/stats/snakemake.${modtime}.stats
+    if [ -f ${WORKDIR}/snakemake.log.jobby.short ];then
+      mv ${WORKDIR}/snakemake.log.jobby.short ${WORKDIR}/logs/snakemake.${modtime}.log.jobby.short
     fi
+    if [ -f ${WORKDIR}/runslurm_snakemake_report.html ];then
+      mv ${WORKDIR}/runslurm_snakemake_report.html ${WORKDIR}/logs/runslurm_snakemake_report.${modtime}.html
     if [ -f ${WORKDIR}/run_git_commit.txt ];then
       mv ${WORKDIR}/run_git_commit.txt ${WORKDIR}/logs/run_git_commit.${modtime}.txt
     fi
@@ -490,7 +491,8 @@ function preruncleanup() {
     for f in $(ls ${WORKDIR}/slurm-*.out);do mv ${f} ${WORKDIR}/logs/;done
   fi
 
-  create_runinfo $modtime
+  # runinfo not needed as now handled by spooker from ccbr_tools v0.4+
+  # create_runinfo $modtime
 
 }
 
@@ -503,10 +505,11 @@ function run() {
 # 3. unlock or
 # 4. slurm
 
+echo "Git Commit/Tag: $GIT_COMMIT_TAG" > ${WORKDIR}/run_git_commit.txt
+
 ##########################################################################################
 # local run
 ##########################################################################################
-
   if [ "$1" == "local" ];then
 
   preruncleanup
