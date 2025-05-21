@@ -1,7 +1,8 @@
 ## ASPEN development version
 
-- Fix Diffatac error (#100, @kopardev): Adds a defensive check to prevent invalid 'row.names' length error when up_roi or down_roi are empty (due to strict FC/FDR thresholds in DiffATAC)
-- Minor refactoring to accomodate moving to ccbr_tools v0.4+ 
+- Fix Diffatac error (#101, @kopardev)
+  - Adds a defensive check to prevent invalid 'row.names' length error when up_roi or down_roi are empty (due to strict FC/FDR thresholds in DiffATAC)
+- Minor refactoring to accomodate moving to ccbr_tools >= v0.4 (#101, @kopardev)
 
 ## ASPEN 1.1.0
 
