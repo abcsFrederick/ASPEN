@@ -482,6 +482,7 @@ function preruncleanup() {
     fi
     if [ -f ${WORKDIR}/runslurm_snakemake_report.html ];then
       mv ${WORKDIR}/runslurm_snakemake_report.html ${WORKDIR}/logs/runslurm_snakemake_report.${modtime}.html
+    fi
     if [ -f ${WORKDIR}/run_git_commit.txt ];then
       mv ${WORKDIR}/run_git_commit.txt ${WORKDIR}/logs/run_git_commit.${modtime}.txt
     fi
