@@ -9,10 +9,12 @@ WORKDIR
 ├── cluster.json
 ├── config.yaml
 ├── contrasts.tsv
+├── dryrun_git_commit.txt
 ├── dryrun.log
 ├── fastqs
 ├── logs
 ├── results
+├── run_git_commit.txt
 ├── runinfo.yaml
 ├── runslurm_snakemake_report.html
 ├── sampleinfo.txt
@@ -20,8 +22,9 @@ WORKDIR
 ├── scripts
 ├── slurm-XXXXXXX.out
 ├── snakemake.log
+├── snakemake.log.jobby
+├── snakemake.log.jobby.short
 ├── snakemake.stats
-├── stats
 ├── submit_script.sbatch
 └── tools.yaml
 ```
@@ -36,17 +39,17 @@ Here are more details about these files:
 | `dryrun_git_commit.txt`          | TXT           | dryrun                                                | The git commit hash of the version of ASPEN used at dryrun                                                                                                            |
 | `dryrun.log`                     | TXT           | dryrun                                                | Log from `-m=dryrun`                                                                                                                                                  |
 | `fastqs`                         | FOLDER        | dryrun                                                | Folder containing symlinks to raw data                                                                                                                                |
-| `logs`                           | FOLDER        | dryrun                                                | Folder containing all logs including Slurm `.out` and `.err` files                                                                                                    |
+| `logs`                           | FOLDER        | dryrun                                                | Folder containing all logs including Slurm `.out` and `.err` files. Also contains older timestamped `runinfo.yaml` and `snakemake.stats` files.                                                                                                    |
 | `results`                        | FOLDER        | Created at dryrun but populated during run            | Main outputs folder                                                                                                                                                   |
 | `runinfo.yaml`                   | YAML          | After completion of run                               | Metadata about the run executor, etc.                                                                                                                                 |
 | `runslurm_snakemake_report.html` | HTML          | After completion of run                               | HTML report including DAG and resource utilization                                                                                                                    |
 | `sampleinfo.txt`                 | TXT           | dryrun, run                                           | Tab-delimited mappings between `replicateNames` and `sampleNames`                                                                                                     |
 | `samples.tsv`                    | TSV           | init; can be edited later                             | Tab-delimited manifest with `replicateName`, `sampleName`, `path_to_R1_fastq`, `path_to_R2_fastq`. This file has a header.                                            |
 | `scripts`                        | FOLDER        | init                                                  | Folder keeps local copy of scripts called by various rules                                                                                                            |
+| `run_git_commit.txt`          | TXT           | run                                                | The git commit hash of the version of ASPEN used at run                                                                                                            |
 | `slurm-XXXXXXX.out`              | TXT           | run                                                   | Slurm `.out` file for the master job                                                                                                                                  |
 | `snakemake.log`                  | TXT           | run                                                   | Snakemake `.log` file for the master job; older copies timestamped and moved into `logs` folder                                                                       |
 | `snakemake.stats`                | JSON          | run                                                   | per rule runtime stats                                                                                                                                                |
-| `stats`                          | FOLDER        | Created at dryrun but populated during run            | Contains older timestamped `runinfo.yaml` and `snakemake.stats` files                                                                                                 |
 | `submit_script.sbatch`           | TXT           | run                                                   | Slurm script to kickstart the main Snakemake job                                                                                                                      |
 | `tools.yaml`                     | YAML          | run                                                   | YAML containing the version of tools used in the pipeline (obsolete; was used to load specific module versions prior to moving over to Docker/Singularity containers) |
 
