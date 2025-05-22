@@ -1,4 +1,4 @@
-## ASPEN development version
+## ASPEN 1.1.1
 
 - Fix Diffatac error (#101, @kopardev)
   - Adds a defensive check to prevent invalid 'row.names' length error when up_roi or down_roi are empty (due to strict FC/FDR thresholds in DiffATAC)
