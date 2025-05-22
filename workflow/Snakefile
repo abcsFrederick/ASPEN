@@ -73,12 +73,12 @@ rule all:
         expand(join(PEAKSDIR, "{peakcaller}", "DiffATAC", "{method}", "all_diff_atacs.tsv"), method=COUNTING_METHODS, peakcaller=PEAKCALLERS) if CONTRASTS.shape[0] > 0 else [],
 
 on_complete = f"""
-for cmd in spooker run_jobby_on_snakemake_log; do
+for cmd in spooker jobby; do
     if ! command -v $cmd 2>&1 >/dev/null; then
         export PATH="$PATH:{config['ccbr_tools_path']}"
     fi
 done
-jobby --tsv logs/snakemake.log | tee logs/snakemake.log.jobby | cut -f2,3,18 > logs/snakemake.log.jobby.short
+jobby --tsv snakemake.log | tee snakemake.log.jobby | cut -f2,3,18 > snakemake.log.jobby.short
 spooker --outdir {WORKDIR} \
     --name {config['pipeline']} \
     --version {config['version']} \
