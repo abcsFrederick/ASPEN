@@ -21,5 +21,5 @@ jobs:
           echo "gh issue edit $ISSUE --milestone \"$msname\""
           gh issue edit $ISSUE --milestone "$msname"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ github.event.issue.number }}
