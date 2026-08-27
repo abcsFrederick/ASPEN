@@ -1,9 +1,11 @@
 # functions
+DIFFATAC_SUPPORTED_GENOMES = {"hg19", "hg38", "mm10", "mmul10", "bosTau9", "hs1", "hs1_chrR"}
+
 def get_diffatac_input():
     expected_filelist = list()
     deffiles = list()
-# diffatac only works for hg38 and mm10
-    if GENOME == "mm10" or GENOME == "hg38":
+# diffatac runs for all genomes with annotation support
+    if GENOME in DIFFATAC_SUPPORTED_GENOMES:
         if CONTRASTS.shape[0] != 0:
             expected_filelist = [ join(RESULTSDIR,"peaks","genrich","DiffATAC","degs.done") ]
             expected_filelist.append([ join(RESULTSDIR,"peaks","genrich","DiffATAC","all_diff_atacs.html"),
@@ -177,7 +179,7 @@ rule diffatac:
         fc_cutoff   = config['contrasts_fc_cutoff'],
         fdr_cutoff  = config['contrasts_fdr_cutoff'],
         manifest    = config['samplemanifest'],
-    container: config['baser']
+    container: config['masterdocker']
     shell:"""
 set -exo pipefail
 TMPDIR="/lscratch/$SLURM_JOB_ID"
@@ -254,7 +256,7 @@ rule diffatac_aggregate:
         genome      = config['genome'],
         fc_cutoff   = config['contrasts_fc_cutoff'],
         fdr_cutoff  = config['contrasts_fdr_cutoff'],
-    container:config['baser']
+    container:config['masterdocker']
     shell:"""
 set -exo pipefail
 TMPDIR="/lscratch/$SLURM_JOB_ID"

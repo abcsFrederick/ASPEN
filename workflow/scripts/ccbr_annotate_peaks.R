@@ -10,10 +10,7 @@ suppressPackageStartupMessages(library("TxDb.Mmusculus.UCSC.mm10.knownGene"))
 suppressPackageStartupMessages(library("org.Hs.eg.db"))
 suppressPackageStartupMessages(library("org.Mm.eg.db"))
 
-suppressPackageStartupMessages(library("TxDb.Btaurus.UCSC.bosTau9.refGene"))
-suppressPackageStartupMessages(library("TxDb.Mmulatta.UCSC.rheMac10.refGene"))
-suppressPackageStartupMessages(library("org.Mmu.eg.db"))
-suppressPackageStartupMessages(library("org.Bt.eg.db"))
+# NB: TxDb.Btaurus / TxDb.Mmulatta / org.Mmu / org.Bt loaded on-demand below
 
 parser <- ArgumentParser()
 
@@ -75,7 +72,7 @@ parser$add_argument(
   "--genome",
   required = TRUE,
   dest = "genome",
-  help = "hg38/hg19/mm10/mm9/mmul10/bosTau9"
+  help = "hg38/hg19/mm10/mm9/mmul10/bosTau9/hs1/hs1_chrR"
 )
 
 # get command line options, if help option encountered print help and exit,
@@ -96,6 +93,9 @@ if (args$genome == "mmul10") {
 if (args$genome == "bosTau9") {
   adb <- "org.Bt.eg.db"
 }
+if (args$genome %in% c("hs1", "hs1_chrR")) {
+  adb <- "org.Hs.eg.db"
+}
 
 if (args$genome == "hg19") {
   tdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
@@ -110,10 +110,17 @@ if (args$genome == "mm10") {
   tdb <- TxDb.Mmusculus.UCSC.mm10.knownGene
 }
 if (args$genome == "mmul10") {
+  suppressPackageStartupMessages(library("TxDb.Mmulatta.UCSC.rheMac10.refGene"))
   tdb <- TxDb.Mmulatta.UCSC.rheMac10.refGene
 }
 if (args$genome == "bosTau9") {
+  suppressPackageStartupMessages(library("TxDb.Btaurus.UCSC.bosTau9.refGene"))
   tdb <- TxDb.Btaurus.UCSC.bosTau9.refGene
+}
+if (args$genome %in% c("hs1", "hs1_chrR")) {
+  tdb <- AnnotationDbi::loadDb(
+    "/opt2/annotation/TxDb.Hsapiens.NCBI.T2T.CHM13v2.0.sqlite"
+  )
 }
 
 
@@ -164,6 +171,12 @@ pa <- annotatePeak(
 
 padf <- as.data.frame(pa)
 padf$peakID <- paste(padf$seqnames, ":", padf$start, "-", padf$end, sep = "")
+# Gene annotation columns may be absent when ChIPseeker cannot map TxDb gene IDs
+# through the org.*.db (e.g. T2T assemblies with RefSeq-based TxDb). Fill with NA
+# so downstream column selection succeeds regardless.
+for (col in c("ENSEMBL", "SYMBOL", "GENENAME")) {
+  if (!col %in% colnames(padf)) padf[[col]] <- NA_character_
+}
 merged <- merge(padf, np, by = "peakID")
 merged <- merged[,
   c(

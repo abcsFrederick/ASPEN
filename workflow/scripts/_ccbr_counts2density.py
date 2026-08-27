@@ -17,6 +17,12 @@ for i in range(1, 11):
 for i in range(391, 401):
     flanksum += density[n2bin[i]]
 flankavg = flanksum * 1.0 / 20
+if flankavg == 0:
+    # No reads in flanking bins — TSS enrichment is undefined; emit zeros rather than crashing
+    for i in range(1, 401):
+        print("%d\t%.4f" % (n2bin[i], 0.0))
+    print("# TSS enrichment: 0.0000")
+    sys.exit(0)
 alldensities = list()
 for i in range(1, 401):
     density[n2bin[i]] = density[n2bin[i]] * 1.0 / flankavg

@@ -62,7 +62,7 @@ export ASPENVERSION=$(head -n1 $VERSIONFILE|awk '{print $1}')
 
 # set defaults
 export GENOME="hg38"
-SUPPORTED_GENOMES="hg19 hg38 mm10 mmul10 bosTau9 hs1"
+SUPPORTED_GENOMES="hg19 hg38 mm10 mmul10 bosTau9 hs1 hs1_chrR"
 
 # essential files
 # these are relative to the workflows' base folder
@@ -107,6 +107,8 @@ Here is a list of genome supported by aspen:
   * mm10          [Mouse]
   * mmul10        [Macaca mulatta(Rhesus monkey) or rheMac10]
   * bosTau9       [Bos taurus(cattle)]
+  * hs1           [Human T2T-CHM13]
+  * hs1_chrR      [Human T2T-CHM13 + chrR rDNA unit]
 
 aspen calls peaks using the following tools:
 

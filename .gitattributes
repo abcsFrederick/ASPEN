@@ -4,3 +4,9 @@ resources/blacklistFa/hs1.blacklist.fa.gz filter=lfs diff=lfs merge=lfs -text
 resources/frip/hs1.enhancers.bed.gz filter=lfs diff=lfs merge=lfs -text
 resources/tssBed/hs1_tssbeds.tar.gz filter=lfs diff=lfs merge=lfs -text
 resources/frip/hs1.DHS.bed.gz filter=lfs diff=lfs merge=lfs -text
+resources/blacklistFa/hs1_chrR.blacklist.fa.gz filter=lfs diff=lfs merge=lfs -text
+resources/frip/hs1.promoters.bed.gz filter=lfs diff=lfs merge=lfs -text
+resources/frip/hs1_chrR.enhancers.bed.gz filter=lfs diff=lfs merge=lfs -text
+resources/tssBed/hs1_chrR_tssbeds.tar.gz filter=lfs diff=lfs merge=lfs -text
+resources/frip/hs1_chrR.DHS.bed.gz filter=lfs diff=lfs merge=lfs -text
+resources/frip/hs1_chrR.promoters.bed.gz filter=lfs diff=lfs merge=lfs -text

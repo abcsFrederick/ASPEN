@@ -1,4 +1,24 @@
-## ASPEN development version
+## ASPEN 1.2.0
+
+- Add `hs1_chrR` as a supported reference genome (T2T-CHM13 + chrR rDNA unit from [Paralkar lab](https://github.com/vikramparalkar/rDNA-Mapping-Genomes)). (#117, @kopardev)
+- Fix `ZeroDivisionError` in `_ccbr_counts2density.py` when TSS flanking bins have zero reads (e.g. genes on `chrR`); emit 0.0 enrichment instead of crashing. (#122, @kopardev)
+- Fix `object 'tdb' not found` crash in `ccbr_annotate_bed.R` and `ccbr_annotate_peaks.R` for `hs1`/`hs1_chrR` genomes by adding T2T-CHM13v2.0 TxDb dispatch (pre-built SQLite shipped in `nciccbr/ccbr_atacseq:v13-feat`). (#123, @kopardev)
+- Bump `masterdocker` container to `nciccbr/ccbr_atacseq:v13-feat`. (#123, @kopardev)
+- Fix `_ThreadedGzipWriter` cutadapt crash in `trim` rule by pinning `trim` to `nciccbr/ccbr_atacseq:v11-feat` (`cutadaptdocker`); all other rules use `v13-feat` (`masterdocker`). (#124, @kopardev)
+- Fix `Error in library("org.Bt.eg.db")` crash by loading bosTau9/mmul10 Bioconductor packages on-demand instead of unconditionally at script top (`ccbr_annotate_bed.R`, `ccbr_annotate_peaks.R`); `org.Bt.eg.db` and `org.Mmu.eg.db` are absent from `v13-feat`. (#124, @kopardev)
+- Fix `there is no package called 'tidyverse'` crash in fixed-width peak-calling scripts by replacing `library("tidyverse")` with `library("dplyr")` in `fixed_width_peakSets_to_consensus_peakSet.R`, `narrowPeak_normalize_pvalues.R`, and `narrowPeak_to_fixed_width_peakSet.R`; only `dplyr` functions are used and `tidyverse` is absent from `v13-feat`. (#124, @kopardev)
+- Fix `undefined columns selected` crash in `ccbr_annotate_bed.R` and `ccbr_annotate_peaks.R` when ChIPseeker cannot map T2T TxDb gene IDs through `org.Hs.eg.db`; `ENSEMBL`, `SYMBOL`, and `GENENAME` columns are now filled with `NA` when absent. (#123, @kopardev)
+- Fix `mv: cannot stat '*.annotated': No such file or directory` crash in `ccbr_atac_genrich_peak_calling.bash` and `ccbr_atac_macs2_peak_calling.bash` for `hs1`/`hs1_chrR` by adding both genomes to the `genome_is_known` check so ChIPseeker annotation runs for T2T assemblies. (#117, @kopardev)
+- Remove orphan scripts with no pipeline references: `picardcloud.jar` (Picard is called via in-container path `/opt2/picardcloud.jar`), `ccbr_atac_trim_align_pe.bash` (superseded by separate `trim` + `align` rules), `ccbr_bam_filter_by_mapq.py`, `atac_assign_multimappers.py`, and `script1.py`. (@kopardev)
+- Restore `ccbr_bam_filter_by_mapq.py` because it is used by `ccbr_bowtie2_align_pe.bash` in the `align` workflow step. (@kopardev)
+- Reduce `trim` rule RAM from 120 g to 48 g and increase walltime from 12 h to 16 h. (#112, @kopardev)
+- Increase walltime for `align`, `align2spikein`, and `atac_tss` rules from 12 h to 24 h. (#114, @kopardev)
+- Clarify `replicateName` as a biological replicate identifier in docs; add warning explaining biological vs technical replicates with lane-merging example. (#110, @kopardev)
+- Document how per-sample consensus and ROI-level consensus peaks are generated, including config knobs (`consensus_min_replicates`, `consensus_min_spm`, `fixed_width`). (#84, @kopardev)
+- Fix missing FRIP values in `FRiP_stats.tsv` caused by wrong `cut` column indices in `_qc_create_frip_stats_table.bash`; `cut -f2,3` extracted metric labels instead of peakcaller+value — corrected to `cut -f3,4`. (#103, @kopardev)
+- Fix DiffATAC silently skipping for all genomes except `hg38` and `mm10`; replace hard-coded genome guard with `DIFFATAC_SUPPORTED_GENOMES` set covering all annotation-supported genomes (`hg19`, `hg38`, `mm10`, `mmul10`, `bosTau9`, `hs1`, `hs1_chrR`). (#128, @kopardev)
+- Write DESeq2 size-factor-normalized counts matrix (`{contrast}.normalized_counts.tsv`) to the DiffATAC output directory alongside each per-contrast differential results TSV. (#68, @kopardev)
+- Fix `DESeq2.Rmd` startup failure on systems without `tidyverse` by removing the unnecessary `library("tidyverse")` dependency; script now uses explicitly loaded packages (`dplyr`, `ggplot2`, etc.). (#128, @kopardev)
 
 ## ASPEN 1.1.2
 
