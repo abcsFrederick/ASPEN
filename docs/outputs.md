@@ -14,6 +14,8 @@ WORKDIR
 ├── fastqs
 ├── logs
 ├── results
+├── pipeline.status.json
+├── pipeline.running (or pipeline.completed / pipeline.failed / pipeline.canceled)
 ├── run_git_commit.txt
 ├── runinfo.yaml
 ├── runslurm_snakemake_report.html
@@ -41,6 +43,8 @@ Here are more details about these files:
 | `fastqs`                         | FOLDER        | dryrun                                                | Folder containing symlinks to raw data                                                                                                                                |
 | `logs`                           | FOLDER        | dryrun                                                | Folder containing all logs including Slurm `.out` and `.err` files. Also contains older timestamped `runinfo.yaml` and `snakemake.stats` files.                       |
 | `results`                        | FOLDER        | Created at dryrun but populated during run            | Main outputs folder                                                                                                                                                   |
+| `pipeline.status.json`           | JSON          | run                                                   | Machine-readable state sidecar: `state`, `reason`, `slurm_job_id`, start/end timestamps, `duration_seconds`, `tasks_done`/`tasks_total`, `exit_code`                  |
+| `pipeline.running` / `pipeline.completed` / `pipeline.failed` / `pipeline.canceled` | TXT | run | Human-readable state marker file; exactly one of these exists at a time. `pipeline.running` is periodically refreshed with a step-completion progress summary while the pipeline is executing |
 | `runinfo.yaml`                   | YAML          | After completion of run                               | Metadata about the run executor, etc.                                                                                                                                 |
 | `runslurm_snakemake_report.html` | HTML          | After completion of run                               | HTML report including DAG and resource utilization                                                                                                                    |
 | `sampleinfo.txt`                 | TXT           | dryrun, run                                           | Tab-delimited mappings between `replicateNames` and `sampleNames`                                                                                                     |
