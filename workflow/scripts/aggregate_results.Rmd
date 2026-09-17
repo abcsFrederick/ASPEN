@@ -112,8 +112,8 @@ print(p)
 
 ```{r degs,include=TRUE,echo=FALSE, results='hide',cache=FALSE,warning=FALSE,message=FALSE,error=FALSE}
 allfiles <- list.files(path = params$diffatacdir, pattern = "_vs_")
-degfiles <- allfiles[grepl(".tsv", allfiles)]
-contrasts <- gsub(".tsv", "", degfiles)
+degfiles <- allfiles[grepl("\\.tsv$", allfiles) & !grepl("normalized_counts\\.tsv$", allfiles)]
+contrasts <- gsub("\\.tsv$", "", degfiles)
 # deg_file=paste(params$diffatacdir,"DGCR8_KO_vs_Wt.tsv",sep="/")
 add_prefix <- function(string, prefix) {
   return(paste(prefix, string, sep = "_"))
@@ -129,6 +129,11 @@ get_sig_geneids <- function(df, fc = 2, fdr = 0.05) {
 }
 read_deg_file <- function(deg_file) {
   df <- read.csv(file = deg_file, header = TRUE, sep = "\t", comment.char = "#", strip.white = TRUE)
+  required_cols <- c("Geneid", "log2FoldChange", "pvalue", "padj")
+  missing_cols <- setdiff(required_cols, colnames(df))
+  if (length(missing_cols) > 0) {
+    stop(paste("ERROR:", deg_file, "is missing required DEG columns:", paste(missing_cols, collapse = ", ")))
+  }
   df %>% select(c("Geneid", "log2FoldChange", "pvalue", "padj")) -> df
   return(df)
 }

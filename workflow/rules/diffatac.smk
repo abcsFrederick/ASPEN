@@ -1,9 +1,11 @@
 # functions
+DIFFATAC_SUPPORTED_GENOMES = {"hg19", "hg38", "mm10", "mmul10", "bosTau9", "hs1", "hs1_chrR"}
+
 def get_diffatac_input():
     expected_filelist = list()
     deffiles = list()
-# diffatac only works for hg38 and mm10
-    if GENOME == "mm10" or GENOME == "hg38":
+# diffatac runs for all genomes with annotation support
+    if GENOME in DIFFATAC_SUPPORTED_GENOMES:
         if CONTRASTS.shape[0] != 0:
             expected_filelist = [ join(RESULTSDIR,"peaks","genrich","DiffATAC","degs.done") ]
             expected_filelist.append([ join(RESULTSDIR,"peaks","genrich","DiffATAC","all_diff_atacs.html"),
@@ -107,13 +109,14 @@ ls -alrth $(dirname {output.roi_annotated})
 rule get_counts_table:
     input:
         bam_files = lambda wildcards: expand(
-            join(RESULTSDIR, "visualization", "{method}_bam", "{replicate}.{method}.bam"),
+            join(RESULTSDIR, "visualization", "{bamtype}", "{method}_bam", "{replicate}.{method}.bam"),
+            bamtype=wildcards.bamtype,
             method=wildcards.method,
             replicate=REPLICATES
         ),
         gtf = join(RESULTSDIR,"peaks","{peakcaller}","fixed_width","ROI.{peakcaller}.gtf"),
     output:
-        counts = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_counts.tsv"),
+        counts = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "{bamtype}", "ROI.{peakcaller}.{method}_counts.tsv"),
     params:
         scriptsdir = SCRIPTSDIR,
         script = "_featureCounts_header_fix.py"
@@ -147,9 +150,9 @@ localrules: scale_counts_table
 rule scale_counts_table:
     input:
         scaling_factors = rules.compute_scaling_factors.output.scaling_factors,
-        counts = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_counts.tsv"),
+        counts = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "{bamtype}", "ROI.{peakcaller}.{method}_counts.tsv"),
     output:
-        scaledcounts = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_scaled_counts.tsv")
+        scaledcounts = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "{bamtype}", "ROI.{peakcaller}.{method}_scaled_counts.tsv")
     params:
         scriptsdir=SCRIPTSDIR,
         script="_scale_counts.py",
@@ -166,9 +169,9 @@ python {params.scriptsdir}/{params.script} --counts {input.counts} --scaling_fac
 
 rule diffatac:
     input:
-        counts = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_counts.tsv")
+        counts = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "{bamtype}", "ROI.{peakcaller}.{method}_counts.tsv")
     output:
-        degsdone = join(PEAKSDIR, "{peakcaller}", "DiffATAC", "{method}", "degs.done")
+        degsdone = join(PEAKSDIR, "{peakcaller}", "DiffATAC", "{bamtype}", "{method}", "degs.done")
     params:
         contrasts   = config['contrasts'],
         scriptsdir  = SCRIPTSDIR,
@@ -177,7 +180,7 @@ rule diffatac:
         fc_cutoff   = config['contrasts_fc_cutoff'],
         fdr_cutoff  = config['contrasts_fdr_cutoff'],
         manifest    = config['samplemanifest'],
-    container: config['baser']
+    container: config['masterdocker']
     shell:"""
 set -exo pipefail
 TMPDIR="/lscratch/$SLURM_JOB_ID"
@@ -242,11 +245,11 @@ touch {output.degsdone}
 
 rule diffatac_aggregate:
     input:
-        counts      = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "ROI.{peakcaller}.{method}_counts.tsv"),
-        degsdone    = join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","{method}","degs.done"),
+        counts      = join(RESULTSDIR, "peaks", "{peakcaller}", "fixed_width", "counts", "{bamtype}", "ROI.{peakcaller}.{method}_counts.tsv"),
+        degsdone    = join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","{bamtype}","{method}","degs.done"),
     output:
-        alldegshtml = join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","{method}","all_diff_atacs.html"),
-        alldegstsv  = join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","{method}","all_diff_atacs.tsv"),
+        alldegshtml = join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","{bamtype}","{method}","all_diff_atacs.html"),
+        alldegstsv  = join(RESULTSDIR,"peaks","{peakcaller}","DiffATAC","{bamtype}","{method}","all_diff_atacs.tsv"),
     params:
         contrasts   = config['contrasts'],
         scriptsdir  = SCRIPTSDIR,
@@ -254,7 +257,7 @@ rule diffatac_aggregate:
         genome      = config['genome'],
         fc_cutoff   = config['contrasts_fc_cutoff'],
         fdr_cutoff  = config['contrasts_fdr_cutoff'],
-    container:config['baser']
+    container:config['masterdocker']
     shell:"""
 set -exo pipefail
 TMPDIR="/lscratch/$SLURM_JOB_ID"

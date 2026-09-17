@@ -23,7 +23,7 @@ aspen --help
 Welcome to
 ____ ____ ___  ____ _  _
 |__| [__  |__] |___ |\ |
-|  | ___] |    |___ | \|    v1.0.6
+|  | ___] |    |___ | \|    v1.2.0
 
 A_TAC_S_eq A_nalysis P_ip_E_li_N_e
 
@@ -48,7 +48,7 @@ aspen calls peaks using the following tools:
  * Genrich        [RECOMMENDED FOR USE]
 
 USAGE:
-  bash /data/CCBR_Pipeliner/Pipelines/ASPEN/.v1.0.6/aspen -w/--workdir=<WORKDIR> -m/--runmode=<RUNMODE>
+  bash /data/CCBR_Pipeliner/Pipelines/ASPEN/release/1.2.0/aspen -w/--workdir=<WORKDIR> -m/--runmode=<RUNMODE>
 
 Required Arguments:
 1.  WORKDIR     : [Type: String]: Absolute or relative path to the output folder with write permissions.
@@ -72,18 +72,18 @@ Optional Arguments:
 --help|-h       : print this help
 
 Example commands:
-  bash /data/CCBR_Pipeliner/Pipelines/ASPEN/.v1.0.6/aspen -w=/my/output/folder -m=init
-  bash /data/CCBR_Pipeliner/Pipelines/ASPEN/.v1.0.6/aspen -w=/my/output/folder -m=dryrun
-  bash /data/CCBR_Pipeliner/Pipelines/ASPEN/.v1.0.6/aspen -w=/my/output/folder -m=run
+  bash /data/CCBR_Pipeliner/Pipelines/ASPEN/release/1.2.0/aspen -w=/my/output/folder -m=init
+  bash /data/CCBR_Pipeliner/Pipelines/ASPEN/release/1.2.0/aspen -w=/my/output/folder -m=dryrun
+  bash /data/CCBR_Pipeliner/Pipelines/ASPEN/release/1.2.0/aspen -w=/my/output/folder -m=run
 
 ##########################################################################################
 
 VersionInfo:
   python          : python/3.10
   snakemake       : snakemake
-  pipeline_home   : /data/CCBR_Pipeliner/Pipelines/ASPEN/.v1.0.6
-  git commit/tag  : f4366158ad972bc667422dcd4783bd69fa041556    v1.0.6
-  aspen_version   : v1.0.6
+  pipeline_home   : /data/CCBR_Pipeliner/Pipelines/ASPEN/release/1.2.0
+  git commit/tag  : 4ab396420595c4ccf15416a4c11b523b2d0db862    v1.2.0
+  aspen_version   : v1.2.0
 
 ##########################################################################################
 ```

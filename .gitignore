@@ -5,4 +5,7 @@ aspen.bak
 !.gitattributes
 site/
 tmp_test/
+plans_reviews/
+plans/
 .snakemake/log/
+node_modules

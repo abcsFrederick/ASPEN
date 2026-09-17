@@ -16,9 +16,9 @@
         "time": "12:00:00"
     },
     "trim": {
-        "mem": "120g",
+        "mem": "48g",
         "threads": "16",
-        "time": "12:00:00"
+        "time": "16:00:00"
     },
     "remove_BL": {
         "mem": "120g",
@@ -33,12 +33,12 @@
     "align": {
         "mem": "240g",
         "threads": "16",
-        "time": "12:00:00"
+        "time": "24:00:00"
     },
     "align2spikein": {
         "mem": "240g",
         "threads": "16",
-        "time": "12:00:00"
+        "time": "24:00:00"
     },
     "fastqc": {
         "mem": "120g",
@@ -48,7 +48,7 @@
     "atac_tss": {
         "mem": "120g",
         "threads": "16",
-        "time": "12:00:00"
+        "time": "24:00:00"
     },
     "motif_enrichment": {
         "mem": "120g",

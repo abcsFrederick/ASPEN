@@ -232,7 +232,7 @@ if [ "$nreplicates" -eq "4" ];then files="$PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $PEAK
 if [ "$nreplicates" -eq "5" ];then files="$PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $PEAKFILE4 $PEAKFILE5 $POOLEDPEAKFILE"; fi
 if [ "$nreplicates" -eq "6" ];then files="$PEAKFILE1 $PEAKFILE2 $PEAKFILE3 $PEAKFILE4 $PEAKFILE5 $PEAKFILE6 $POOLEDPEAKFILE"; fi
 
-#ChIPseeker in the container only works for hg19/hg38/mm10... so you cannot annotate other genomes here
+#ChIPseeker in the container only works for hg19/hg38/mm10/hs1/hs1_chrR
 genome_is_known=0
 if [ "$RUNCHIPSEEKER" == "True" ];then
     if [ "$GENOME" == "hg19" ];then
@@ -240,6 +240,10 @@ if [ "$RUNCHIPSEEKER" == "True" ];then
     elif [ "$GENOME" == "hg38" ];then
         genome_is_known=1
     elif [ "$GENOME" == "mm10" ];then
+        genome_is_known=1
+    elif [ "$GENOME" == "hs1" ];then
+        genome_is_known=1
+    elif [ "$GENOME" == "hs1_chrR" ];then
         genome_is_known=1
     fi
     if [ "$genome_is_known" == "0" ];then

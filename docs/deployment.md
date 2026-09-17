@@ -25,19 +25,35 @@ This command adds aspen to your system's PATH, allowing you to execute pipeline 
 
 ASPEN requires a sample manifest file (`samples.tsv`) to identify and organize your input data. This tab-separated file should include the following columns:
 
-- `replicateName`: Unique identifier for each replicate.
-- `sampleName`: Identifier for the sample; multiple replicates can share the same sample name.
+- `replicateName`: A unique name for each **biological replicate** — i.e. each independently processed biological sample (separate cell culture, animal, or patient). Every row must have a distinct value.
+- `sampleName`: The condition or group label shared by all biological replicates from the same experimental group (e.g. `CONTROL` or `TREATMENT`). Multiple rows will share the same `sampleName`.
 - `path_to_R1_fastq`: Absolute path to the Read 1 FASTQ file.
 - `path_to_R2_fastq`: Absolute path to the Read 2 FASTQ file (required for paired-end data).
 
 !!! note
-Symlinks for R1 and R2 files will be created in the results directory, named as <replicateName>.R1.fastq.gz and <replicateName>.R2.fastq.gz, respectively. Therefore, original filenames do not need to be altered.
+Symlinks for R1 and R2 files will be created in the results directory, named as `<replicateName>.R1.fastq.gz` and `<replicateName>.R2.fastq.gz`, respectively. Therefore, original filenames do not need to be altered.
 
 !!! note
 The `replicateName` is used as a prefix for individual peak calls, while the `sampleName` serves as a prefix for consensus peak calls.
 
+!!! warning "Biological vs. technical replicates"
+ASPEN expects **one row per biological replicate**. If you sequenced the same sample across multiple lanes or sequencing runs (technical replicates), you must **concatenate those FASTQ files into a single file** before creating your manifest — ASPEN does not merge lanes internally.
+
+    | Replicate type | Definition | What to do |
+    |---|---|---|
+    | **Biological** | Independent biological samples (separate cultures, animals, patients, etc.) | One row per sample in `samples.tsv` |
+    | **Technical** | Same sample re-sequenced across multiple lanes or runs | `cat` the FASTQs together first, then one row |
+
+    Example of concatenating technical replicates before running ASPEN:
+    ```bash
+    cat sample1_L001_R1.fastq.gz sample1_L002_R1.fastq.gz > sample1_R1.fastq.gz
+    cat sample1_L001_R2.fastq.gz sample1_L002_R2.fastq.gz > sample1_R2.fastq.gz
+    ```
+
+    DESeq2 (used in `diffatac`) requires **at least 2 biological replicates per group**. Technical replicates do not count as biological replicates and will not satisfy this requirement.
+
 !!! note
-For differential ATAC analysis, create a `contrasts.tsv` file with two columns (Group1 and Group2 ... aka Sample1 and Sample2, without headers) and place it in the output directory after initialization. Ensure each group/sample in the contrast has at least two replicates, as DESeq2 requires this for accurate contrast calculations.
+For differential ATAC analysis, create a `contrasts.tsv` file with two columns (Group1 and Group2 ... aka Sample1 and Sample2, without headers) and place it in the output directory after initialization. Ensure each group/sample in the contrast has at least two biological replicates, as DESeq2 requires this for accurate contrast calculations.
 
 ## 🏃 Running the ASPEN Pipeline
 
@@ -57,6 +73,8 @@ This command generates a config.yaml and a placeholder `samples.tsv` in the spec
 To explore all possible options of the `aspen` command you can either run it without any arguments or run `aspen --help`
 
 Here is what help looks like:
+
+> **Note**: This is illustrative example output captured at doc-writing time — exact values (e.g. `pipeline_home`, `git commit/tag`, `aspen_version`) will differ depending on which ASPEN version/branch is installed at your site. Run `aspen --help` yourself to see the current values for your installation.
 
 ```bash
 
@@ -83,6 +101,8 @@ Here is a list of genome supported by aspen:
   * mm10          [Mouse]
   * mmul10        [Macaca mulatta(Rhesus monkey) or rheMac10]
   * bosTau9       [Bos taurus(cattle)]
+  * hs1           [Human T2T-CHM13]
+  * hs1_chrR      [Human T2T-CHM13 + chrR rDNA unit]
 
 aspen calls peaks using the following tools:
 
@@ -124,8 +144,8 @@ VersionInfo:
   python          : python/3.10
   snakemake       : snakemake
   pipeline_home   : /data/CCBR_Pipeliner/Pipelines/ASPEN/feature_spikeins
-  git commit/tag  : fc0699d6a7f9766963c8e7020c01214966616fab    v1.0.6-29-gfc0699d
-  aspen_version   : v1.0.6-dev-spikeins
+  git commit/tag  : 4ab396420595c4ccf15416a4c11b523b2d0db862    v1.2.0
+  aspen_version   : v1.2.0
 
 ##########################################################################################
 ```
@@ -147,7 +167,7 @@ macs2:
 
 #### Genrich
 
-Genrich paramaters can be changed by editing this block in the `config.yaml`:
+Genrich parameters can be changed by editing this block in the `config.yaml`:
 
 ```yaml
 genrich:
@@ -163,7 +183,7 @@ genrich:
 
 #### Contrasts
 
-If contrasts are to be calculated then fixed-width peaks are used with the following changable options:
+If contrasts are to be calculated then fixed-width peaks are used with the following changeable options:
 
 ```yaml
 # peak fixed width
@@ -178,6 +198,8 @@ contrasts_fdr_cutoff: 0.05
 ### 🧬 Enabling Spike-In Normalization (Optional)
 
 ASPEN supports spike-in normalization, which is useful for controlling technical variability or comparing global shifts in chromatin accessibility across samples. Spike-in reads (e.g., from _Drosophila melanogaster_ or _E. coli_) are aligned separately and used to compute normalization factors that are applied to host genome accessibility counts.
+
+Not sure whether you need this for your experiment? See ["Should I turn on spike-in normalization?"](overview.md#optional-spike-in-normalization) in the Overview docs for a decision guide.
 
 To enable spike-in normalization, edit the `config.yaml` file that was generated during `init`. You can find it in your output directory (`<path_to_output_folder>/config.yaml`).
 
@@ -217,8 +239,6 @@ Once enabled, ASPEN will:
 - Quantify spike-in counts per sample.
 - Normalize accessibility counts using spike-in-derived scaling factors.
 - Report both normalized and raw counts in the output tables and reports.
-
-This step is optional but highly recommended when you expect global changes in chromatin accessibility due to treatments or perturbations.
 
 ### 🛠️ Dry Run the Pipeline
 
@@ -274,7 +294,7 @@ scontrol show job <jobid>
 
 Replace <jobid> with the specific Job ID of interest. This will provide comprehensive details about the job's configuration and status, aiding in effective monitoring and management of your ASPEN pipeline processes.
 
-To quickly guage the process of the entire pipeline run:
+To quickly gauge the process of the entire pipeline run:
 
 ```bash
 grep "done$" <path_to_output_folder>/snakemake.log

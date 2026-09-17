@@ -10,32 +10,69 @@ suppressPackageStartupMessages(library("TxDb.Mmusculus.UCSC.mm10.knownGene"))
 suppressPackageStartupMessages(library("org.Hs.eg.db"))
 suppressPackageStartupMessages(library("org.Mm.eg.db"))
 
-suppressPackageStartupMessages(library("TxDb.Btaurus.UCSC.bosTau9.refGene"))
-suppressPackageStartupMessages(library("TxDb.Mmulatta.UCSC.rheMac10.refGene"))
-suppressPackageStartupMessages(library("org.Mmu.eg.db"))
-suppressPackageStartupMessages(library("org.Bt.eg.db"))
+# NB: TxDb.Btaurus / TxDb.Mmulatta / org.Mmu / org.Bt loaded on-demand below
 
 parser <- ArgumentParser()
 
 # specify our desired options
 # by default ArgumentParser will add an help option
 
-parser$add_argument("-b", "--bed",
+parser$add_argument(
+  "-b",
+  "--bed",
   required = TRUE,
-  dest = "bed", help = "narrowpeak file"
+  dest = "bed",
+  help = "narrowpeak file"
 )
-parser$add_argument("-a", "--annotated",
-  required = TRUE, dest = "annotated",
+parser$add_argument(
+  "-a",
+  "--annotated",
+  required = TRUE,
+  dest = "annotated",
   help = "annotated output file"
 )
-parser$add_argument("-u", "--uptss", required = FALSE, type = "integer", default = 2000, help = "upstream bases from TSS")
-parser$add_argument("-d", "--downtss", required = FALSE, type = "integer", default = 2000, help = "upstream bases from TSS")
-parser$add_argument("-t", "--toppromoterpeaks", required = FALSE, type = "integer", default = 1000, help = "filter top N peaks in promoters for genelist output")
-parser$add_argument("-l", "--genelist", required = TRUE, help = "list of genes with peaks in promoter regions")
-parser$add_argument("-f", "--atypefreq", required = TRUE, help = "frequency of different annotation types")
-parser$add_argument("-g", "--genome",
-  required = TRUE, dest = "genome",
-  help = "hg38/hg19/mm10/mm9/mmul10/bosTau9"
+parser$add_argument(
+  "-u",
+  "--uptss",
+  required = FALSE,
+  type = "integer",
+  default = 2000,
+  help = "upstream bases from TSS"
+)
+parser$add_argument(
+  "-d",
+  "--downtss",
+  required = FALSE,
+  type = "integer",
+  default = 2000,
+  help = "upstream bases from TSS"
+)
+parser$add_argument(
+  "-t",
+  "--toppromoterpeaks",
+  required = FALSE,
+  type = "integer",
+  default = 1000,
+  help = "filter top N peaks in promoters for genelist output"
+)
+parser$add_argument(
+  "-l",
+  "--genelist",
+  required = TRUE,
+  help = "list of genes with peaks in promoter regions"
+)
+parser$add_argument(
+  "-f",
+  "--atypefreq",
+  required = TRUE,
+  help = "frequency of different annotation types"
+)
+parser$add_argument(
+  "-g",
+  "--genome",
+  required = TRUE,
+  dest = "genome",
+  help = "hg38/hg19/mm10/mm9/mmul10/bosTau9/hs1/hs1_chrR"
 )
 
 # get command line options, if help option encountered print help and exit,
@@ -56,6 +93,9 @@ if (args$genome == "mmul10") {
 if (args$genome == "bosTau9") {
   adb <- "org.Bt.eg.db"
 }
+if (args$genome %in% c("hs1", "hs1_chrR")) {
+  adb <- "org.Hs.eg.db"
+}
 
 if (args$genome == "hg19") {
   tdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
@@ -70,10 +110,17 @@ if (args$genome == "mm10") {
   tdb <- TxDb.Mmusculus.UCSC.mm10.knownGene
 }
 if (args$genome == "mmul10") {
+  suppressPackageStartupMessages(library("TxDb.Mmulatta.UCSC.rheMac10.refGene"))
   tdb <- TxDb.Mmulatta.UCSC.rheMac10.refGene
 }
 if (args$genome == "bosTau9") {
+  suppressPackageStartupMessages(library("TxDb.Btaurus.UCSC.bosTau9.refGene"))
   tdb <- TxDb.Btaurus.UCSC.bosTau9.refGene
+}
+if (args$genome %in% c("hs1", "hs1_chrR")) {
+  tdb <- AnnotationDbi::loadDb(
+    "/opt2/annotation/TxDb.Hsapiens.NCBI.T2T.CHM13v2.0.sqlite"
+  )
 }
 
 
@@ -87,7 +134,10 @@ colnames(np) <- c(
 
 np$peakID <- paste(np$chrom, ":", np$chromStart, "-", np$chromEnd, sep = "")
 
-peaks <- GRanges(seqnames = np$chrom, ranges = IRanges(np$chromStart, np$chromEnd))
+peaks <- GRanges(
+  seqnames = np$chrom,
+  ranges = IRanges(np$chromStart, np$chromEnd)
+)
 
 # using annotatePeak from ChIPseeker
 pa <- annotatePeak(
@@ -95,7 +145,15 @@ pa <- annotatePeak(
   tssRegion = c(-2000, 2000),
   TxDb = tdb,
   level = "transcript",
-  genomicAnnotationPriority = c("Promoter", "5UTR", "3UTR", "Exon", "Intron", "Downstream", "Intergenic"),
+  genomicAnnotationPriority = c(
+    "Promoter",
+    "5UTR",
+    "3UTR",
+    "Exon",
+    "Intron",
+    "Downstream",
+    "Intergenic"
+  ),
   annoDb = adb,
   sameStrand = FALSE,
   ignoreOverlap = FALSE,
@@ -106,9 +164,14 @@ pa <- annotatePeak(
 
 padf <- as.data.frame(pa)
 padf$peakID <- paste(padf$seqnames, ":", padf$start, "-", padf$end, sep = "")
+# Gene annotation columns may be absent when ChIPseeker cannot map TxDb gene IDs
+# through the org.*.db (e.g. T2T assemblies with RefSeq-based TxDb). Fill with NA
+# so downstream column selection succeeds regardless.
+for (col in c("ENSEMBL", "SYMBOL", "GENENAME")) {
+  if (!col %in% colnames(padf)) padf[[col]] <- NA_character_
+}
 merged <- merge(padf, np, by = "peakID")
-merged <- merged[
-  ,
+merged <- merged[,
   c(
     "peakID",
     "chrom",
@@ -151,7 +214,13 @@ colnames(merged) <- c(
 )
 
 # merge annotation with narrowPeak file
-write.table(merged, args$annotated, sep = "\t", quote = FALSE, row.names = FALSE)
+write.table(
+  merged,
+  args$annotated,
+  sep = "\t",
+  quote = FALSE,
+  row.names = FALSE
+)
 l <- paste("# Median peak width : ", median(merged$width), sep = "")
 write(l, args$annotated, append = TRUE)
 
@@ -165,11 +234,17 @@ promoters <- rbind(promoters1, promoters2)
 promoters <- head(promoters, n = args$toppromoterpeaks)
 promoter_genes <- unique(promoters[, c("ENSEMBL", "SYMBOL")])
 colnames(promoter_genes) <- c("#ENSEMBL", "SYMBOL")
-write.table(promoter_genes, args$genelist, sep = "\t", quote = FALSE, row.names = FALSE)
+write.table(
+  promoter_genes,
+  args$genelist,
+  sep = "\t",
+  quote = FALSE,
+  row.names = FALSE
+)
 l <- paste("# Median peak width : ", median(promoters$width), sep = "")
 write(l, args$genelist, append = TRUE)
 
-# annotation type frequence table
+# annotation type frequency table
 
 l <- paste("#annotationType", "frequency", "medianWidth", sep = "\t")
 write(l, args$atypefreq)

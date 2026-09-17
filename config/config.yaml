@@ -32,6 +32,8 @@ genome: "$GENOME"
 # genome: "mm10"
 # genome: "mmul10"
 # genome: "bosTau9" # this is same as ARS-UCD1.2
+# genome: "hs1"
+# genome: "hs1_chrR" # hs1 (T2T-CHM13) + chrR (rDNA unit); see https://github.com/vikramparalkar/rDNA-Mapping-Genomes
 
 #
 spikein: False
@@ -73,6 +75,19 @@ hs1:
     dhsbed: "$PIPELINE_HOME/resources/frip/hs1.DHS.bed.gz"
     promoterbed: "$PIPELINE_HOME/resources/frip/hs1.promoters.bed.gz"
     enhancerbed: "$PIPELINE_HOME/resources/frip/hs1.enhancers.bed.gz"
+
+hs1_chrR:
+  indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/hs1_chrR/indexes"
+  blacklistFa: "$PIPELINE_HOME/resources/blacklistFa/hs1_chrR.blacklist.fa.gz"
+  chroms: "$PIPELINE_HOME/resources/chroms/hs1_chrR.chroms"
+  tssBed: "$PIPELINE_HOME/resources/tssBed/hs1_chrR_tssbeds.tar.gz"
+  homermotif: "$PIPELINE_HOME/resources/motif/HOCOMOCOv11_full_HUMAN_mono_homer_format_0.001.motif"
+  mememotif: "$PIPELINE_HOME/resources/motif/HOCOMOCOv11_core_HUMAN_mono_meme_format.tar.gz"
+  effectiveGenomeSize: 3000000000
+  fripextra:
+    dhsbed: "$PIPELINE_HOME/resources/frip/hs1_chrR.DHS.bed.gz"
+    promoterbed: "$PIPELINE_HOME/resources/frip/hs1_chrR.promoters.bed.gz"
+    enhancerbed: "$PIPELINE_HOME/resources/frip/hs1_chrR.enhancers.bed.gz"
 
 hg38:
   indexdir: "/data/CCBR_Pipeliner/db/PipeDB/Indices/hg38_basic/indexes"
@@ -191,20 +206,16 @@ jaccard_min_peaks: 1000
 fastqscreen_config: "$PIPELINE_HOME/config/fastq_screen_config.txt"
 
 # Containers
-# masterdocker: "docker://nciccbr/ccbr_atacseq:v0.1.29"
-masterdocker: "docker://nciccbr/ccbr_atacseq:v11-feat"
-baser: "docker://nciccbr/ccbr_baser:230531"
+masterdocker: "docker://nciccbr/ccbr_atacseq:v13-feat"
+cutadaptdocker: "docker://nciccbr/ccbr_atacseq:v11-feat"
 bwadocker: "docker://nciccbr/ccbr_bwa_mem2_2.2.1:v1-feat"
 deeptoolsdocker: "docker://nciccbr/ccbr_deeptools_3.5.6:v1-feat"
-fastqcdocker: "docker://nciccbr/ccbr_fastqc_0.11.9:v1.1"
 fastqscreendocker: "docker://nciccbr/ccbr_fastq_screen_0.14.1:v1.0"
-# featurecounts: "docker://genomicpariscentre/featurecounts:1.5.3"
 featurecountsdocker: "docker://dsaha0295/featurecounts:latest"
-ucscdocker: "docker://nciccbr/ccbr_ucsc_v385:v2-feat"
 
 # pipeline information
 pipeline: "ASPEN"
 version: "$ASPENVERSION"
 pipeline_home: "$PIPELINE_HOME"
 
-ccbr_tools_path: "/data/CCBR_Pipeliner/Tools/ccbr_tools/v0.4/bin/"
+ccbr_tools_path: "/data/CCBR_Pipeliner/Tools/ccbr_tools/latest/bin/"

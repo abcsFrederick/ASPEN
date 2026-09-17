@@ -16,7 +16,7 @@ echo -ne "replicateName\n$replicateName\n" > ${replicateName}.part1
 
 function create_part2() {
 replicateName=$1
-cat $FRIPFILE|grep "^${replicateName}\b"|cut -f2,3|bash $SCRIPTSDIR/_transpose.sh > ${replicateName}.part2
+cat $FRIPFILE|grep "^${replicateName}\b"|cut -f3,4|bash $SCRIPTSDIR/_transpose.sh > ${replicateName}.part2
 }
 
 
