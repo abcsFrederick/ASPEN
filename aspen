@@ -17,31 +17,8 @@ retries="2"
 # functions
 ##########################################################################################
 
-function get_git_commitid_tag() {
-# This function gets the latest git commit id and tag
-# Input is PIPELINE_HOME folder which is a git folder
-  cd $1
-  gid=$(git rev-parse HEAD)
-  tag=$(git describe --tags $gid 2>/dev/null)
-  echo -ne "$gid\t$tag"
-}
-
-function printbanner() {
-versionnumber=$1
-cat << EOF
-____ ____ ___  ____ _  _
-|__| [__  |__] |___ |\ |
-|  | ___] |    |___ | \|    v${versionnumber}
-EOF
-}
-
-function log_info()    { echo "INFO  $*"; }
-function log_step()    { echo "STEP  $*"; }
-function log_ok()      { echo "OK    $*"; }
-function log_warn()    { echo "WARN  $*"; }
-function log_error()   { echo "ERROR $*"; }
-function log_next()    { echo "NEXT  $*"; }
-function log_divider() { echo "------------------------------------------------------------------"; }
+# get_git_commitid_tag() and printbanner() are provided by the sourced
+# ccbr_pipeline_logging.sh library (see initial setup section below).
 
 ##########################################################################################
 # initial setup
@@ -55,9 +32,6 @@ SNAKEFILE="${PIPELINE_HOME}/workflow/Snakefile"
 
 VERSIONFILE="${PIPELINE_HOME}/VERSION"
 
-# get github commit tag
-GIT_COMMIT_TAG=$(get_git_commitid_tag $PIPELINE_HOME)
-
 ##########################################################################################
 # Some more set up
 ##########################################################################################
@@ -67,6 +41,24 @@ SNAKEMAKEVERSION="snakemake"
 #SINGULARITYVERSION="singularity/3.7.4"
 SINGULARITYVERSION="singularity"
 export ASPENVERSION=$(head -n1 $VERSIONFILE|awk '{print $1}')
+
+# ## source shared structured-logging / pipeline-state-marker library
+# (staged in workflow/scripts/ pending migration to ccbr_tools; see
+# plans_reviews/PLAN_shared_pipeline_logging_library.md Phase B)
+export PIPELINE_NAME="ASPEN"
+export PIPELINE_VERSION="${ASPENVERSION}"
+export SNAKEMAKE_LOG_PATH="${WORKDIR:-}/snakemake.log"  # refreshed once WORKDIR is known in main()
+if command -v ccbr_pipeline_logging.sh >/dev/null 2>&1; then
+  source "$(command -v ccbr_pipeline_logging.sh)"
+elif [[ -f "${PIPELINE_HOME}/workflow/scripts/ccbr_pipeline_logging.sh" ]]; then
+  source "${PIPELINE_HOME}/workflow/scripts/ccbr_pipeline_logging.sh"
+else
+  echo "ERROR ccbr_pipeline_logging.sh not found (checked PATH and ${PIPELINE_HOME}/workflow/scripts/)" >&2
+  exit 1
+fi
+
+# get github commit tag
+GIT_COMMIT_TAG=$(get_git_commitid_tag $PIPELINE_HOME)
 
 # set defaults
 export GENOME="hg38"
@@ -96,10 +88,10 @@ function usage() { cat << EOF
 
 Welcome to
 EOF
-printbanner $ASPENVERSION
+printbanner "ASPEN" "$ASPENVERSION"
 cat << EOF
 
-A_TAC_S_eq A_nalysis P_ip_E_li_N_e
+ATAC-Seq Analysis Pipeline
 
 ##########################################################################################
 
@@ -184,7 +176,7 @@ function init() {
 # 2. copying essential files like config.yaml and samples.tsv into the workdir
 # 3. setting up logs folder
 
-printbanner $ASPENVERSION
+printbanner "ASPEN" "$ASPENVERSION"
 
 log_step "[init] Preparing workdir"
 log_info "Workdir: $WORKDIR"
@@ -330,75 +322,9 @@ function set_cluster_arg(){
   fi
 }
 
-function print_versions() {
-  log_divider
-  echo "INFO  Tool Versions:"
-  snakemake --version 2>/dev/null && log_ok "Snakemake version checked" || log_warn "Snakemake version: unable to determine"
-  singularity --version 2>/dev/null && log_ok "Singularity/Apptainer version checked" || log_warn "Singularity/Apptainer version: UNAVAILABLE"
-  log_divider
-}
-
-function json_escape() {
-  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
-}
-
-function write_pipeline_state_marker() {
-  local state="$1"
-  local reason="${2:-}"
-  local job_id="${3:-NA}"
-  local now_utc
-  local sidecar="${WORKDIR}/pipeline.status.json"
-  local sidecar_tmp="${sidecar}.tmp.$$"
-  local submission_ts=""
-  local submit_epoch
-
-  now_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-
-  if [[ "${state}" == "running" && "${reason}" == "submission_started" ]]; then
-    submission_ts="${now_utc}"
-    date +%s > "${WORKDIR}/pipeline.submit_epoch"
-  elif [[ -f "${WORKDIR}/pipeline.submit_epoch" ]]; then
-    submit_epoch=$(cat "${WORKDIR}/pipeline.submit_epoch" 2>/dev/null || true)
-    if [[ -n "${submit_epoch}" ]]; then
-      submission_ts=$(date -u -d "@${submit_epoch}" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || true)
-    fi
-  fi
-
-  rm -f "${WORKDIR}/pipeline.running" "${WORKDIR}/pipeline.completed" \
-        "${WORKDIR}/pipeline.failed" "${WORKDIR}/pipeline.canceled"
-  : > "${WORKDIR}/pipeline.${state}"
-
-  cat > "${sidecar_tmp}" << STATEEOF
-{
-  "pipeline": "ASPEN",
-  "version": "${ASPENVERSION}",
-  "state": "$(json_escape "${state}")",
-  "reason": "$(json_escape "${reason}")",
-  "runmode": "$(json_escape "${RUNMODE:-unknown}")",
-  "workdir": "$(json_escape "${WORKDIR}")",
-  "user": "$(json_escape "${USER:-unknown}")",
-  "slurm_job_id": "$(json_escape "${job_id}")",
-  "submission_timestamp_utc": "$(json_escape "${submission_ts}")",
-  "timestamp_utc": "${now_utc}"
-}
-STATEEOF
-  mv "${sidecar_tmp}" "${sidecar}"
-  log_info "State marker updated: pipeline.${state} (reason=${reason}, slurm_job_id=${job_id})"
-}
-
-function run_jobby_best_effort() {
-  mkdir -p "${WORKDIR}/logs"
-  if ! command -v jobby >/dev/null 2>&1; then
-    module load ccbrpipeliner >/dev/null 2>&1 || true
-  fi
-  if [[ -f "${WORKDIR}/snakemake.log" ]] && command -v jobby >/dev/null 2>&1; then
-    if ! jobby --tsv "${WORKDIR}/snakemake.log" | tee "${WORKDIR}/snakemake.log.jobby" >/dev/null; then
-      printf '%s\n' "jobby failed while parsing ${WORKDIR}/snakemake.log" > "${WORKDIR}/snakemake.log.jobby"
-    fi
-  else
-    printf '%s\n' "jobby unavailable or snakemake.log missing" > "${WORKDIR}/snakemake.log.jobby"
-  fi
-}
+# log_info/step/ok/warn/error/next/divider, print_versions, json_escape,
+# write_pipeline_state_marker, and run_jobby_best_effort are provided by the
+# sourced ccbr_pipeline_logging.sh library (see initial setup section above).
 
 ##########################################################################################
 # RUNCHECK ... check essential files and load required packages
@@ -463,15 +389,6 @@ function unlock() {
 function dag() {
   runcheck
   snakemake -s $SNAKEFILE --configfile ${WORKDIR}/config.yaml --forceall --dag |dot -Teps > ${WORKDIR}/dag.eps
-}
-
-##########################################################################################
-# PRINT SINGULARITY BINDS ... print bound singularity folders for debugging
-##########################################################################################
-
-function printbinds(){
-  set_singularity_binds
-  echo $SINGULARITY_BINDS
 }
 
 ##########################################################################################
@@ -677,6 +594,16 @@ fi
     cp "${WORKDIR}/submit_script.sbatch" "${backup_file}"
     log_warn "Existing submit script lacked pipeline state marker logic; backed up to ${backup_file}"
     REWRITE_SUBMIT_SCRIPT="true"
+  elif ! grep -q -- "_progress_monitor" "${WORKDIR}/submit_script.sbatch"; then
+    backup_file="${WORKDIR}/submit_script.sbatch.$(date +%Y%m%d%H%M%S).bak"
+    cp "${WORKDIR}/submit_script.sbatch" "${backup_file}"
+    log_warn "Existing submit script lacked progress monitor; backed up to ${backup_file}"
+    REWRITE_SUBMIT_SCRIPT="true"
+  elif ! grep -q -- "submission_timestamp_utc" "${WORKDIR}/submit_script.sbatch"; then
+    backup_file="${WORKDIR}/submit_script.sbatch.$(date +%Y%m%d%H%M%S).bak"
+    cp "${WORKDIR}/submit_script.sbatch" "${backup_file}"
+    log_warn "Existing submit script lacked enriched status fields; backed up to ${backup_file}"
+    REWRITE_SUBMIT_SCRIPT="true"
   fi
 
   if [[ "${REWRITE_SUBMIT_SCRIPT}" == "true" ]]; then
@@ -688,19 +615,27 @@ fi
 #SBATCH --time=96:00:00
 #SBATCH --cpus-per-task=2
 
-function _write_pipeline_state_marker() {
-  local state="\$1"
-  local reason="\${2:-}"
-  local job_id="\${3:-\${SLURM_JOB_ID:-NA}}"
-  local now_utc
-  now_utc=\$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-  rm -f "${WORKDIR}/pipeline.running" "${WORKDIR}/pipeline.completed" "${WORKDIR}/pipeline.failed" "${WORKDIR}/pipeline.canceled"
-  touch "${WORKDIR}/pipeline.\${state}"
-  printf '{"pipeline":"ASPEN","version":"%s","state":"%s","reason":"%s","workdir":"%s","user":"%s","slurm_job_id":"%s","timestamp_utc":"%s"}\n' "${ASPENVERSION}" "\${state}" "\${reason}" "${WORKDIR}" "\${USER:-unknown}" "\${job_id}" "\${now_utc}" > "${WORKDIR}/pipeline.status.json"
-}
+export PIPELINE_NAME="ASPEN"
+export PIPELINE_VERSION="${ASPENVERSION}"
+export WORKDIR="${WORKDIR}"
+export PIPELINE_HOME="${PIPELINE_HOME}"
+export SNAKEMAKE_LOG_PATH="${WORKDIR}/snakemake.log"
+if command -v ccbr_pipeline_logging.sh >/dev/null 2>&1; then
+  source "\$(command -v ccbr_pipeline_logging.sh)"
+elif [[ -f "${WORKDIR}/scripts/ccbr_pipeline_logging.sh" ]]; then
+  source "${WORKDIR}/scripts/ccbr_pipeline_logging.sh"
+else
+  module load ccbrpipeliner >/dev/null 2>&1 || true
+  if command -v ccbr_pipeline_logging.sh >/dev/null 2>&1; then
+    source "\$(command -v ccbr_pipeline_logging.sh)"
+  else
+    echo "ERROR ccbr_pipeline_logging.sh not found (checked PATH, ${WORKDIR}/scripts/, and module ccbrpipeliner)" >&2
+    exit 1
+  fi
+fi
 
-trap '_write_pipeline_state_marker canceled "signal_SIGTERM"; exit 130' SIGTERM
-trap '_write_pipeline_state_marker canceled "signal_SIGINT"; exit 130' SIGINT
+trap 'write_pipeline_state_marker_job canceled "signal_SIGTERM" "\${SLURM_JOB_ID:-NA}" 130; exit 130' SIGTERM
+trap 'write_pipeline_state_marker_job canceled "signal_SIGINT" "\${SLURM_JOB_ID:-NA}" 130; exit 130' SIGINT
 
 $MODULE_STR
 
@@ -708,8 +643,16 @@ cd \$SLURM_SUBMIT_DIR
 
 $EXPORT_SING_CACHE_DIR_CMD
 
+_START_EPOCH=\$(date +%s)
+_START_TS=\$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+_progress_monitor &
+_monitor_pid=\$!
+
 snakemake -s $SNAKEFILE --directory $WORKDIR $SINGULARITY_STR --printshellcmds --latency-wait 120 --configfile $CONFIGFILE --cluster-config $CLUSTERFILE --cluster "$CLUSTER_SBATCH_CMD" -j 500 --rerun-incomplete ${RERUNTRIGGERS} --restart-times ${retries} --keep-going --stats ${WORKDIR}/snakemake.stats 2>&1 | tee ${WORKDIR}/snakemake.log
 snakemake_rc="\${PIPESTATUS[0]}"
+kill "\$_monitor_pid" 2>/dev/null || true
+wait "\$_monitor_pid" 2>/dev/null || true
 
 if ! command -v jobby >/dev/null 2>&1; then
   module load ccbrpipeliner >/dev/null 2>&1 || true
@@ -722,13 +665,13 @@ if [ "\${snakemake_rc}" -eq "0" ]; then
   snakemake -s $SNAKEFILE --directory $WORKDIR --report ${WORKDIR}/runslurm_snakemake_report.html --configfile $CONFIGFILE
   report_rc="\$?"
   if [ "\${report_rc}" -eq "0" ]; then
-    _write_pipeline_state_marker completed "snakemake_and_report_succeeded" "\${SLURM_JOB_ID:-NA}"
+    write_pipeline_state_marker_job completed "snakemake_and_report_succeeded" "\${SLURM_JOB_ID:-NA}" 0
   else
-    _write_pipeline_state_marker failed "report_generation_failed" "\${SLURM_JOB_ID:-NA}"
+    write_pipeline_state_marker_job failed "report_generation_failed" "\${SLURM_JOB_ID:-NA}" "\${report_rc}"
     exit "\${report_rc}"
   fi
 else
-  _write_pipeline_state_marker failed "snakemake_failed" "\${SLURM_JOB_ID:-NA}"
+  write_pipeline_state_marker_job failed "snakemake_failed" "\${SLURM_JOB_ID:-NA}" "\${snakemake_rc}"
   exit "\${snakemake_rc}"
 fi
 
@@ -811,7 +754,7 @@ EOF
 
 function reset() {
 # Delete the workdir and re-initialize it
-  printbanner $ASPENVERSION
+  printbanner "ASPEN" "$ASPENVERSION"
   log_info "Working Dir: $WORKDIR"
   if [ ! -d $WORKDIR ];then err "Folder $WORKDIR does not exist!";fi
   log_warn "Deleting $WORKDIR"
@@ -825,7 +768,7 @@ function reset() {
 ##########################################################################################
 
 function printbinds(){
-  printbanner $ASPENVERSION
+  printbanner "ASPEN" "$ASPENVERSION"
   set_singularity_binds
   echo $SINGULARITY_BINDS
 }
@@ -870,7 +813,7 @@ function main(){
         fi
       ;;
       --version)
-        printbanner ${ASPENVERSION} && exit 0;
+        printbanner "ASPEN" "${ASPENVERSION}" && exit 0;
       ;;
       -h|--help)
         usage && exit 0;;
@@ -880,6 +823,7 @@ function main(){
   esac
   done
   export WORKDIR=$(readlink -f "$WORKDIR")
+  export SNAKEMAKE_LOG_PATH="${WORKDIR}/snakemake.log"
   MANIFEST_SUPPLIED="true"
   # if manifest is empty ... aka not supplied at cli
   if [[ -z $MANIFEST ]];then
