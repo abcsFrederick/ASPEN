@@ -308,14 +308,14 @@ In addition to `squeue`/`scontrol`, ASPEN writes a set of state-tracking files d
 
 - `pipeline.running`, `pipeline.completed`, `pipeline.failed`, `pipeline.canceled` — exactly one of these marker files exists at a time, reflecting the current state. While the pipeline is running, `pipeline.running` is periodically refreshed by a background progress monitor with a human-readable summary, including the percentage of Snakemake steps completed so far:
 
-  ```bash
-  cat <path_to_output_folder>/pipeline.running
-  ```
+    ```bash
+    cat <path_to_output_folder>/pipeline.running
+    ```
 
 - `pipeline.status.json` — a machine-readable sidecar with the same information (`state`, `reason`, `slurm_job_id`, start/end timestamps, `duration_seconds`, `tasks_done`/`tasks_total`, `exit_code`), useful for scripting/automation:
 
-  ```bash
-  cat <path_to_output_folder>/pipeline.status.json
-  ```
+    ```bash
+    cat <path_to_output_folder>/pipeline.status.json
+    ```
 
 - `snakemake.log.jobby` / `snakemake.log.jobby.short` — a `jobby` TSV summary of per-rule/job resource usage, generated as a best-effort step after the run finishes (even if the Slurm submission itself failed before Snakemake started).
