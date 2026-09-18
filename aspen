@@ -327,6 +327,29 @@ function set_cluster_arg(){
 # sourced ccbr_pipeline_logging.sh library (see initial setup section above).
 
 ##########################################################################################
+# SYNC GENOME FROM WORKDIR CONFIG ... display the genome actually configured
+##########################################################################################
+
+function sync_genome_from_workdir_config() {
+# -g/--genome (and its "hg38" default) only matter for `init`/`reconfig`, where
+# they're used to template a NEW config.yaml. For run/runlocal/dryrun/unlock on
+# an EXISTING workdir, the workdir's config.yaml is authoritative -- Snakemake
+# is invoked with --configfile $WORKDIR/config.yaml and never sees $GENOME.
+# Without this, the "Genome:" line in the run summary could silently show the
+# CLI/default genome instead of the one actually configured in the workdir,
+# which is misleading (though the run itself is unaffected).
+
+  local workdir_genome
+  if [[ -f "${WORKDIR}/config.yaml" ]]; then
+    workdir_genome=$(grep -E '^genome:' "${WORKDIR}/config.yaml" | head -n1 | sed -E 's/^genome:[[:space:]]*"?([^"[:space:]]+)"?.*/\1/')
+    if [[ -n "${workdir_genome}" && "${workdir_genome}" != "${GENOME}" ]]; then
+      log_warn "Genome '${GENOME}' (CLI/default) differs from '${workdir_genome}' configured in ${WORKDIR}/config.yaml; using the workdir's value. To change the genome for an existing workdir, edit ${WORKDIR}/config.yaml directly (-g/--genome only applies to init/reconfig)."
+      GENOME="${workdir_genome}"
+    fi
+  fi
+}
+
+##########################################################################################
 # RUNCHECK ... check essential files and load required packages
 ##########################################################################################
 
@@ -334,6 +357,7 @@ function runcheck(){
 # Check "job-essential" files and load required modules
 
   check_essential_files
+  sync_genome_from_workdir_config
   # MODULE_STR="module load $PYTHONVERSION $SNAKEMAKEVERSION singularity"
   MODULE_STR=$(
 cat << END_HEREDOC
