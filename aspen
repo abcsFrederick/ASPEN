@@ -628,6 +628,11 @@ fi
     cp "${WORKDIR}/submit_script.sbatch" "${backup_file}"
     log_warn "Existing submit script lacked enriched status fields; backed up to ${backup_file}"
     REWRITE_SUBMIT_SCRIPT="true"
+  elif ! grep -q -- "^module purge" "${WORKDIR}/submit_script.sbatch"; then
+    backup_file="${WORKDIR}/submit_script.sbatch.$(date +%Y%m%d%H%M%S).bak"
+    cp "${WORKDIR}/submit_script.sbatch" "${backup_file}"
+    log_warn "Existing submit script did not purge modules before submission (CCBR/ASPEN#144); backed up to ${backup_file}"
+    REWRITE_SUBMIT_SCRIPT="true"
   fi
 
   if [[ "${REWRITE_SUBMIT_SCRIPT}" == "true" ]]; then
@@ -638,6 +643,13 @@ fi
 #SBATCH --partition=$PARTITIONS
 #SBATCH --time=96:00:00
 #SBATCH --cpus-per-task=2
+
+# Start from a clean module environment -- SLURM jobs otherwise inherit the
+# submitting shell's full environment (modules already loaded, PATH,
+# PYTHONPATH, etc.). A stale/different module version (e.g. an old
+# ccbrpipeliner loaded interactively before submission) can silently shadow
+# the tools this script explicitly loads below. See CCBR/ASPEN#144.
+module purge >/dev/null 2>&1 || true
 
 export PIPELINE_NAME="ASPEN"
 export PIPELINE_VERSION="${ASPENVERSION}"
