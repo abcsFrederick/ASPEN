@@ -107,7 +107,21 @@ function _pipeline_write_status_json() {
 
   rm -f "${WORKDIR}/pipeline.running" "${WORKDIR}/pipeline.completed" \
         "${WORKDIR}/pipeline.failed" "${WORKDIR}/pipeline.canceled"
-  : > "${WORKDIR}/pipeline.${state}"
+
+  # Human-readable marker (CCBR/ASPEN#144): previously this was just an empty
+  # touch-file, so e.g. `pipeline.failed` gave no indication of *why* without
+  # digging through snakemake.log. `pipeline.running` is refreshed shortly
+  # after with live progress by _progress_monitor(); completed/failed/canceled
+  # are terminal and keep this summary as-is.
+  {
+    printf 'State    : %s\n' "${state}"
+    printf 'Reason   : %s\n' "${reason}"
+    [[ -n "${job_id}" ]] && printf 'Job ID   : %s\n' "${job_id}"
+    [[ -n "${exit_code}" ]] && printf 'Exit code: %s\n' "${exit_code}"
+    [[ -n "${tasks_done}" && -n "${tasks_total}" ]] && printf 'Progress : %s / %s steps done\n' "${tasks_done}" "${tasks_total}"
+    printf 'Log      : %s\n' "${SNAKEMAKE_LOG_PATH}"
+    printf 'Updated  : %s\n' "${now_utc}"
+  } > "${WORKDIR}/pipeline.${state}"
 
   cat > "${sidecar_tmp}" << STATEEOF
 {
