@@ -609,11 +609,19 @@ if [ ! -z "$BUYINPARTITIONS" ];then
   PARTITIONS="norm,$BUYINPARTITIONS"
 fi
 
-  # Stale-script guard: regenerate if missing pipeline state marker support
+  # Stale-script guard: regenerate if missing pipeline state marker support.
+  # NOTE (CCBR/ASPEN#119 review): the patterns below must match strings that
+  # are actually emitted into the generated submit_script.sbatch heredoc --
+  # "_write_pipeline_state_marker" and "submission_timestamp_utc" never
+  # appeared there (only "write_pipeline_state_marker_job" does, and
+  # "submission_timestamp_utc" is a JSON key written at runtime into
+  # pipeline.status.json, not part of the script template), which made those
+  # two checks permanently unreachable/always-true -- every `run` invocation
+  # was silently regenerating submit_script.sbatch and spamming .bak backups.
   REWRITE_SUBMIT_SCRIPT="false"
   if [[ ! -f "${WORKDIR}/submit_script.sbatch" ]]; then
     REWRITE_SUBMIT_SCRIPT="true"
-  elif ! grep -q -- "_write_pipeline_state_marker" "${WORKDIR}/submit_script.sbatch"; then
+  elif ! grep -q -- "write_pipeline_state_marker_job" "${WORKDIR}/submit_script.sbatch"; then
     backup_file="${WORKDIR}/submit_script.sbatch.$(date +%Y%m%d%H%M%S).bak"
     cp "${WORKDIR}/submit_script.sbatch" "${backup_file}"
     log_warn "Existing submit script lacked pipeline state marker logic; backed up to ${backup_file}"
@@ -622,11 +630,6 @@ fi
     backup_file="${WORKDIR}/submit_script.sbatch.$(date +%Y%m%d%H%M%S).bak"
     cp "${WORKDIR}/submit_script.sbatch" "${backup_file}"
     log_warn "Existing submit script lacked progress monitor; backed up to ${backup_file}"
-    REWRITE_SUBMIT_SCRIPT="true"
-  elif ! grep -q -- "submission_timestamp_utc" "${WORKDIR}/submit_script.sbatch"; then
-    backup_file="${WORKDIR}/submit_script.sbatch.$(date +%Y%m%d%H%M%S).bak"
-    cp "${WORKDIR}/submit_script.sbatch" "${backup_file}"
-    log_warn "Existing submit script lacked enriched status fields; backed up to ${backup_file}"
     REWRITE_SUBMIT_SCRIPT="true"
   elif ! grep -q -- "^module purge" "${WORKDIR}/submit_script.sbatch"; then
     backup_file="${WORKDIR}/submit_script.sbatch.$(date +%Y%m%d%H%M%S).bak"
