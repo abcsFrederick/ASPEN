@@ -246,7 +246,8 @@ function _progress_monitor() {
   done
 
   if [[ ! -f "${logfile}" ]]; then
-    printf 'Status   : Waiting for snakemake.log\nUpdated  : %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" > "${marker}"
+    printf 'Status   : Waiting for snakemake.log\nUpdated  : %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" > "${marker}.tmp.$$"
+    mv "${marker}.tmp.$$" "${marker}"
   fi
 
   while true; do
@@ -262,10 +263,12 @@ function _progress_monitor() {
           (( remaining < 0 )) && remaining=0
           updated=$(date '+%Y-%m-%d %H:%M:%S')
           printf 'Progress : %s / %s steps complete (%s%%)\nRemaining: %s steps\nUpdated  : %s\n' \
-            "${done_n}" "${total_n}" "${pct}" "${remaining}" "${updated}" > "${marker}"
+            "${done_n}" "${total_n}" "${pct}" "${remaining}" "${updated}" > "${marker}.tmp.$$"
+          mv "${marker}.tmp.$$" "${marker}"
         fi
       elif [[ ! -s "${marker}" ]]; then
-        printf 'Status   : Submitted, waiting for first progress update\nUpdated  : %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" > "${marker}"
+        printf 'Status   : Submitted, waiting for first progress update\nUpdated  : %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" > "${marker}.tmp.$$"
+        mv "${marker}.tmp.$$" "${marker}"
       fi
     fi
     sleep 60
