@@ -47,7 +47,15 @@ export ASPENVERSION=$(head -n1 $VERSIONFILE|awk '{print $1}')
 # plans_reviews/PLAN_shared_pipeline_logging_library.md Phase B)
 export PIPELINE_NAME="ASPEN"
 export PIPELINE_VERSION="${ASPENVERSION}"
-export SNAKEMAKE_LOG_PATH="${WORKDIR:-}/snakemake.log"  # refreshed once WORKDIR is known in main()
+# WORKDIR isn't parsed from argv until main() runs (it's the last line of this
+# script), so at this point it's always unset. ccbr_pipeline_logging.sh
+# requires SNAKEMAKE_LOG_PATH to be non-empty at source-time (its ":?" guard
+# treats an empty string the same as unset), so we can't just leave this
+# blank -- use an obviously-fake placeholder instead of a plausible-looking
+# one like "/snakemake.log", so any accidental early use fails loudly (file
+# not found) rather than silently writing to the filesystem root. main()
+# refreshes this with the real value once WORKDIR is known.
+export SNAKEMAKE_LOG_PATH="${WORKDIR:-__WORKDIR_NOT_YET_SET__}/snakemake.log"
 if command -v ccbr_pipeline_logging.sh >/dev/null 2>&1; then
   source "$(command -v ccbr_pipeline_logging.sh)"
 elif [[ -f "${PIPELINE_HOME}/workflow/scripts/ccbr_pipeline_logging.sh" ]]; then
