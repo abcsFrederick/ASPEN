@@ -1,4 +1,4 @@
-from os.path import join
+from os.path import dirname, join
 
 include: join("rules/init.smk")
 include: join("rules/align.smk")
@@ -72,22 +72,43 @@ rule all:
         # aggregated diffatac results
         expand(join(PEAKSDIR, "{peakcaller}", "DiffATAC", "{bamtype}", "{method}", "all_diff_atacs.tsv"), method=COUNTING_METHODS, peakcaller=PEAKCALLERS, bamtype=BAM_TYPES) if CONTRASTS.shape[0] > 0 else [],
 
+# NOTE (CCBR/ASPEN#144): do NOT rely on `command -v jobby`/`command -v spooker`
+# to decide whether the pinned ccbr_tools install is needed -- SLURM jobs
+# inherit the submitting shell's environment (no `module purge`), so a stale
+# jobby/spooker already on PATH would silently win and could crash on
+# unsupported CLI flags (e.g. `--tsv`). Instead, always explicitly load the
+# module and prepend the pinned ccbr_tools bin dir to PATH (and its package
+# root to PYTHONPATH -- ccbr_tools is not installed to site-packages, so a
+# PATH-only fix is insufficient). Every step is non-fatal (`|| true`/warn) so
+# a telemetry failure here can never masquerade as a pipeline failure.
+_ccbr_tools_bin = config["ccbr_tools_path"].rstrip("/")
+_ccbr_tools_root = dirname(_ccbr_tools_bin)
+
 on_complete = f"""
-for cmd in spooker jobby; do
-    if ! command -v $cmd 2>&1 >/dev/null; then
-        export PATH="$PATH:{config['ccbr_tools_path']}"
-    fi
-done
-jobby --tsv snakemake.log | tee snakemake.log.jobby | cut -f2,3,18 > snakemake.log.jobby.short
-spooker --outdir {WORKDIR} \
-    --name {config['pipeline']} \
-    --version {config['version']} \
-    --path {config['pipeline_home']} \
-    > logs/spooker.log 2>&1
+module load ccbrpipeliner >/dev/null 2>&1 || true
+export PATH="{_ccbr_tools_bin}:$PATH"
+export PYTHONPATH="{_ccbr_tools_root}:$PYTHONPATH"
+
+if command -v jobby >/dev/null 2>&1; then
+    jobby --tsv snakemake.log | tee snakemake.log.jobby | cut -f2,3,18 > snakemake.log.jobby.short \
+        || echo "WARN  jobby summary failed (non-fatal, see CCBR/ASPEN#144)" >&2
+else
+    echo "WARN  jobby not found on PATH; skipping snakemake.log.jobby summary" >&2
+fi
+
+if command -v spooker >/dev/null 2>&1; then
+    spooker --outdir {WORKDIR} \
+        --name {config['pipeline']} \
+        --version {config['version']} \
+        --path {config['pipeline_home']} \
+        > logs/spooker.log 2>&1 \
+        || echo "WARN  spooker usage reporting failed (non-fatal, see CCBR/ASPEN#144)" >&2
+else
+    echo "WARN  spooker not found on PATH; skipping usage reporting" >&2
+fi
 """
 
 onsuccess:
-    #subprocess.run(shlex.split(jobby_cmd),capture_output=False,shell=False,text=True)
     print("OnSuccess")
     shell("printenv")
     shell("module list")
@@ -95,7 +116,6 @@ onsuccess:
     shell(on_complete)
 
 onerror:
-    #subprocess.run(shlex.split(jobby_cmd),capture_output=False,shell=False,text=True)
     print("OnError")
     shell("printenv")
     shell("module list")
