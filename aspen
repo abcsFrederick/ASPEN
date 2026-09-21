@@ -656,6 +656,20 @@ else
   if command -v ccbr_pipeline_logging.sh >/dev/null 2>&1; then
     source "\$(command -v ccbr_pipeline_logging.sh)"
   else
+    # Can't source the library (so write_pipeline_state_marker_job() doesn't
+    # exist yet) -- write a plain-text pipeline.failed marker directly so a
+    # user polling pipeline.* files (rather than squeue) finds out about this
+    # failure instead of seeing a stale pipeline.running left over from the
+    # head-node's earlier "sbatch_submitted" write. Mirrors the human-readable
+    # format _pipeline_write_status_json() uses elsewhere without depending on
+    # the library that just failed to load. See CCBR/ASPEN#119.
+    {
+      printf 'State    : failed\n'
+      printf 'Reason   : ccbr_pipeline_logging_sh_not_found\n'
+      printf 'Job ID   : %s\n' "\${SLURM_JOB_ID:-NA}"
+      printf 'Updated  : %s\n' "\$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+    } > "${WORKDIR}/pipeline.failed"
+    rm -f "${WORKDIR}/pipeline.running"
     echo "ERROR ccbr_pipeline_logging.sh not found (checked PATH, ${WORKDIR}/scripts/, and module ccbrpipeliner)" >&2
     exit 1
   fi
