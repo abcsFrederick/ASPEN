@@ -1,3 +1,5 @@
+## ASPEN development version
+
 ## ASPEN 1.4.0
 
 - Add structured pipeline state tracking: a `pipeline.status.json` sidecar and `pipeline.{running,completed,failed,canceled}` marker files are now written to `WORKDIR` during `run`, with a live progress monitor that periodically updates `pipeline.running` with a step-completion percentage; a best-effort `jobby` TSV summary (`snakemake.log.jobby`) is now also generated when Slurm submission fails before Snakemake starts. Consolidated shared logging/banner/version-tag helper functions into a new staged library (`workflow/scripts/ccbr_pipeline_logging.sh`, slated for future migration to `ccbr_tools`); redesigned the `--version`/banner output. (#119, @kopardev)
