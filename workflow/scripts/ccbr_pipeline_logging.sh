@@ -125,8 +125,8 @@ function _pipeline_write_status_json() {
 
   cat > "${sidecar_tmp}" << STATEEOF
 {
-  "pipeline": "${PIPELINE_NAME}",
-  "version": "${PIPELINE_VERSION}",
+  "pipeline": "$(json_escape "${PIPELINE_NAME}")",
+  "version": "$(json_escape "${PIPELINE_VERSION}")",
   "state": "$(json_escape "${state}")",
   "reason": "$(json_escape "${reason}")",
   "runmode": "$(json_escape "${RUNMODE:-unknown}")",
