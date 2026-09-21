@@ -238,6 +238,14 @@ function _progress_monitor() {
   local waited=0
   local max_wait=300
   local raw done_n total_n pct remaining updated
+  # Tracks whether a real "N of M steps (P%) done" line has ever been parsed.
+  # Gating the placeholder write on this (rather than on `[[ ! -s "${marker}" ]]`)
+  # matters because pipeline.running is NEVER empty by the time this runs: the
+  # head node already wrote a non-empty "submission_started" summary to it
+  # before sbatch was invoked. Without this flag the placeholder below would
+  # never fire, leaving that stale head-node summary visible until the first
+  # progress line appears. See CCBR/ASPEN#119.
+  local progress_seen="false"
 
   while [[ ! -f "${logfile}" && "${waited}" -lt "${max_wait}" ]]; do
     [[ -f "${marker}" ]] || return 0
@@ -265,8 +273,9 @@ function _progress_monitor() {
           printf 'Progress : %s / %s steps complete (%s%%)\nRemaining: %s steps\nUpdated  : %s\n' \
             "${done_n}" "${total_n}" "${pct}" "${remaining}" "${updated}" > "${marker}.tmp.$$"
           mv "${marker}.tmp.$$" "${marker}"
+          progress_seen="true"
         fi
-      elif [[ ! -s "${marker}" ]]; then
+      elif [[ "${progress_seen}" == "false" ]]; then
         printf 'Status   : Submitted, waiting for first progress update\nUpdated  : %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" > "${marker}.tmp.$$"
         mv "${marker}.tmp.$$" "${marker}"
       fi
