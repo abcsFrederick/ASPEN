@@ -1,5 +1,12 @@
 ## ASPEN development version
 
+## ASPEN 1.4.0
+
+- Add structured pipeline state tracking: a `pipeline.status.json` sidecar and `pipeline.{running,completed,failed,canceled}` marker files are now written to `WORKDIR` during `run`, with a live progress monitor that periodically updates `pipeline.running` with a step-completion percentage; a best-effort `jobby` TSV summary (`snakemake.log.jobby`) is now also generated when Slurm submission fails before Snakemake starts. Consolidated shared logging/banner/version-tag helper functions into a new staged library (`workflow/scripts/ccbr_pipeline_logging.sh`, slated for future migration to `ccbr_tools`); redesigned the `--version`/banner output. (#119, @kopardev)
+- Fix a bug where a fully successful run could be reported as `failed`: the Snakemake `onsuccess`/`onerror` telemetry hook (`jobby`/`spooker`) could crash on a stale `jobby` inherited from the submitting shell's environment, which Snakemake treated as fatal even though every rule had already completed. `submit_script.sbatch` now starts from a clean module environment (`module purge`) and the telemetry hook explicitly loads the pinned `ccbr_tools` install (fixing both `PATH` and `PYTHONPATH`) and is now non-fatal. `pipeline.{running,completed,failed,canceled}` marker files are also now human-readable instead of empty. (#144, @kopardev)
+- Fix the `Genome:` line in the run summary to reflect the genome configured in the workdir's `config.yaml` instead of the `-g`/`--genome` CLI flag or its default, which only apply to `init`/`reconfig`. (@kopardev)
+- Remove a leftover ASCII-art banner in `init.smk` that duplicated the redesigned `--version`/banner output on every Snakemake invocation. (@kopardev)
+
 ## ASPEN 1.3.0
 
 - Generate Tn5 nicking-site and read counts matrices, and the corresponding DiffATAC/DESeq2 results, from both `dedup.bam` (PCR/optical duplicates removed) and `filtered.bam` (duplicates retained, labeled `nondedup`), written to separate `dedup`/`nondedup` output subfolders under `visualization/` and `peaks/{peakcaller}/{fixed_width/counts,DiffATAC}/`; previously only the duplicate-retaining `filtered.bam` was used. `dedup` is recommended for standard differential accessibility testing. (#138, @kopardev)
