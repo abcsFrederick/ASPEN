@@ -1,6 +1,6 @@
 ## ASPEN development version
 
-- Detect SLURM-killed Snakemake child jobs in classic cluster mode by adding a `--cluster-status` hook and `scancel` integration, so timed out, OOM-killed, cancelled, or otherwise failed child jobs now retry/fail cleanly instead of leaving the master workflow hanging indefinitely. (#141, @kopardev)
+- Detect SLURM-killed Snakemake child jobs in classic cluster mode by adding a `--cluster-status` hook and `scancel` integration, so timed out, OOM-killed, cancelled, or otherwise failed child jobs now retry/fail cleanly instead of leaving the master workflow hanging indefinitely. (#148, @kopardev)
 
 ## ASPEN 1.4.0
 
