@@ -151,11 +151,11 @@ If a project later needs de novo motif discovery, that can be added as a
 separate workflow enhancement rather than mixed into the default run.
 
 !!! tip "Rule of thumb"
-    Start by looking for motif families that are strong in **both** HOMER and
-    AME. In HOMER, focus on motifs with very small `p-value`/`q-value` values
-    and a clear increase in `% of Target Sequences with Motif` relative to
-    background. In AME, focus on low `adj_p-value`/`E-value` hits where `%TP`
-    is clearly higher than `%FP`.
+Start by looking for motif families that are strong in **both** HOMER and
+AME. In HOMER, focus on motifs with very small `p-value`/`q-value` values
+and a clear increase in `% of Target Sequences with Motif` relative to
+background. In AME, focus on low `adj_p-value`/`E-value` hits where `%TP`
+is clearly higher than `%FP`.
 
 Detailed file locations and interpretation notes for `knownResults.txt`,
 `ame_results.txt`, `target.fa`, and `background.fa` are documented in
