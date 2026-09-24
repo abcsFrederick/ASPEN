@@ -1,6 +1,6 @@
 ## ASPEN development version
 
-- Add attempt-aware resource scaling for the main Snakemake rules and fix dry-run failure handling so failed dry-runs now exit non-zero instead of reporting success. (#152, @kopardev)
+- Add attempt-aware resource scaling for the main Snakemake rules, document how baseline `cluster.json` resources interact with retry-based `resources.gres` scaling, and fix dry-run failure handling so failed dry-runs now exit non-zero instead of reporting success. (#152, @kopardev)
 
 ## ASPEN 1.4.0
 
