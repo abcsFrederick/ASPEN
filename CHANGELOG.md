@@ -1,6 +1,7 @@
 ## ASPEN development version
 
 - Detect SLURM-killed Snakemake child jobs in classic cluster mode by adding a `--cluster-status` hook and `scancel` integration, so timed out, OOM-killed, cancelled, or otherwise failed child jobs now retry/fail cleanly instead of leaving the master workflow hanging indefinitely. (#148, @kopardev)
+- Clarify motif enrichment outputs and interpretation in the documentation: fix the reported location of HOMER/AME result folders, explain how ASPEN reuses HOMER-generated `target.fa`/`background.fa` in AME, document the AME parallelization strategy, and add simpler guidance for interpreting `knownResults.txt` and `ame_results.txt`. (#146, @kopardev)
 
 ## ASPEN 1.4.0
 
