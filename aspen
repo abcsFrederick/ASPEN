@@ -408,7 +408,11 @@ function dryrun() {
   echo "Git Commit/Tag: $GIT_COMMIT_TAG" > ${WORKDIR}/dryrun_git_commit.txt
   log_ok "Dry-run completed."
   log_info "Full dry-run output captured in ${WORKDIR}/dryrun.log"
-  log_next "Submit run with: aspen --workdir=$WORKDIR --runmode=run"
+  if grep -qi "Nothing to be done" "${WORKDIR}/dryrun.log"; then
+    log_info "Dry-run reports no pending jobs for this workdir; skipping NEXT prompt."
+  else
+    log_next "Submit run with: aspen --workdir=$WORKDIR --runmode=run"
+  fi
 }
 
 ##########################################################################################
