@@ -517,17 +517,16 @@ printf '%s\n%s\n' "$labels" "$bw_list" > {output.prep}
 rule deeptools_mat:
 # """
 # Compute deepTools matrices for TSS and metagene summaries.
-# Input: the prepared bigWig manifest plus the bundled TSS BED archive.
-# Output: reference-point and scale-region matrices for each group and annotation class.
+# Input: the prepared bigWig manifest plus the genome's bundled TSS BED archive.
+# Output: reference-point and scale-region matrices for each group.
 # """
     input:
         prep=join(RESULTSDIR, "deeptools", "temp", "{group}.{bamtype}.reads.deeptools_prep"),
-        bedtar=join(RESOURCESDIR, "tssBed", "hg38_tssbeds.tar.gz"),
+        bedtar=config[GENOME]["tssBed"],
     output:
-        tss=join(RESULTSDIR, "deeptools", "temp", "{group}.{bamtype}.{bedtype}.TSS.mat.gz"),
-        metagene=join(RESULTSDIR, "deeptools", "temp", "{group}.{bamtype}.{bedtype}.metagene.mat.gz"),
+        tss=join(RESULTSDIR, "deeptools", "temp", "{group}.{bamtype}.TSS.mat.gz"),
+        metagene=join(RESULTSDIR, "deeptools", "temp", "{group}.{bamtype}.metagene.mat.gz"),
     params:
-        bedtype="{bedtype}",
         group="{group}",
         bamtype="{bamtype}",
         tss_upstream=config["deeptools"]["tss_upstream"],
@@ -571,5 +570,56 @@ computeMatrix scale-regions \
     --skipZeros \
     --samplesLabel $labels \
     -o {output.metagene}
+"""
+
+
+#########################################################
+
+rule deeptools_plot:
+# """
+# Render final deepTools heatmaps and profile plots from the TSS and metagene matrices.
+# Input: the TSS and metagene matrices produced by deeptools_mat.
+# Output: per-group/bamtype heatmap and profile PDFs (the final, user-facing deepTools products).
+# """
+    input:
+        tss=rules.deeptools_mat.output.tss,
+        metagene=rules.deeptools_mat.output.metagene,
+    output:
+        tss_heatmap=join(RESULTSDIR, "deeptools", "{group}.{bamtype}.TSS.heatmap.pdf"),
+        tss_profile=join(RESULTSDIR, "deeptools", "{group}.{bamtype}.TSS.profile.pdf"),
+        metagene_heatmap=join(RESULTSDIR, "deeptools", "{group}.{bamtype}.metagene.heatmap.pdf"),
+        metagene_profile=join(RESULTSDIR, "deeptools", "{group}.{bamtype}.metagene.profile.pdf"),
+    params:
+        group="{group}",
+        bamtype="{bamtype}",
+    container: config["deeptoolsdocker"]
+    threads: getthreads("deeptools_plot")
+    resources:
+        gres=lambda wildcards, attempt: scale_gres("deeptools_plot", attempt)
+    shell:"""
+set -euo pipefail
+unset PYTHONPATH
+
+plotHeatmap \
+    -m {input.tss} \
+    -out {output.tss_heatmap} \
+    --refPointLabel TSS
+
+plotProfile \
+    -m {input.tss} \
+    -out {output.tss_profile} \
+    --refPointLabel TSS
+
+plotHeatmap \
+    -m {input.metagene} \
+    -out {output.metagene_heatmap} \
+    --startLabel "start" \
+    --endLabel "end"
+
+plotProfile \
+    -m {input.metagene} \
+    -out {output.metagene_profile} \
+    --startLabel "start" \
+    --endLabel "end"
 """
 

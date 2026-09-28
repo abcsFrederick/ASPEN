@@ -145,18 +145,18 @@ Content details:
 
 ### deepTools TSS and metagene outputs
 
-ASPEN can generate deepTools heatmaps and profile plots to summarize ATAC-seq accessibility around transcription start sites (TSS) and across gene bodies. These are useful QC and exploratory summaries: they make it easy to see whether signal is concentrated near promoters, spread across gene bodies, or strongly driven by a subset of samples or groups.
+ASPEN generates deepTools heatmaps and profile plots to summarize ATAC-seq accessibility around transcription start sites (TSS) and across gene bodies. These are useful QC and exploratory summaries: they make it easy to see whether signal is concentrated near promoters, spread across gene bodies, or strongly driven by a subset of samples or groups.
 
-These outputs are built from the pipeline's normalized coverage signal, using the default `deduplicated` read coverage unless a spike-in-normalized branch is enabled. The default annotation set is `protein_coding`, and the resulting filenames make that choice explicit so users can tell which gene model was used.
+These outputs are built per sample group (as defined in the sample manifest) and per BAM type (`dedup`/`nondedup`), from that group's pooled, spike-in-scaled `reads` bigWig coverage (`results/visualization/{bamtype}/reads_bigwig/`); if spike-in normalization is disabled, the scaling factor defaults to 1.0. All outputs live under `results/deeptools/`, with intermediate `computeMatrix` matrices (`*.mat.gz`) kept under `results/deeptools/temp/` for debugging or re-runs.
 
 | Output type | Meaning | Typical interpretation |
 | --- | --- | --- |
-| `*_protein_coding.TSS_heatmap.pdf` | Heatmap of signal aligned at each gene TSS | Strong promoter-centered enrichment usually indicates open chromatin near active promoters |
-| `*_protein_coding.TSS_profile.pdf` | Average profile of signal around TSS | Helps compare the shape of promoter accessibility across samples and groups |
-| `*_protein_coding.metagene_heatmap.pdf` | Heatmap across scaled gene bodies and flanks | Shows whether accessibility is distributed over gene bodies or concentrated near promoters |
-| `*_protein_coding.metagene_profile.pdf` | Average gene-body profile | Summarizes whether signal rises near promoters, remains across the body, or falls toward the 3' end |
-| `all_samples.*` | Pooled experiment-level summary | Best for the overall pattern across the full dataset |
-| `group-level` or sample-level files | Per-group or per-sample summaries | Useful for identifying whether a pooled effect is driven by one group or by a shared biological pattern |
+| `{group}.{bamtype}.TSS.heatmap.pdf` | Heatmap of signal aligned at each gene TSS | Strong promoter-centered enrichment usually indicates open chromatin near active promoters |
+| `{group}.{bamtype}.TSS.profile.pdf` | Average profile of signal around TSS | Helps compare the shape of promoter accessibility across samples and groups |
+| `{group}.{bamtype}.metagene.heatmap.pdf` | Heatmap across scaled gene bodies and flanks | Shows whether accessibility is distributed over gene bodies or concentrated near promoters |
+| `{group}.{bamtype}.metagene.profile.pdf` | Average gene-body profile | Summarizes whether signal rises near promoters, remains across the body, or falls toward the 3' end |
+
+`{group}` is the sample name from the manifest (so a pooled/experiment-wide summary can be produced by defining a group whose replicates span the whole dataset); `{bamtype}` is `dedup` or `nondedup`.
 
 A TSS heatmap is a matrix of signal centered on each gene's transcription start site; each row is a region and each column is a position relative to that TSS. A metagene plot instead summarizes signal across many genes after aligning them by their start and end coordinates, so the user can see the average signal across promoter, gene body, and downstream regions. In practice, a strong TSS-centered signal often reflects promoter accessibility, while a broader gene-body signal suggests a more distributed accessibility pattern.
 
