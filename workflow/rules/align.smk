@@ -481,3 +481,95 @@ bamCoverage \
     --scaleFactor $sf \
     --numberOfProcessors {threads}
 """
+
+
+#########################################################
+
+rule deeptools_prep:
+# """
+# Prepare per-group deepTools inputs for TSS and metagene plots.
+# Input: bigWig files for a group or pooled sample set.
+# Output: a manifest with sample labels on the first line and paths on the second line.
+# This matches the format consumed by computeMatrix in the deepTools workflow.
+# """
+    input:
+        bw=lambda wildcards: expand(
+            join(RESULTSDIR, "visualization", "{bamtype}", "reads_bigwig", "{replicate}.reads.bw"),
+            bamtype=wildcards.bamtype,
+            replicate=SAMPLE2REPLICATES[wildcards.group],
+        )
+    output:
+        prep=join(RESULTSDIR, "deeptools", "temp", "{group}.{bamtype}.reads.deeptools_prep"),
+    params:
+        group="{group}",
+        bamtype="{bamtype}",
+    container: config["deeptoolsdocker"]
+    threads: 1
+    shell:"""
+set -euo pipefail
+unset PYTHONPATH
+labels=$(printf '%s\n' {input.bw} | xargs -n1 basename | sed 's/\.reads\.bw$//' | paste -sd' ' -)
+bw_list=$(printf '%s\n' {input.bw} | paste -sd' ' -)
+printf '%s\n%s\n' "$labels" "$bw_list" > {output.prep}
+"""
+
+
+rule deeptools_mat:
+# """
+# Compute deepTools matrices for TSS and metagene summaries.
+# Input: the prepared bigWig manifest plus the bundled TSS BED archive.
+# Output: reference-point and scale-region matrices for each group and annotation class.
+# """
+    input:
+        prep=join(RESULTSDIR, "deeptools", "temp", "{group}.{bamtype}.reads.deeptools_prep"),
+        bedtar=join(RESOURCESDIR, "tssBed", "hg38_tssbeds.tar.gz"),
+    output:
+        tss=join(RESULTSDIR, "deeptools", "temp", "{group}.{bamtype}.{bedtype}.TSS.mat.gz"),
+        metagene=join(RESULTSDIR, "deeptools", "temp", "{group}.{bamtype}.{bedtype}.metagene.mat.gz"),
+    params:
+        bedtype="{bedtype}",
+        group="{group}",
+        bamtype="{bamtype}",
+        tss_upstream=config["deeptools"]["tss_upstream"],
+        tss_downstream=config["deeptools"]["tss_downstream"],
+        metagene_body_length=config["deeptools"]["metagene_body_length"],
+        metagene_upstream=config["deeptools"]["metagene_upstream"],
+        metagene_downstream=config["deeptools"]["metagene_downstream"],
+    container: config["deeptoolsdocker"]
+    threads: getthreads("deeptools_mat")
+    resources:
+        gres=lambda wildcards, attempt: scale_gres("deeptools_mat", attempt)
+    shell:"""
+set -euo pipefail
+unset PYTHONPATH
+
+tmpdir=$(mktemp -d)
+tar -xzf {input.bedtar} -C "$tmpdir"
+cat "$tmpdir"/*.bed > "$tmpdir"/combined.bed
+
+bw_list=$(awk 'NR==2 {{print $0}}' {input.prep})
+labels=$(awk 'NR==1 {{print $0}}' {input.prep})
+
+computeMatrix reference-point \
+    -S $bw_list \
+    -R "$tmpdir/combined.bed" \
+    -p {threads} \
+    --referencePoint TSS \
+    --upstream {params.tss_upstream} \
+    --downstream {params.tss_downstream} \
+    --skipZeros \
+    --samplesLabel $labels \
+    -o {output.tss}
+
+computeMatrix scale-regions \
+    -S $bw_list \
+    -R "$tmpdir/combined.bed" \
+    -p {threads} \
+    --regionBodyLength {params.metagene_body_length} \
+    --upstream {params.metagene_upstream} \
+    --downstream {params.metagene_downstream} \
+    --skipZeros \
+    --samplesLabel $labels \
+    -o {output.metagene}
+"""
+

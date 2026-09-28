@@ -30,6 +30,16 @@
         "threads": "16",
         "time": "12:00:00"
     },
+    "deeptools_prep": {
+        "mem": "32g",
+        "threads": "2",
+        "time": "4:00:00"
+    },
+    "deeptools_mat": {
+        "mem": "256g",
+        "threads": "32",
+        "time": "12:00:00"
+    },
     "align": {
         "mem": "240g",
         "threads": "16",
