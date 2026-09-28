@@ -90,9 +90,12 @@ function get_git_commitid_tag() {
 # place. Positional args:
 #   1=state 2=reason 3=job_id 4=host 5=submission_ts 6=start_ts
 #   7=duration_seconds 8=exit_code 9=tasks_done 10=tasks_total
+#   11=failed_rule 12=failed_command
 function _pipeline_write_status_json() {
   local state="$1" reason="$2" job_id="$3" host="$4" submission_ts="$5"
   local start_ts="$6" duration_seconds="$7" exit_code="$8" tasks_done="$9" tasks_total="${10}"
+  local failed_rule="${11:-}"
+  local failed_command="${12:-}"
   local now_utc sidecar sidecar_tmp start_ts_json
 
   now_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -119,6 +122,8 @@ function _pipeline_write_status_json() {
     [[ -n "${job_id}" ]] && printf 'Job ID   : %s\n' "${job_id}"
     [[ -n "${exit_code}" ]] && printf 'Exit code: %s\n' "${exit_code}"
     [[ -n "${tasks_done}" && -n "${tasks_total}" ]] && printf 'Progress : %s / %s steps done\n' "${tasks_done}" "${tasks_total}"
+    [[ -n "${failed_rule}" ]] && printf 'Rule     : %s\n' "${failed_rule}"
+    [[ -n "${failed_command}" ]] && printf 'Command  : %s\n' "${failed_command}"
     printf 'Log      : %s\n' "${SNAKEMAKE_LOG_PATH}"
     printf 'Updated  : %s\n' "${now_utc}"
   } > "${WORKDIR}/pipeline.${state}"
@@ -140,6 +145,8 @@ function _pipeline_write_status_json() {
   "exit_code": ${exit_code:-null},
   "tasks_done": ${tasks_done:-null},
   "tasks_total": ${tasks_total:-null},
+  "failed_rule": $(json_escape_string_or_null "${failed_rule}"),
+  "failed_command": $(json_escape_string_or_null "${failed_command}"),
   "snakemake_log": "$(json_escape "${SNAKEMAKE_LOG_PATH}")",
   "timestamp_utc": "${now_utc}"
 }
@@ -177,13 +184,22 @@ function write_pipeline_state_marker() {
 # script (after `module load ccbrpipeliner; source ccbr_pipeline_logging.sh`).
 # Requires the caller to export _START_EPOCH/_START_TS right after module load.
 # Args: state reason [job_id] [exit_code]
+function json_escape_string_or_null() {
+  local value="${1:-}"
+  if [[ -z "${value}" ]]; then
+    printf 'null'
+  else
+    printf '"%s"' "$(json_escape "${value}")"
+  fi
+}
+
 function write_pipeline_state_marker_job() {
   local state="$1"
   local reason="${2:-}"
   local job_id="${3:-${SLURM_JOB_ID:-NA}}"
   local exit_code="${4:-}"
   local host submission_ts="" submit_epoch duration_seconds=""
-  local tasks_done="" tasks_total="" raw_tasks
+  local tasks_done="" tasks_total="" raw_tasks failed_rule="" failed_command=""
 
   host=$(hostname 2>/dev/null || echo "unknown")
 
@@ -204,9 +220,18 @@ function write_pipeline_state_marker_job() {
     tasks_total=$(printf '%s' "${raw_tasks}" | grep -oP '(?<=of )\d+' || true)
   fi
 
+  if [[ -f "${SNAKEMAKE_LOG_PATH}" ]]; then
+    failed_rule=$(grep -E 'Error in rule ' "${SNAKEMAKE_LOG_PATH}" 2>/dev/null | tail -1 | sed -E 's/.*Error in rule ([^:]+):.*/\1/' || true)
+    if [[ -n "${failed_rule}" ]]; then
+      failed_command=$(grep -n 'Error in rule ' "${SNAKEMAKE_LOG_PATH}" 2>/dev/null | tail -1 | cut -d: -f1 | while read -r line_no; do
+        sed -n "1,${line_no}p" "${SNAKEMAKE_LOG_PATH}" 2>/dev/null | grep -E 'computeMatrix|plotHeatmap|plotProfile|bamCoverage|samtools|python .*|bedToBam|bedSort|bwa|fastqc|multiqc|Rscript' | tail -1 || true
+      done | tail -1 || true)
+    fi
+  fi
+
   _pipeline_write_status_json "${state}" "${reason}" "${job_id}" "${host}" \
     "${submission_ts}" "${_START_TS:-}" "${duration_seconds}" "${exit_code}" \
-    "${tasks_done}" "${tasks_total}"
+    "${tasks_done}" "${tasks_total}" "${failed_rule}" "${failed_command}"
 }
 
 # Best-effort jobby summary of the snakemake log. Path is parameterized via

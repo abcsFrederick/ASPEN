@@ -1,5 +1,6 @@
 ## ASPEN development version
 
+- Improve failed-run diagnostics by recording the failing Snakemake rule and command in `pipeline.status.json` and the human-readable `pipeline.failed` marker, so users can immediately see which step (for example, `deeptools_mat`) triggered the failure without digging through `snakemake.log` manually. (#000, @kopardev)
 - Document successful `dryrun` and `run` console output in `docs/deployment.md`, including example screenshots, an explanation of `STEP`/`OK`/`INFO`/`NEXT`, and explicit links between wrapper messages and `WORKDIR` status files. (#147, @kopardev)
 - Add attempt-aware resource scaling for the main Snakemake rules, document how baseline `cluster.json` resources interact with retry-based `resources.gres` scaling, and fix dry-run failure handling so failed dry-runs now exit non-zero instead of reporting success. (#152, @kopardev)
 - Detect SLURM-killed Snakemake child jobs in classic cluster mode by adding a `--cluster-status` hook and `scancel` integration, so timed out, OOM-killed, cancelled, or otherwise failed child jobs now retry/fail cleanly instead of leaving the master workflow hanging indefinitely. (#148, @kopardev)
