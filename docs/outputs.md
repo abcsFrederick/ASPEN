@@ -145,22 +145,46 @@ Content details:
 
 ### deepTools TSS and metagene outputs
 
-ASPEN generates deepTools heatmaps and profile plots to summarize ATAC-seq accessibility around transcription start sites (TSS) and across gene bodies. These are useful QC and exploratory summaries: they make it easy to see whether signal is concentrated near promoters, spread across gene bodies, or strongly driven by a subset of samples or groups.
+ASPEN generates deepTools heatmaps and profile plots to summarize ATAC-seq accessibility around transcription start sites (TSS) and across gene bodies. These exploratory visualizations reveal whether signal concentrates near promoters, distributes across gene bodies, or shows group-specific patterns.
 
-These outputs are built per sample group (as defined in the sample manifest) and per BAM type (`dedup`/`nondedup`), from that group's pooled, spike-in-scaled `reads` bigWig coverage (`results/visualization/{bamtype}/reads_bigwig/`); if spike-in normalization is disabled, the scaling factor defaults to 1.0. All outputs live under `results/deeptools/`, with intermediate `computeMatrix` matrices (`*.mat.gz`) kept under `results/deeptools/temp/` for debugging or re-runs.
+#### Purpose and when generated
 
-| Output type | Meaning | Typical interpretation |
-| --- | --- | --- |
-| `{group}.{bamtype}.TSS.heatmap.pdf` | Heatmap of signal aligned at each gene TSS | Strong promoter-centered enrichment usually indicates open chromatin near active promoters |
-| `{group}.{bamtype}.TSS.profile.pdf` | Average profile of signal around TSS | Helps compare the shape of promoter accessibility across samples and groups |
-| `{group}.{bamtype}.metagene.heatmap.pdf` | Heatmap across scaled gene bodies and flanks | Shows whether accessibility is distributed over gene bodies or concentrated near promoters |
-| `{group}.{bamtype}.metagene.profile.pdf` | Average gene-body profile | Summarizes whether signal rises near promoters, remains across the body, or falls toward the 3' end |
+These outputs summarize enrichment patterns across many genomic regions, generated after bigWig preparation as part of the pipeline's final outputs (`rule all`). They are derived from normalized bigWig coverage to show accessibility patterns clearly and enable visual quality assessment alongside numerical QC metrics.
 
-`{group}` is the sample name from the manifest (so a pooled/experiment-wide summary can be produced by defining a group whose replicates span the whole dataset); `{bamtype}` is `dedup` or `nondedup`.
+#### Output files
 
-A TSS heatmap is a matrix of signal centered on each gene's transcription start site; each row is a region and each column is a position relative to that TSS. A metagene plot instead summarizes signal across many genes after aligning them by their start and end coordinates, so the user can see the average signal across promoter, gene body, and downstream regions. In practice, a strong TSS-centered signal often reflects promoter accessibility, while a broader gene-body signal suggests a more distributed accessibility pattern.
+| Output file | Region type | Visualization | Use case |
+| --- | --- | --- | --- |
+| `{group}.{bamtype}.TSS.heatmap.pdf` | ±3000 bp around TSS | Heatmap (regions × position) | View each gene's promoter signal strength and distribution |
+| `{group}.{bamtype}.TSS.profile.pdf` | ±3000 bp around TSS | Aggregate line plot (mean ± SE) | Compare average promoter accessibility across samples |
+| `{group}.{bamtype}.metagene.heatmap.pdf` | Gene body ± flanks | Heatmap (regions × normalized length) | Assess whether signal spreads across genes or clusters at promoters |
+| `{group}.{bamtype}.metagene.profile.pdf` | Gene body ± flanks | Aggregate line plot | Understand average accessibility distribution within genes |
 
-The documentation should be interpreted in context: deepTools outputs are exploratory summaries, not a replacement for peak calling or differential accessibility results. They are most useful alongside FRiP, TSS enrichment, library complexity, and peak annotation QC metrics. If spike-in normalization is enabled, the spike-in-normalized plots are especially helpful for making sample-to-sample comparisons when total sequencing depth differs substantially.
+Where `{group}` = sample name from manifest (groups can span multiple replicates) and `{bamtype}` = `dedup` or `nondedup`.
+
+#### Data source and normalization
+
+- **Input**: Pooled bigWig coverage per group per BAM type from `results/visualization/{bamtype}/reads_bigwig/`
+- **Normalization**: Spike-in-scaled (or 1.0× if disabled)
+- **Annotation**: Ensembl protein-coding genes (genome-specific BED archive)
+- **Intermediate files**: Saved under `results/deeptools/temp/` for re-runs and debugging
+
+#### Interpretation
+
+- **TSS heatmaps**: Each row = one gene. Red/hot colors near position 0 = strong promoter accessibility.
+- **TSS profiles**: Peak at position 0 = promoter-centered open chromatin (expected for active genes). Flat or shifted peak = different accessibility pattern.
+- **Metagene heatmaps**: Red near left edge = signal at promoters. Uniform red across = open throughout gene bodies. Red at right edge = 3′ bias.
+- **Metagene profiles**: Shape indicates accessibility distribution: peaked = localized; flat = distributed; sloped = progressive.
+
+#### Configuration
+
+Tune window sizes via `config.deeptools.*` in `config.yaml`:
+
+- `tss_upstream/downstream`: Flanking distance around TSS (default: 3000 bp)
+- `metagene_body_length`: Normalized gene body length (default: 2000 bp)
+- `metagene_upstream/downstream`: Flanking distance around gene start/end (default: 2000 bp)
+
+Edit these before running to adjust the window sizes for your analysis needs.
 
 !!! note
     BAM files from `dedupBam` can be used for downstream footprinting analysis using [CCBR_TOBIAS](https://github.com/CCBR/CCBR_Tobias) pipeline
@@ -551,4 +575,5 @@ This directory contains all .err and .out log files generated by SLURM for jobs 
 
 This structure is particularly useful for troubleshooting and debugging, especially when the SLURM job IDs of failed jobs are known. By examining the corresponding .err or .out files, users can efficiently identify the source of errors within specific Snakemake rules and wildcards.
 
-> DISCLAIMER: This folder hierarchy is significantly different than v1.2.0 and is subject to change with subsequent versions.
+!!! warning "DISCLAIMER"
+    This folder hierarchy is significantly different than v1.2.0 and is subject to change with subsequent versions.
