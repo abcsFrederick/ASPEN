@@ -205,6 +205,17 @@ jaccard_min_peaks: 1000
 # fastq screen configuration file
 fastqscreen_config: "$PIPELINE_HOME/config/fastq_screen_config.txt"
 
+# deepTools matrix/heatmap parameters
+# these control the TSS-centered and metagene windows used by computeMatrix
+# and can be overridden per project without editing the Snakemake rules
+# Default values match the issue #7 design and are expressed in base pairs.
+deeptools:
+  tss_upstream: 3000
+  tss_downstream: 3000
+  metagene_body_length: 2000
+  metagene_upstream: 2000
+  metagene_downstream: 2000
+
 # Containers
 masterdocker: "docker://nciccbr/ccbr_atacseq:v13-feat"
 cutadaptdocker: "docker://nciccbr/ccbr_atacseq:v11-feat"
