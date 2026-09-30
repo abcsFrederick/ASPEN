@@ -1,5 +1,7 @@
 aspen.bak
 **/.koparde*
+.superpowers/
+.superpowers-installer/
 !.editorconfig
 !.gitignore
 !.gitattributes
