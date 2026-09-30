@@ -71,6 +71,11 @@ rule all:
         expand(join(PEAKSDIR, "{peakcaller}", "DiffATAC", "{bamtype}", "{method}", "degs.done"), method=COUNTING_METHODS, peakcaller=PEAKCALLERS, bamtype=BAM_TYPES) if CONTRASTS.shape[0] > 0 else [],
         # aggregated diffatac results
         expand(join(PEAKSDIR, "{peakcaller}", "DiffATAC", "{bamtype}", "{method}", "all_diff_atacs.tsv"), method=COUNTING_METHODS, peakcaller=PEAKCALLERS, bamtype=BAM_TYPES) if CONTRASTS.shape[0] > 0 else [],
+        # deepTools TSS/metagene heatmaps and profile plots (issue #7)
+        expand(join(RESULTSDIR, "deeptools", "{group}.{bamtype}.TSS.heatmap.pdf"), group=SAMPLES, bamtype=BAM_TYPES),
+        expand(join(RESULTSDIR, "deeptools", "{group}.{bamtype}.TSS.profile.pdf"), group=SAMPLES, bamtype=BAM_TYPES),
+        expand(join(RESULTSDIR, "deeptools", "{group}.{bamtype}.metagene.heatmap.pdf"), group=SAMPLES, bamtype=BAM_TYPES),
+        expand(join(RESULTSDIR, "deeptools", "{group}.{bamtype}.metagene.profile.pdf"), group=SAMPLES, bamtype=BAM_TYPES),
 
 # NOTE (CCBR/ASPEN#144): do NOT rely on `command -v jobby`/`command -v spooker`
 # to decide whether the pinned ccbr_tools install is needed -- SLURM jobs
